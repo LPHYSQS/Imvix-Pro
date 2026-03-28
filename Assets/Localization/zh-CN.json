@@ -50,7 +50,7 @@
     "PreviewTab":  "预览",
     "SettingsTab":  "设置",
     "NoPreview":  "请选择一个文件预览",
-    "PreviewWindowHint":  "提示：可左键点击上方预览图打开预览窗口，以查看大图，并在可用时使用预览专用功能（如 AI 增强、AI 抠图等）。",
+    "PreviewWindowHint":  "提示：可左键点击上方预览图打开预览窗口，以查看大图，并在可用时使用预览专用功能（如 AI 增强、AI 抠图等）。如需使用这些 AI 功能，请先在顶部菜单开启“AI 增强”，且当前文件需为受支持的已导入静态图片格式。",
     "StatusLabel":  "状态",
     "CurrentFile":  "当前文件",
     "Remaining":  "剩余数量",

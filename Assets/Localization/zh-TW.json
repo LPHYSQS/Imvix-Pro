@@ -50,7 +50,7 @@
     "PreviewTab":  "預覽",
     "SettingsTab":  "設定",
     "NoPreview":  "請選擇一個檔案預覽",
-    "PreviewWindowHint":  "提示：可用滑鼠左鍵點擊上方預覽圖開啟預覽視窗，以檢視大圖，並在可用時使用預覽專用功能（如 AI 增強、AI 去背等）。",
+    "PreviewWindowHint":  "提示：可用滑鼠左鍵點擊上方預覽圖開啟預覽視窗，以檢視大圖，並在可用時使用預覽專用功能（如 AI 增強、AI 去背等）。如需使用這些 AI 功能，請先在頂部選單開啟「AI 增強」，且目前檔案需為受支援的已匯入靜態圖片格式。",
     "StatusLabel":  "狀態",
     "CurrentFile":  "目前檔案",
     "Remaining":  "剩餘數量",

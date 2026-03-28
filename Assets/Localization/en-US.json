@@ -50,7 +50,7 @@
     "PreviewTab":  "Preview",
     "SettingsTab":  "Settings",
     "NoPreview":  "Select a file to preview",
-    "PreviewWindowHint":  "Tip: Left-click the preview image above to open the preview window for a larger view and, when available, preview-only tools such as AI enhancement and AI matting.",
+    "PreviewWindowHint":  "Tip: Left-click the preview image above to open the preview window for a larger view and, when available, use preview-only tools such as AI enhancement and AI matting. To use these AI tools, first enable AI enhancement from the top menu, and make sure the current file is a supported imported static image.",
     "StatusLabel":  "Status",
     "CurrentFile":  "Current File",
     "Remaining":  "Remaining",

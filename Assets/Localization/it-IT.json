@@ -50,7 +50,7 @@
     "PreviewTab":  "Anteprima",
     "SettingsTab":  "Impostazioni",
     "NoPreview":  "Seleziona un file da visualizzare in anteprima",
-    "PreviewWindowHint":  "Suggerimento: fai clic con il tasto sinistro sull'anteprima qui sopra per aprire la finestra di anteprima, vedere l'immagine più in grande e, quando disponibili, usare funzioni dedicate all'anteprima come miglioramento AI e scontorno AI.",
+    "PreviewWindowHint":  "Suggerimento: fai clic con il tasto sinistro sull'anteprima qui sopra per aprire la finestra di anteprima, vedere l'immagine più in grande e, quando disponibili, usare funzioni dedicate all'anteprima come miglioramento AI e scontorno AI. Per usare questi strumenti AI, attiva prima \"Miglioramento AI\" dal menu superiore e assicurati che il file corrente sia un'immagine statica importata supportata.",
     "StatusLabel":  "Stato",
     "CurrentFile":  "File corrente",
     "Remaining":  "Rimanenti",

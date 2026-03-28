@@ -50,7 +50,7 @@
     "PreviewTab":  "Aperçu",
     "SettingsTab":  "Paramètres",
     "NoPreview":  "Sélectionnez un fichier à prévisualiser",
-    "PreviewWindowHint":  "Astuce : cliquez avec le bouton gauche sur l'aperçu ci-dessus pour ouvrir la fenêtre d'aperçu, afficher l'image en plus grand et, si disponible, utiliser des fonctions dédiées à l'aperçu comme l'amélioration IA ou le détourage IA.",
+    "PreviewWindowHint":  "Astuce : cliquez avec le bouton gauche sur l'aperçu ci-dessus pour ouvrir la fenêtre d'aperçu, afficher l'image en plus grand et, si disponible, utiliser des fonctions dédiées à l'aperçu comme l'amélioration IA ou le détourage IA. Pour utiliser ces outils IA, activez d'abord « Amélioration IA » dans le menu supérieur et vérifiez que le fichier actuel est une image statique importée prise en charge.",
     "StatusLabel":  "Statut",
     "CurrentFile":  "Fichier en cours",
     "Remaining":  "Restant",

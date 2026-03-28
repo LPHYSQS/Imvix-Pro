@@ -50,7 +50,7 @@
     "PreviewTab":  "Vorschau",
     "SettingsTab":  "Einstellungen",
     "NoPreview":  "Wählen Sie eine Datei zur Vorschau aus",
-    "PreviewWindowHint":  "Tipp: Klicken Sie mit der linken Maustaste auf das Vorschaubild oben, um das Vorschaufenster zu öffnen, das Bild größer anzuzeigen und bei Verfügbarkeit vorschaubasierte Funktionen wie KI-Verbesserung oder KI-Freistellung zu nutzen.",
+    "PreviewWindowHint":  "Tipp: Klicken Sie mit der linken Maustaste auf das Vorschaubild oben, um das Vorschaufenster zu öffnen, das Bild größer anzuzeigen und bei Verfügbarkeit vorschaubasierte Funktionen wie KI-Verbesserung oder KI-Freistellung zu nutzen. Um diese KI-Werkzeuge zu verwenden, aktivieren Sie zuerst oben im Menü „KI-Verbesserung“, und stellen Sie sicher, dass die aktuelle Datei ein unterstütztes importiertes statisches Bild ist.",
     "StatusLabel":  "Statusanzeige",
     "CurrentFile":  "Aktuelle Datei",
     "Remaining":  "Verbleibend",
