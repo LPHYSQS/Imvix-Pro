@@ -1,0 +1,213 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             x:Class="ImvixPro.Views.Controls.AiPanel"
+             x:CompileBindings="False"
+             mc:Ignorable="d">
+    <ScrollViewer Margin="8" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" AllowAutoHide="False">
+        <StackPanel Spacing="10" Margin="0,0,16,0">
+            <Border Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="8" Padding="10">
+                <StackPanel Spacing="8">
+                    <StackPanel Classes="icon-label">
+                        <Border Classes="icon-badge">
+                            <Path Classes="line-icon" Data="{StaticResource IconAiGeometry}" />
+                        </Border>
+                        <TextBlock Text="{Binding AiEnhancementPanelTitleText}" FontWeight="SemiBold" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <TextBlock Text="{Binding AiEnhancementDescriptionText}" Classes="secondary" TextWrapping="Wrap" />
+                    <ToggleSwitch IsChecked="{Binding AiEnhancementEnabled}"
+                                  OnContent="{Binding YesText}"
+                                  OffContent="{Binding NoText}"
+                                  ToolTip.Tip="{Binding AiEnhancementToggleHintText}" />
+                    <TextBlock Text="{Binding AiInputSupportHintText}" Classes="secondary" TextWrapping="Wrap" />
+                </StackPanel>
+            </Border>
+
+            <Border Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="8" Padding="10">
+                <StackPanel Spacing="8">
+                    <Grid ColumnDefinitions="*,Auto"
+                          ColumnSpacing="8">
+                        <TextBlock Grid.Column="0"
+                                   Text="{Binding AiScaleText}"
+                                   VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="1"
+                                   Text="{Binding AiEnhancementScaleDisplayText}"
+                                   FontWeight="SemiBold"
+                                   VerticalAlignment="Center" />
+                    </Grid>
+                    <Slider Minimum="2"
+                            Maximum="16"
+                            Value="{Binding AiEnhancementScale}"
+                            TickFrequency="1"
+                            IsSnapToTickEnabled="True" />
+                    <Border IsVisible="{Binding HasAiEnhancementPerformanceHint}"
+                            Background="{DynamicResource DangerBackgroundBrush}"
+                            BorderBrush="{DynamicResource DangerBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="6"
+                            Padding="8">
+                        <TextBlock Text="{Binding AiEnhancementPerformanceHintText}"
+                                   Foreground="{DynamicResource DangerTextBrush}"
+                                   TextWrapping="Wrap" />
+                    </Border>
+
+                    <TextBlock Text="{Binding AiModelText}" />
+                    <ComboBox ItemsSource="{Binding AiEnhancementModels}" SelectedItem="{Binding SelectedAiEnhancementModelOption}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding ListDisplayName}" TextWrapping="Wrap" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <Border IsVisible="{Binding HasSelectedAiEnhancementModelInfo}"
+                            Background="{DynamicResource SurfaceSubtleBrush}"
+                            BorderBrush="{DynamicResource BorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="6"
+                            Padding="8">
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="{Binding SelectedAiEnhancementModelSeriesText}"
+                                       Classes="secondary"
+                                       FontWeight="SemiBold"
+                                       TextWrapping="Wrap" />
+                            <TextBlock Text="{Binding SelectedAiEnhancementModelDescriptionText}"
+                                       Classes="secondary"
+                                       TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Border>
+                    <Border IsVisible="{Binding HasSelectedAiEnhancementModelRestriction}"
+                            Background="{DynamicResource DangerBackgroundBrush}"
+                            BorderBrush="{DynamicResource DangerBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="6"
+                            Padding="8">
+                        <TextBlock Text="{Binding SelectedAiEnhancementModelRestrictionText}"
+                                   Foreground="{DynamicResource DangerTextBrush}"
+                                   TextWrapping="Wrap" />
+                    </Border>
+                    <Border IsVisible="{Binding HasAiEnhancementModelFallbackWarning}"
+                            Background="{DynamicResource DangerBackgroundBrush}"
+                            BorderBrush="{DynamicResource DangerBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="6"
+                            Padding="8">
+                        <TextBlock Text="{Binding AiEnhancementModelFallbackWarningText}"
+                                   Foreground="{DynamicResource DangerTextBrush}"
+                                   TextWrapping="Wrap" />
+                    </Border>
+
+                    <TextBlock Text="{Binding AiExecutionModeText}" />
+                    <ComboBox ItemsSource="{Binding AiExecutionModes}" SelectedItem="{Binding SelectedAiExecutionModeOption}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding DisplayName}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+
+                    <TextBlock Text="{Binding AiExecutionHintText}" Classes="secondary" TextWrapping="Wrap" />
+                </StackPanel>
+            </Border>
+
+            <Border Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="8" Padding="10">
+                <StackPanel Spacing="8">
+                    <StackPanel Classes="icon-label">
+                        <Border Classes="icon-badge">
+                            <Path Classes="line-icon" Data="{StaticResource IconAiGeometry}" />
+                        </Border>
+                        <TextBlock Text="{Binding AiMattingPanelTitleText}" FontWeight="SemiBold" VerticalAlignment="Center" />
+                    </StackPanel>
+
+                    <TextBlock Text="{Binding AiMattingDescriptionText}" Classes="secondary" TextWrapping="Wrap" />
+                    <TextBlock Text="{Binding AiMattingPreviewOnlyHintText}" Classes="secondary" TextWrapping="Wrap" />
+
+                    <TextBlock Text="{Binding AiMattingModelText}" />
+                    <ComboBox ItemsSource="{Binding AiMattingModels}" SelectedItem="{Binding SelectedAiMattingModelOption}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding DisplayName}" TextWrapping="Wrap" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <Border IsVisible="{Binding HasSelectedAiMattingModelInfo}"
+                            Background="{DynamicResource SurfaceSubtleBrush}"
+                            BorderBrush="{DynamicResource BorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="6"
+                            Padding="8">
+                        <TextBlock Text="{Binding SelectedAiMattingModelDescriptionText}"
+                                   Classes="secondary"
+                                   TextWrapping="Wrap" />
+                    </Border>
+
+                    <TextBlock Text="{Binding AiMattingDeviceText}" />
+                    <ComboBox ItemsSource="{Binding AiMattingDevices}" SelectedItem="{Binding SelectedAiMattingDeviceOption}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding DisplayName}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+
+                    <TextBlock Text="{Binding AiMattingOutputFormatText}" />
+                    <ComboBox ItemsSource="{Binding AiMattingOutputFormats}" SelectedItem="{Binding SelectedAiMattingOutputFormatOption}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding DisplayName}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+
+                    <TextBlock Text="{Binding AiMattingBackgroundText}" />
+                    <ComboBox ItemsSource="{Binding AiMattingBackgroundModes}" SelectedItem="{Binding SelectedAiMattingBackgroundModeOption}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding DisplayName}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+
+                    <Grid ColumnDefinitions="Auto,*"
+                          ColumnSpacing="8"
+                          IsVisible="{Binding IsAiMattingBackgroundColorVisible}">
+                        <TextBlock Grid.Column="0"
+                                   Text="{Binding AiMattingBackgroundColorText}"
+                                   VerticalAlignment="Center" />
+                        <TextBox Grid.Column="1"
+                                 Text="{Binding AiMattingBackgroundColor}"
+                                 Watermark="#FFFFFFFF" />
+                    </Grid>
+
+                    <CheckBox IsChecked="{Binding AiMattingEdgeOptimizationEnabled}"
+                              Content="{Binding AiMattingEdgeOptimizationText}" />
+                    <Grid ColumnDefinitions="*,Auto"
+                          ColumnSpacing="8">
+                        <TextBlock Grid.Column="0"
+                                   Text="{Binding AiMattingEdgeStrengthText}"
+                                   VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="1"
+                                   Text="{Binding AiMattingEdgeStrengthDisplayText}"
+                                   FontWeight="SemiBold"
+                                   VerticalAlignment="Center" />
+                    </Grid>
+                    <Slider Minimum="0"
+                            Maximum="100"
+                            Value="{Binding AiMattingEdgeOptimizationStrength}"
+                            TickFrequency="1"
+                            IsSnapToTickEnabled="True"
+                            IsEnabled="{Binding AiMattingEdgeOptimizationEnabled}" />
+
+                    <TextBlock Text="{Binding AiMattingResolutionStrategyText}" />
+                    <ComboBox ItemsSource="{Binding AiMattingResolutionModes}" SelectedItem="{Binding SelectedAiMattingResolutionModeOption}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding DisplayName}" TextWrapping="Wrap" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

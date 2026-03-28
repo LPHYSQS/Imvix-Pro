@@ -1,0 +1,152 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             x:Class="ImvixPro.Views.Controls.FileListPanel"
+             x:CompileBindings="False"
+             mc:Ignorable="d">
+    <Border Background="{DynamicResource SurfaceBrush}"
+            BorderBrush="{DynamicResource BorderBrush}"
+            BorderThickness="1"
+            CornerRadius="10"
+            Padding="12">
+        <Grid RowDefinitions="Auto,*">
+            <StackPanel Grid.Row="0" Classes="icon-label" Margin="0,0,0,8">
+                <Border Classes="icon-badge">
+                    <Path Classes="line-icon" Data="{StaticResource IconImageGeometry}" />
+                </Border>
+                <TextBlock Text="{Binding ImageListText}" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center" />
+            </StackPanel>
+
+            <Border Grid.Row="1"
+                    IsVisible="{Binding IsEmpty}"
+                    Background="{DynamicResource SurfaceSubtleBrush}"
+                    BorderBrush="{DynamicResource BorderStrongBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="12"
+                    DragDrop.AllowDrop="True"
+                    DragDrop.DragOver="OnDropZoneDragOver"
+                    DragDrop.Drop="OnDropZoneDrop">
+                <Grid RowDefinitions="Auto,Auto"
+                      MinWidth="0"
+                      RowSpacing="8"
+                      VerticalAlignment="Center"
+                      HorizontalAlignment="Stretch">
+                    <TextBlock Grid.Row="0"
+                               Text="{Binding DropHintTitleText}"
+                               FontSize="22"
+                               FontWeight="SemiBold"
+                               HorizontalAlignment="Stretch"
+                               TextAlignment="Center"
+                               TextWrapping="WrapWithOverflow" />
+                    <TextBlock Grid.Row="1"
+                               Text="{Binding DropHintDescriptionText}"
+                               Classes="secondary"
+                               HorizontalAlignment="Stretch"
+                               TextAlignment="Center"
+                               TextWrapping="WrapWithOverflow" />
+                </Grid>
+            </Border>
+
+            <ListBox Grid.Row="1"
+                     IsVisible="{Binding HasImages}"
+                     ItemsSource="{Binding Images}"
+                     SelectedItem="{Binding SelectedImage}"
+                     Background="{DynamicResource SurfaceBrush}"
+                     BorderBrush="{DynamicResource BorderBrush}"
+                     DragDrop.AllowDrop="True"
+                     DragDrop.DragOver="OnDropZoneDragOver"
+                     DragDrop.Drop="OnDropZoneDrop">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Margin="4" ColumnDefinitions="72,*,Auto" ColumnSpacing="10" DoubleTapped="OnImageItemDoubleTapped">
+                            <Border Width="64"
+                                    Height="64"
+                                    Background="{DynamicResource SurfaceSubtleBrush}"
+                                    CornerRadius="6"
+                                    BorderBrush="{DynamicResource BorderBrush}"
+                                    BorderThickness="1">
+                                <Image Source="{Binding Thumbnail}" Stretch="UniformToFill" />
+                            </Border>
+                            <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding FileName}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" MaxWidth="400" />
+                                <TextBlock Text="{Binding Extension}" Classes="secondary" />
+                                <TextBlock IsVisible="{Binding IsAnimatedGif}" Text="{Binding GifBadgeText}" Classes="secondary" />
+                                <TextBlock IsVisible="{Binding IsAnimatedGif}" Text="{Binding GifFrameCountText}" Classes="secondary" />
+                                <TextBlock Text="{Binding ResolutionText}" Classes="secondary" />
+                                <TextBlock Text="{Binding SizeText}" Classes="secondary" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2"
+                                        Orientation="Horizontal"
+                                        Spacing="6"
+                                        VerticalAlignment="Center"
+                                        IsVisible="{Binding $parent[Window].DataContext.IsLeftToRightLayout}">
+                                <Button Classes="icon-only pdf-lock-button"
+                                        IsVisible="{Binding ShouldShowPdfUnlockButton}"
+                                        Click="OnPdfUnlockClick"
+                                        ToolTip.Tip="{Binding PdfLockTooltipText}">
+                                    <Grid Width="16"
+                                          Height="16"
+                                          HorizontalAlignment="Center"
+                                          VerticalAlignment="Center">
+                                        <Path Classes="line-icon danger"
+                                              Width="16"
+                                              Height="16"
+                                              HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              Data="{StaticResource IconLockClosedGeometry}" />
+                                    </Grid>
+                                </Button>
+                                <Button Classes="icon-only"
+                                        Click="OnShowFileDetailClick"
+                                        ToolTip.Tip="{Binding $parent[Window].DataContext.DetailText}">
+                                    <Path Classes="line-icon" Data="{StaticResource IconInfoGeometry}" />
+                                </Button>
+                                <Button Classes="icon-only"
+                                        ToolTip.Tip="{Binding $parent[Window].DataContext.RemoveText}"
+                                        Command="{Binding $parent[Window].DataContext.RemoveImageCommand}"
+                                        CommandParameter="{Binding}">
+                                    <Path Classes="line-icon danger" Data="{StaticResource IconCloseGeometry}" />
+                                </Button>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2"
+                                        Orientation="Horizontal"
+                                        Spacing="6"
+                                        VerticalAlignment="Center"
+                                        IsVisible="{Binding $parent[Window].DataContext.IsRightToLeftLayout}">
+                                <Button Classes="icon-only"
+                                        ToolTip.Tip="{Binding $parent[Window].DataContext.RemoveText}"
+                                        Command="{Binding $parent[Window].DataContext.RemoveImageCommand}"
+                                        CommandParameter="{Binding}">
+                                    <Path Classes="line-icon danger" Data="{StaticResource IconCloseGeometry}" />
+                                </Button>
+                                <Button Classes="icon-only"
+                                        Click="OnShowFileDetailClick"
+                                        ToolTip.Tip="{Binding $parent[Window].DataContext.DetailText}">
+                                    <Path Classes="line-icon" Data="{StaticResource IconInfoGeometry}" />
+                                </Button>
+                                <Button Classes="icon-only pdf-lock-button"
+                                        IsVisible="{Binding ShouldShowPdfUnlockButton}"
+                                        Click="OnPdfUnlockClick"
+                                        ToolTip.Tip="{Binding PdfLockTooltipText}">
+                                    <Grid Width="16"
+                                          Height="16"
+                                          HorizontalAlignment="Center"
+                                          VerticalAlignment="Center">
+                                        <Path Classes="line-icon danger"
+                                              Width="16"
+                                              Height="16"
+                                              HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              Data="{StaticResource IconLockClosedGeometry}" />
+                                    </Grid>
+                                </Button>
+                            </StackPanel>
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </Grid>
+    </Border>
+</UserControl>

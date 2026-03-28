@@ -1,0 +1,636 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        x:Class="ImvixPro.Views.ImagePreviewWindow"
+        Width="1220"
+        Height="820"
+        MinWidth="860"
+        MinHeight="560"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource AppBackgroundBrush}">
+    <Window.Styles>
+        <Style Selector="TextBlock.secondary">
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+        </Style>
+    </Window.Styles>
+
+    <Grid RowDefinitions="Auto,*,Auto"
+          Margin="12"
+          RowSpacing="10">
+        <Border Grid.Row="0"
+                Background="{DynamicResource SurfaceAltBrush}"
+                BorderBrush="{DynamicResource BorderBrush}"
+                BorderThickness="1"
+                CornerRadius="8"
+                Padding="10">
+            <Grid ColumnDefinitions="*,Auto,Auto"
+                  ColumnSpacing="12">
+                <StackPanel Grid.Column="0"
+                            Classes="icon-label">
+                    <Border Classes="icon-badge">
+                        <Path Classes="line-icon"
+                              Data="{StaticResource IconImageGeometry}" />
+                    </Border>
+                    <TextBlock x:Name="FileNameText"
+                               VerticalAlignment="Center"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextPrimaryBrush}"
+                               TextTrimming="CharacterEllipsis" />
+                </StackPanel>
+
+                <TextBlock Grid.Column="1"
+                           x:Name="PageIndicatorText"
+                           VerticalAlignment="Center"
+                           FontWeight="SemiBold"
+                           Foreground="{DynamicResource TextPrimaryBrush}"
+                           IsVisible="False" />
+
+                <StackPanel Grid.Column="2"
+                            Orientation="Horizontal"
+                            Spacing="8"
+                            HorizontalAlignment="Right">
+                    <Button x:Name="OcrButton"
+                            Classes="primary"
+                            MinWidth="132"
+                            MaxWidth="160"
+                            Padding="12,8"
+                            VerticalAlignment="Center"
+                            Click="OnOcrClick" />
+
+                    <Button x:Name="QrButton"
+                            Classes="primary"
+                            MinWidth="132"
+                            MaxWidth="160"
+                            Padding="12,8"
+                            VerticalAlignment="Center"
+                            Click="OnQrClick" />
+
+                    <Button x:Name="BarcodeButton"
+                            Classes="primary"
+                            MinWidth="132"
+                            MaxWidth="160"
+                            Padding="12,8"
+                            VerticalAlignment="Center"
+                            Click="OnBarcodeClick" />
+
+                    <Button x:Name="AiPreviewButton"
+                            Classes="primary"
+                            MinWidth="132"
+                            MaxWidth="168"
+                            Padding="12,8"
+                            VerticalAlignment="Center"
+                            IsVisible="False"
+                            Click="OnAiPreviewClick" />
+                    <Button x:Name="AiMattingButton"
+                            Classes="primary"
+                            MinWidth="132"
+                            MaxWidth="168"
+                            Padding="12,8"
+                            VerticalAlignment="Center"
+                            IsVisible="False"
+                            Click="OnAiMattingClick" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <Border Grid.Row="1"
+                Background="{DynamicResource SurfaceBrush}"
+                BorderBrush="{DynamicResource BorderBrush}"
+                BorderThickness="1"
+                CornerRadius="8"
+                Padding="8">
+            <Grid>
+                <Grid ColumnDefinitions="Auto,*,Auto"
+                      ColumnSpacing="10">
+                    <Button Grid.Column="0"
+                            x:Name="PreviousPageButton"
+                            Classes="icon-only pdf-nav"
+                            Width="44"
+                            Height="44"
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="Center"
+                            IsVisible="False"
+                            Click="OnPreviousPageClick">
+                        <Path Width="14"
+                              Height="14"
+                              HorizontalAlignment="Center"
+                              VerticalAlignment="Center"
+                              Stretch="Uniform"
+                              Stroke="{DynamicResource TextPrimaryBrush}"
+                              StrokeThickness="2"
+                              StrokeLineCap="Round"
+                              Data="M 10 2 L 4 7 L 10 12" />
+                    </Button>
+
+                    <Grid Grid.Column="1"
+                          ColumnDefinitions="*,Auto"
+                          ColumnSpacing="12">
+                        <Border Grid.Column="0"
+                                x:Name="PreviewSurface"
+                                Background="{DynamicResource SurfaceAltBrush}"
+                                BorderBrush="{DynamicResource BorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="10"
+                                Padding="10">
+                            <Grid ClipToBounds="True">
+                                <Image x:Name="PreviewImage"
+                                       HorizontalAlignment="Stretch"
+                                       VerticalAlignment="Stretch"
+                                       RenderOptions.BitmapInterpolationMode="HighQuality"
+                                       Stretch="Uniform" />
+
+                                <Grid x:Name="AiCompareHost"
+                                      IsVisible="False"
+                                      ClipToBounds="True">
+                                    <Image x:Name="AiCompareBeforeImage"
+                                           HorizontalAlignment="Stretch"
+                                           VerticalAlignment="Stretch"
+                                           RenderOptions.BitmapInterpolationMode="HighQuality"
+                                           Stretch="Uniform" />
+
+                                    <Border x:Name="AiCompareAfterClipHost"
+                                            ClipToBounds="True">
+                                        <Image x:Name="AiCompareAfterImage"
+                                               HorizontalAlignment="Stretch"
+                                               VerticalAlignment="Stretch"
+                                               RenderOptions.BitmapInterpolationMode="HighQuality"
+                                               Stretch="Uniform" />
+                                    </Border>
+
+                                    <Border x:Name="AiCompareInputLayer"
+                                            Background="Transparent"
+                                            PointerPressed="OnAiComparePointerPressed"
+                                            PointerMoved="OnAiComparePointerMoved"
+                                            PointerReleased="OnAiComparePointerReleased"
+                                            PointerCaptureLost="OnAiComparePointerCaptureLost" />
+
+                                    <Canvas x:Name="AiCompareOverlayCanvas"
+                                            IsHitTestVisible="False">
+                                        <Border x:Name="AiCompareSplitterLine"
+                                                Width="2"
+                                                CornerRadius="999"
+                                                Background="{DynamicResource AccentBrush}" />
+
+                                        <Border x:Name="AiCompareThumb"
+                                                Width="22"
+                                                Height="22"
+                                                CornerRadius="11"
+                                                Background="{DynamicResource AccentBrush}"
+                                                BorderBrush="{DynamicResource AccentForegroundBrush}"
+                                                BorderThickness="2" />
+                                    </Canvas>
+                                </Grid>
+
+                                <Grid x:Name="AiMattingCompareHost"
+                                      IsVisible="False"
+                                      ClipToBounds="True">
+                                    <Image x:Name="AiMattingCompareBeforeImage"
+                                           HorizontalAlignment="Stretch"
+                                           VerticalAlignment="Stretch"
+                                           RenderOptions.BitmapInterpolationMode="HighQuality"
+                                           Stretch="Uniform" />
+
+                                    <Border x:Name="AiMattingCompareAfterClipHost"
+                                            ClipToBounds="True"
+                                            Background="{DynamicResource SurfaceAltBrush}">
+                                        <Image x:Name="AiMattingCompareAfterImage"
+                                               HorizontalAlignment="Stretch"
+                                               VerticalAlignment="Stretch"
+                                               RenderOptions.BitmapInterpolationMode="HighQuality"
+                                               Stretch="Uniform" />
+                                    </Border>
+
+                                    <Border x:Name="AiMattingCompareInputLayer"
+                                            Background="Transparent"
+                                            PointerPressed="OnAiMattingComparePointerPressed"
+                                            PointerMoved="OnAiMattingComparePointerMoved"
+                                            PointerReleased="OnAiMattingComparePointerReleased"
+                                            PointerCaptureLost="OnAiMattingComparePointerCaptureLost" />
+
+                                    <Canvas x:Name="AiMattingCompareOverlayCanvas"
+                                            IsHitTestVisible="False">
+                                        <Border x:Name="AiMattingCompareSplitterLine"
+                                                Width="2"
+                                                CornerRadius="999"
+                                                Background="{DynamicResource AccentBrush}" />
+
+                                        <Border x:Name="AiMattingCompareThumb"
+                                                Width="22"
+                                                Height="22"
+                                                CornerRadius="11"
+                                                Background="{DynamicResource AccentBrush}"
+                                                BorderBrush="{DynamicResource AccentForegroundBrush}"
+                                                BorderThickness="2" />
+                                    </Canvas>
+                                </Grid>
+                                <Border x:Name="AiBusyOverlay"
+                                        IsVisible="False"
+                                        Background="#880F172A"
+                                        CornerRadius="8"
+                                        Padding="18">
+                                    <StackPanel HorizontalAlignment="Center"
+                                                VerticalAlignment="Center"
+                                                Spacing="12">
+                                        <ProgressBar Width="180"
+                                                     IsIndeterminate="True" />
+                                        <TextBlock x:Name="AiBusyText"
+                                                   Foreground="#FFFFFF"
+                                                   FontWeight="SemiBold"
+                                                   TextAlignment="Center"
+                                                   TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </Border>
+                                <Border x:Name="AiMattingBusyOverlay"
+                                        IsVisible="False"
+                                        Background="#880F172A"
+                                        CornerRadius="8"
+                                        Padding="18">
+                                    <StackPanel HorizontalAlignment="Center"
+                                                VerticalAlignment="Center"
+                                                Spacing="12">
+                                        <ProgressBar Width="180"
+                                                     IsIndeterminate="True" />
+                                        <TextBlock x:Name="AiMattingBusyText"
+                                                   Foreground="#FFFFFF"
+                                                   FontWeight="SemiBold"
+                                                   TextAlignment="Center"
+                                                   TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+                        </Border>
+
+                        <Border Grid.Column="1"
+                                x:Name="OcrPanel"
+                                Width="0"
+                                MinWidth="0"
+                                Opacity="0"
+                                IsVisible="False"
+                                ClipToBounds="True"
+                                Background="{DynamicResource SurfaceAltBrush}"
+                                BorderBrush="{DynamicResource BorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="10"
+                                Padding="12">
+                            <Grid RowDefinitions="Auto,*,Auto"
+                                  RowSpacing="10">
+                                <StackPanel Grid.Row="0"
+                                            Spacing="10">
+                                    <TextBlock x:Name="OcrPanelTitleText"
+                                               VerticalAlignment="Center"
+                                               FontWeight="SemiBold"
+                                               Foreground="{DynamicResource TextPrimaryBrush}" />
+
+                                    <Grid ColumnDefinitions="*,*,*"
+                                          ColumnSpacing="8">
+                                        <Button Grid.Column="0"
+                                                x:Name="OcrRetryButton"
+                                                MinHeight="40"
+                                                Padding="10,6"
+                                                HorizontalAlignment="Stretch"
+                                                Click="OnRetryOcrClick" />
+
+                                        <Button Grid.Column="1"
+                                                x:Name="OcrCopyAllButton"
+                                                MinHeight="40"
+                                                Padding="10,6"
+                                                HorizontalAlignment="Stretch"
+                                                Click="OnCopyAllOcrClick" />
+
+                                        <Button Grid.Column="2"
+                                                x:Name="CloseOcrButton"
+                                                MinHeight="40"
+                                                Padding="10,6"
+                                                HorizontalAlignment="Stretch"
+                                                Click="OnCloseOcrClick" />
+                                    </Grid>
+
+                                    <Border IsVisible="False">
+                                        <Button x:Name="OpenLinkButton"
+                                                Click="OnOpenQrLinkClick" />
+                                    </Border>
+                                </StackPanel>
+
+                                <Border Grid.Row="1"
+                                        x:Name="RecognitionContentBorder"
+                                        Background="{DynamicResource SurfaceBrush}"
+                                        BorderBrush="{DynamicResource BorderBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="8"
+                                        Padding="4">
+                                    <Grid RowDefinitions="*,Auto"
+                                          RowSpacing="10">
+                                        <Grid Grid.Row="0"
+                                              MinHeight="0"
+                                              ClipToBounds="True">
+                                            <TextBox x:Name="OcrTextBox"
+                                                     IsVisible="False"
+                                                     Background="Transparent"
+                                                     BorderThickness="0"
+                                                     IsReadOnly="True"
+                                                     AcceptsReturn="True"
+                                                     MinHeight="0"
+                                                     TextWrapping="WrapWithOverflow"
+                                                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                                     ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                                     VerticalAlignment="Stretch">
+                                                <TextBox.ContextMenu>
+                                                    <ContextMenu>
+                                                        <MenuItem x:Name="CopySelectionMenuItem"
+                                                                  Click="OnCopySelectionOcrClick" />
+                                                        <MenuItem x:Name="CopyAllMenuItem"
+                                                                  Click="OnCopyAllOcrClick" />
+                                                    </ContextMenu>
+                                                </TextBox.ContextMenu>
+                                            </TextBox>
+
+                                            <Border x:Name="QrResultsSection"
+                                                    IsVisible="False"
+                                                    Margin="4"
+                                                    Background="{DynamicResource SurfaceSubtleBrush}"
+                                                    BorderBrush="{DynamicResource BorderBrush}"
+                                                    BorderThickness="1"
+                                                    CornerRadius="8"
+                                                    Padding="10">
+                                                <Grid RowDefinitions="Auto,*"
+                                                      RowSpacing="10">
+                                                    <TextBlock Grid.Row="0"
+                                                               x:Name="QrResultsSummaryText"
+                                                               TextWrapping="Wrap"
+                                                               Classes="secondary" />
+
+                                                    <ScrollViewer Grid.Row="1"
+                                                                  x:Name="QrResultsScrollViewer"
+                                                                  HorizontalScrollBarVisibility="Disabled"
+                                                                  VerticalScrollBarVisibility="Auto">
+                                                        <StackPanel x:Name="QrResultsHost"
+                                                                    Spacing="10" />
+                                                    </ScrollViewer>
+                                                </Grid>
+                                            </Border>
+
+                                            <TextBlock x:Name="OcrPlaceholderText"
+                                                       Margin="12"
+                                                       VerticalAlignment="Center"
+                                                       HorizontalAlignment="Center"
+                                                       TextAlignment="Center"
+                                                       TextWrapping="Wrap"
+                                                       Classes="secondary" />
+                                        </Grid>
+
+                                        <Border Grid.Row="1"
+                                                x:Name="QrLinksSection"
+                                                IsVisible="False"
+                                                ClipToBounds="True"
+                                                Background="{DynamicResource SurfaceSubtleBrush}"
+                                                BorderBrush="{DynamicResource BorderBrush}"
+                                                BorderThickness="1"
+                                                CornerRadius="8"
+                                                Padding="10">
+                                            <Grid RowDefinitions="Auto,Auto,*"
+                                                  RowSpacing="10">
+                                                <TextBlock Grid.Row="0"
+                                                           x:Name="QrLinksSummaryText"
+                                                           TextWrapping="Wrap"
+                                                           Classes="secondary" />
+
+                                                <Button Grid.Row="1"
+                                                        x:Name="QrLinksToggleButton"
+                                                        HorizontalAlignment="Left"
+                                                        MinHeight="36"
+                                                        Padding="10,6"
+                                                        Click="OnToggleQrLinksClick" />
+
+                                                <Border Grid.Row="2"
+                                                        x:Name="QrLinksPanel"
+                                                        Height="0"
+                                                        Opacity="0"
+                                                        IsVisible="False"
+                                                        ClipToBounds="True"
+                                                        Background="{DynamicResource SurfaceBrush}"
+                                                        BorderBrush="{DynamicResource BorderBrush}"
+                                                        BorderThickness="1"
+                                                        CornerRadius="8">
+                                                    <ScrollViewer x:Name="QrLinksScrollViewer"
+                                                                  HorizontalScrollBarVisibility="Disabled"
+                                                                  VerticalScrollBarVisibility="Auto">
+                                                        <StackPanel Margin="8"
+                                                                    Spacing="10">
+                                                            <StackPanel x:Name="QrLinksHost"
+                                                                        Spacing="8" />
+                                                        </StackPanel>
+                                                    </ScrollViewer>
+                                                </Border>
+                                            </Grid>
+                                        </Border>
+                                    </Grid>
+                                </Border>
+
+                                <Grid Grid.Row="2"
+                                      ColumnDefinitions="*,Auto"
+                                      ColumnSpacing="12">
+                                    <TextBlock Grid.Column="0"
+                                               x:Name="OcrStatusText"
+                                               VerticalAlignment="Center"
+                                               TextWrapping="Wrap"
+                                               Classes="secondary" />
+
+                                    <ProgressBar Grid.Column="1"
+                                                 x:Name="OcrBusyProgressBar"
+                                                 Width="108"
+                                                 IsIndeterminate="True"
+                                                 IsVisible="False" />
+                                </Grid>
+                            </Grid>
+                        </Border>
+                    </Grid>
+
+                    <Button Grid.Column="2"
+                            x:Name="NextPageButton"
+                            Classes="icon-only pdf-nav"
+                            Width="44"
+                            Height="44"
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="Center"
+                            IsVisible="False"
+                            Click="OnNextPageClick">
+                        <Path Width="14"
+                              Height="14"
+                              HorizontalAlignment="Center"
+                              VerticalAlignment="Center"
+                              Stretch="Uniform"
+                              Stroke="{DynamicResource TextPrimaryBrush}"
+                              StrokeThickness="2"
+                              StrokeLineCap="Round"
+                              Data="M 4 2 L 10 7 L 4 12" />
+                    </Button>
+                </Grid>
+
+                <Border x:Name="ToastBorder"
+                        IsVisible="False"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Top"
+                        Margin="0,14,0,0"
+                        Padding="14,8"
+                        Background="{DynamicResource AccentBrush}"
+                        BorderBrush="{DynamicResource AccentBrush}"
+                        BorderThickness="1"
+                        CornerRadius="999">
+                    <TextBlock x:Name="ToastText"
+                               Foreground="{DynamicResource AccentForegroundBrush}"
+                               FontWeight="SemiBold" />
+                </Border>
+            </Grid>
+        </Border>
+
+        <StackPanel Grid.Row="2"
+                    Spacing="10">
+            <Border x:Name="AiPreviewActionBar"
+                    IsVisible="False"
+                    Background="{DynamicResource SurfaceAltBrush}"
+                    BorderBrush="{DynamicResource BorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="10">
+                <Grid ColumnDefinitions="*,Auto"
+                      ColumnSpacing="16">
+                    <StackPanel Grid.Column="0"
+                                Spacing="8">
+                        <TextBlock x:Name="AiPreviewHintText"
+                                   VerticalAlignment="Center"
+                                   TextWrapping="Wrap"
+                                   Classes="secondary" />
+
+                        <TextBlock x:Name="AiPreviewDiagnosticsText"
+                                   IsVisible="False"
+                                   TextWrapping="Wrap"
+                                   Classes="secondary" />
+
+                        <StackPanel Orientation="Horizontal"
+                                    Spacing="8">
+                            <Button x:Name="AiPreviewOriginalButton"
+                                    MinWidth="96"
+                                    IsVisible="False"
+                                    Click="OnShowAiOriginalClick" />
+
+                            <Button x:Name="AiPreviewEnhancedButton"
+                                    MinWidth="96"
+                                    IsVisible="False"
+                                    Click="OnShowAiEnhancedClick" />
+
+                            <Button x:Name="AiPreviewCompareButton"
+                                    MinWidth="112"
+                                    IsVisible="False"
+                                    Click="OnShowAiCompareClick" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1"
+                                Orientation="Horizontal"
+                                Spacing="10"
+                                VerticalAlignment="Center">
+                        <Button x:Name="AiPreviewSaveButton"
+                                MinWidth="96"
+                                Click="OnSaveAiPreviewClick" />
+
+                        <Button x:Name="AiPreviewCloseButton"
+                                MinWidth="132"
+                                Click="OnCloseAiPreviewClick" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <Border x:Name="AiMattingPreviewActionBar"
+                    IsVisible="False"
+                    Background="{DynamicResource SurfaceAltBrush}"
+                    BorderBrush="{DynamicResource BorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="10">
+                <Grid ColumnDefinitions="*,Auto"
+                      ColumnSpacing="16">
+                    <StackPanel Grid.Column="0"
+                                Spacing="8">
+                        <TextBlock x:Name="AiMattingHintText"
+                                   VerticalAlignment="Center"
+                                   TextWrapping="Wrap"
+                                   Classes="secondary" />
+
+                        <StackPanel Orientation="Horizontal"
+                                    Spacing="8">
+                            <Button x:Name="AiMattingOriginalButton"
+                                    MinWidth="96"
+                                    IsVisible="False"
+                                    Click="OnShowAiMattingOriginalClick" />
+
+                            <Button x:Name="AiMattingResultButton"
+                                    MinWidth="96"
+                                    IsVisible="False"
+                                    Click="OnShowAiMattingResultClick" />
+
+                            <Button x:Name="AiMattingCompareButton"
+                                    MinWidth="112"
+                                    IsVisible="False"
+                                    Click="OnShowAiMattingCompareClick" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1"
+                                Orientation="Horizontal"
+                                Spacing="10"
+                                VerticalAlignment="Center">
+                        <Button x:Name="AiMattingSaveButton"
+                                MinWidth="96"
+                                Click="OnSaveAiMattingClick" />
+
+                        <Button x:Name="AiMattingCloseButton"
+                                MinWidth="132"
+                                Click="OnCloseAiMattingClick" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+            <Border x:Name="GifControlsBar"
+                    IsVisible="False"
+                    Background="{DynamicResource SurfaceAltBrush}"
+                    BorderBrush="{DynamicResource BorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="10">
+                <Grid ColumnDefinitions="Auto,Auto,*,Auto"
+                      ColumnSpacing="10">
+                    <Button Grid.Column="0"
+                            x:Name="PlayGifButton"
+                            MinWidth="80"
+                            Click="OnPlayGifClick" />
+
+                    <Button Grid.Column="1"
+                            x:Name="PauseGifButton"
+                            MinWidth="80"
+                            Click="OnPauseGifClick" />
+
+                    <Slider Grid.Column="2"
+                            x:Name="GifFrameSlider"
+                            TickFrequency="1"
+                            IsSnapToTickEnabled="True"
+                            ValueChanged="OnGifFrameSliderValueChanged" />
+
+                    <TextBlock Grid.Column="3"
+                               x:Name="GifFrameCountdownText"
+                               VerticalAlignment="Center"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextPrimaryBrush}" />
+                </Grid>
+            </Border>
+        </StackPanel>
+
+    </Grid>
+</Window>
+
+
+
+
+
+
+

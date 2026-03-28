@@ -1,0 +1,310 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:ImvixPro.ViewModels"
+        xmlns:controls="using:ImvixPro.Views.Controls"
+        mc:Ignorable="d"
+        x:Class="ImvixPro.Views.MainWindow"
+        x:CompileBindings="False"
+        Width="1280"
+        Height="760"
+        MinWidth="980"
+        MinHeight="620"
+        Icon="/Assets/logo.ico"
+        Title="{Binding WindowTitle}"
+        FlowDirection="{Binding UiFlowDirection}"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource AppBackgroundBrush}">
+
+    <Design.DataContext>
+        <vm:MainWindowViewModel />
+    </Design.DataContext>
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.ThemeDictionaries>
+                <ResourceDictionary x:Key="Light">
+                    <SolidColorBrush x:Key="StartConversionTextBrush" Color="#FFFFFF" />
+                </ResourceDictionary>
+                <ResourceDictionary x:Key="Dark">
+                    <SolidColorBrush x:Key="StartConversionTextBrush" Color="#000000" />
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <Window.Styles>
+        <Style Selector="Window TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+        </Style>
+
+        <Style Selector="Button#StartConversionButton TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource StartConversionTextBrush}" />
+        </Style>
+
+        <Style Selector="TextBlock.secondary">
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+        </Style>
+
+        <Style Selector="TextBlock.toolbar-label">
+            <Setter Property="Width" Value="96" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+            <Setter Property="TextAlignment" Value="Right" />
+        </Style>
+
+        <Style Selector="ComboBox.toolbar-control">
+            <Setter Property="Height" Value="36" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
+        <Style Selector="TextBox.toolbar-control">
+            <Setter Property="Height" Value="36" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Padding" Value="10,0" />
+        </Style>
+
+        <Style Selector="TextBox.settings-folder-input">
+            <Setter Property="Height" Value="36" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Padding" Value="10,0" />
+        </Style>
+
+        <Style Selector="Button.status-action">
+            <Setter Property="MinHeight" Value="32" />
+            <Setter Property="Padding" Value="12,6" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+        </Style>
+
+        <Style Selector="Border.version-badge-surface">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+            <Setter Property="CornerRadius" Value="999" />
+            <Setter Property="MinWidth" Value="94" />
+            <Setter Property="MinHeight" Value="34" />
+            <Setter Property="Padding" Value="14,6" />
+        </Style>
+
+        <Style Selector="TextBlock.version-badge-text">
+            <Setter Property="Foreground" Value="{DynamicResource AccentForegroundBrush}" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="TextAlignment" Value="Center" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+    </Window.Styles>
+
+    <Grid RowDefinitions="Auto,*,Auto,Auto" Margin="16" Background="{DynamicResource AppBackgroundBrush}">
+        <controls:TopToolbar Grid.Row="0" />
+
+        <Grid Grid.Row="1" ColumnDefinitions="3*,2*" ColumnSpacing="12">
+            <controls:FileListPanel Grid.Column="0" />
+
+            <TabControl Grid.Column="1" SelectedIndex="{Binding RightPanelTabIndex}">
+                <TabItem>
+                    <TabItem.Header>
+                        <StackPanel Classes="icon-label">
+                            <Path Classes="line-icon" Data="{StaticResource IconImageGeometry}" />
+                            <TextBlock Text="{Binding PreviewTabText}" />
+                        </StackPanel>
+                    </TabItem.Header>
+                    <controls:PreviewPanel />
+                </TabItem>
+
+                <TabItem>
+                    <TabItem.Header>
+                        <StackPanel Classes="icon-label">
+                            <Path Classes="line-icon" Data="{StaticResource IconSettingsGeometry}" />
+                            <TextBlock Text="{Binding SettingsTabText}" />
+                        </StackPanel>
+                    </TabItem.Header>
+                    <controls:SettingsPanel />
+                </TabItem>
+
+                <TabItem IsVisible="{Binding IsAiEnhancementPanelVisible}">
+                    <TabItem.Header>
+                        <StackPanel Classes="icon-label">
+                            <Path Classes="line-icon" Data="{StaticResource IconAiGeometry}" />
+                            <TextBlock Text="{Binding AiEnhancementTabText}" />
+                        </StackPanel>
+                    </TabItem.Header>
+                    <controls:AiPanel />
+                </TabItem>
+            </TabControl>
+        </Grid>
+
+        <Border Grid.Row="2"
+                IsVisible="{Binding ShowAiConversionFeedback}"
+                Background="{DynamicResource SurfaceAltBrush}"
+                BorderBrush="{DynamicResource AccentBrush}"
+                BorderThickness="1"
+                CornerRadius="10"
+                Padding="12"
+                Margin="0,12,0,0">
+            <Grid ColumnDefinitions="Auto,*"
+                  ColumnSpacing="12">
+                <Border Classes="icon-badge"
+                        Width="32"
+                        Height="32"
+                        Padding="0"
+                        CornerRadius="9"
+                        Background="{DynamicResource AccentBrush}"
+                        BorderBrush="{DynamicResource AccentBrush}"
+                        VerticalAlignment="Top">
+                    <Path Classes="line-icon inverse"
+                          Width="16"
+                          Height="9"
+                          Stretch="Fill"
+                          HorizontalAlignment="Center"
+                          VerticalAlignment="Center"
+                          Data="{StaticResource IconStatusGeometry}" />
+                </Border>
+
+                <StackPanel Grid.Column="1"
+                            Spacing="4">
+                    <TextBlock Text="{Binding ConversionFeedbackTitleText}"
+                               FontWeight="SemiBold"
+                               TextWrapping="Wrap" />
+                    <TextBlock Text="{Binding ConversionFeedbackDescriptionText}"
+                               Classes="secondary"
+                               TextWrapping="Wrap" />
+                    <TextBlock Text="{Binding ConversionFeedbackHardwareHintText}"
+                               Classes="secondary"
+                               TextWrapping="Wrap" />
+                    <TextBlock Text="{Binding ConversionFeedbackCloseHintText}"
+                               Classes="secondary"
+                               TextWrapping="Wrap" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <Border Grid.Row="3"
+                Background="{DynamicResource SurfaceAltBrush}"
+                BorderBrush="{DynamicResource BorderBrush}"
+                BorderThickness="1"
+                CornerRadius="10"
+                Padding="10"
+                Margin="0,12,0,0">
+            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                <Button Grid.Column="0"
+                        IsVisible="{Binding IsLeftToRightLayout}"
+                        Click="OnShowAboutClick"
+                        VerticalAlignment="Center"
+                        ToolTip.Tip="{Binding AboutButtonText}">
+                    <StackPanel Classes="icon-label">
+                        <Path Classes="line-icon" Data="{StaticResource IconInfoGeometry}" />
+                        <TextBlock Text="{Binding AboutButtonText}" />
+                    </StackPanel>
+                </Button>
+
+                <StackPanel Grid.Column="0"
+                            IsVisible="{Binding IsRightToLeftLayout}"
+                            Orientation="Horizontal"
+                            Spacing="8"
+                            VerticalAlignment="Center">
+                    <Border Classes="version-badge-surface"
+                            VerticalAlignment="Center"
+                            ToolTip.Tip="{Binding VersionBadgeToolTipText}"
+                            PointerEntered="OnVersionBadgePointerEntered"
+                            PointerExited="OnVersionBadgePointerExited"
+                            PointerPressed="OnVersionBadgePointerPressed">
+                        <TextBlock Classes="version-badge-text"
+                                   FontSize="{Binding FooterVersionBadgeFontSize}"
+                                   Text="{Binding FooterVersionBadgeText}" />
+                    </Border>
+                    <Button Click="OnShowContactAuthorClick"
+                            VerticalAlignment="Center"
+                            ToolTip.Tip="{Binding ContactAuthorButtonText}">
+                        <TextBlock Text="{Binding ContactAuthorButtonText}" />
+                    </Button>
+                </StackPanel>
+
+                <WrapPanel Grid.Column="1" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding StatusLabelText}" FontWeight="SemiBold" VerticalAlignment="Center" />
+                    <TextBlock Text=":" VerticalAlignment="Center" Margin="4,0,4,0" />
+                    <TextBlock Text="{Binding StatusText}" VerticalAlignment="Center" Margin="0,0,12,0" />
+                    <StackPanel Orientation="Horizontal"
+                                Spacing="8"
+                                VerticalAlignment="Center"
+                                Margin="0,0,12,0"
+                                IsVisible="{Binding IsPreviewAiBusy}">
+                        <ProgressBar Width="76"
+                                     Height="8"
+                                     IsIndeterminate="True"
+                                     VerticalAlignment="Center" />
+                        <TextBlock Text="{Binding PreviewAiBusyText}"
+                                   Classes="secondary"
+                                   VerticalAlignment="Center" />
+                    </StackPanel>
+
+                    <TextBlock Text="{Binding CurrentFileLabelText}" VerticalAlignment="Center" />
+                    <TextBlock Text=":" VerticalAlignment="Center" Margin="4,0,4,0" />
+                    <TextBlock Text="{Binding CurrentFile}" Width="240" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Margin="0,0,12,0" />
+
+                    <TextBlock Text="{Binding RemainingLabelText}" VerticalAlignment="Center" />
+                    <TextBlock Text=":" VerticalAlignment="Center" Margin="4,0,4,0" />
+                    <TextBlock Text="{Binding RemainingCount}" VerticalAlignment="Center" Margin="0,0,12,0" />
+
+                    <TextBlock Text="{Binding ProgressLabelText}" VerticalAlignment="Center" Margin="0,0,6,0" />
+                    <ProgressBar Width="160" Height="16" Minimum="0" Maximum="100" Value="{Binding ProgressPercent}" VerticalAlignment="Center" />
+                    <TextBlock Text="{Binding ProgressPercentText}" VerticalAlignment="Center" Margin="6,0,12,0" />
+
+                    <Button Classes="status-action" Command="{Binding PauseConversionCommand}" Margin="0,0,8,0" ToolTip.Tip="{Binding PauseText}">
+                        <StackPanel Classes="icon-label">
+                            <Path Classes="line-icon" Data="{StaticResource IconPauseGeometry}" />
+                            <TextBlock Text="{Binding PauseText}" />
+                        </StackPanel>
+                    </Button>
+                    <Button Classes="status-action" Command="{Binding ResumeConversionCommand}" Margin="0,0,8,0" ToolTip.Tip="{Binding ResumeText}">
+                        <StackPanel Classes="icon-label">
+                            <Path Classes="line-icon" Data="{StaticResource IconPlayGeometry}" />
+                            <TextBlock Text="{Binding ResumeText}" />
+                        </StackPanel>
+                    </Button>
+                    <Button Classes="status-action" Command="{Binding CancelConversionCommand}" ToolTip.Tip="{Binding CancelTaskText}">
+                        <StackPanel Classes="icon-label">
+                            <Path Classes="line-icon danger" Data="{StaticResource IconCancelGeometry}" />
+                            <TextBlock Text="{Binding CancelTaskText}" />
+                        </StackPanel>
+                    </Button>
+                </WrapPanel>
+
+                <StackPanel Grid.Column="2"
+                            IsVisible="{Binding IsLeftToRightLayout}"
+                            Orientation="Horizontal"
+                            Spacing="8"
+                            VerticalAlignment="Center">
+                    <Button Click="OnShowContactAuthorClick"
+                            VerticalAlignment="Center"
+                            ToolTip.Tip="{Binding ContactAuthorButtonText}">
+                        <TextBlock Text="{Binding ContactAuthorButtonText}" />
+                    </Button>
+                    <Border Classes="version-badge-surface"
+                            VerticalAlignment="Center"
+                            ToolTip.Tip="{Binding VersionBadgeToolTipText}"
+                            PointerEntered="OnVersionBadgePointerEntered"
+                            PointerExited="OnVersionBadgePointerExited"
+                            PointerPressed="OnVersionBadgePointerPressed">
+                        <TextBlock Classes="version-badge-text"
+                                   FontSize="{Binding FooterVersionBadgeFontSize}"
+                                   Text="{Binding FooterVersionBadgeText}" />
+                    </Border>
+                </StackPanel>
+
+                <Button Grid.Column="2"
+                        IsVisible="{Binding IsRightToLeftLayout}"
+                        Click="OnShowAboutClick"
+                        VerticalAlignment="Center"
+                        ToolTip.Tip="{Binding AboutButtonText}">
+                    <StackPanel Classes="icon-label">
+                        <Path Classes="line-icon" Data="{StaticResource IconInfoGeometry}" />
+                        <TextBlock Text="{Binding AboutButtonText}" />
+                    </StackPanel>
+                </Button>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

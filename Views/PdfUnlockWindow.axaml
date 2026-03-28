@@ -1,0 +1,58 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        x:Class="ImvixPro.Views.PdfUnlockWindow"
+        Width="520"
+        Height="290"
+        MinWidth="440"
+        MinHeight="240"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource AppBackgroundBrush}">
+    <Grid RowDefinitions="*,Auto"
+          Margin="14"
+          RowSpacing="12">
+        <Border Grid.Row="0"
+                Background="{DynamicResource SurfaceBrush}"
+                BorderBrush="{DynamicResource BorderBrush}"
+                BorderThickness="1"
+                CornerRadius="8"
+                Padding="14">
+            <StackPanel Spacing="12">
+                <TextBlock x:Name="MessageText"
+                           TextWrapping="Wrap"
+                           Foreground="{DynamicResource TextPrimaryBrush}" />
+
+                <TextBox x:Name="PasswordTextBox"
+                         PasswordChar="*"
+                         VerticalContentAlignment="Center"
+                         KeyDown="OnPasswordKeyDown" />
+
+                <TextBlock x:Name="ErrorText"
+                           IsVisible="False"
+                           Foreground="{DynamicResource DangerTextBrush}"
+                           TextWrapping="Wrap" />
+            </StackPanel>
+        </Border>
+
+        <StackPanel Grid.Row="1"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    Spacing="8">
+            <Button x:Name="CancelButton"
+                    MinWidth="104"
+                    Click="OnCancelClick">
+                <TextBlock x:Name="CancelButtonText" />
+            </Button>
+
+            <Button x:Name="ConfirmButton"
+                    MinWidth="104"
+                    Classes="primary"
+                    Click="OnConfirmClick">
+                <TextBlock x:Name="ConfirmButtonText" />
+            </Button>
+        </StackPanel>
+    </Grid>
+</Window>

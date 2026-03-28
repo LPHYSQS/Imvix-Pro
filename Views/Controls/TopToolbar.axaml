@@ -1,0 +1,85 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             x:Class="ImvixPro.Views.Controls.TopToolbar"
+             x:CompileBindings="False"
+             mc:Ignorable="d">
+    <Border Background="{DynamicResource SurfaceAltBrush}"
+            BorderBrush="{DynamicResource BorderBrush}"
+            BorderThickness="1"
+            CornerRadius="10"
+            Padding="12"
+            Margin="0,0,0,12">
+        <WrapPanel VerticalAlignment="Center" ItemHeight="44">
+            <Button MinWidth="122" Click="OnImportClick" Margin="0,0,8,8" ToolTip.Tip="{Binding ImportButtonText}">
+                <StackPanel Classes="icon-label">
+                    <Path Classes="line-icon" Data="{StaticResource IconImportGeometry}" />
+                    <TextBlock Text="{Binding ImportButtonText}" />
+                </StackPanel>
+            </Button>
+            <Button MinWidth="148" Click="OnImportFolderClick" Margin="0,0,8,8" ToolTip.Tip="{Binding ImportFolderButtonText}">
+                <StackPanel Classes="icon-label">
+                    <Path Classes="line-icon" Data="{StaticResource IconImportFolderGeometry}" />
+                    <TextBlock Text="{Binding ImportFolderButtonText}" />
+                </StackPanel>
+            </Button>
+            <Button MinWidth="112" Command="{Binding ClearImagesCommand}" Margin="0,0,12,8" ToolTip.Tip="{Binding ClearButtonText}">
+                <StackPanel Classes="icon-label">
+                    <Path Classes="line-icon danger" Data="{StaticResource IconTrashGeometry}" />
+                    <TextBlock Text="{Binding ClearButtonText}" />
+                </StackPanel>
+            </Button>
+
+            <TextBlock Classes="toolbar-label" Text="{Binding OutputFormatText}" Margin="0,0,8,8" />
+            <ComboBox Classes="toolbar-control" Width="126" ItemsSource="{Binding OutputFormats}" SelectedItem="{Binding SelectedOutputFormat}" Margin="0,0,12,8" />
+
+            <TextBlock Classes="toolbar-label" Text="{Binding OutputFolderText}" Margin="0,0,8,8" />
+            <TextBox Classes="toolbar-control"
+                     Width="300"
+                     Text="{Binding OutputDirectory}"
+                     Watermark="{Binding OutputDirectoryHintText}"
+                     Background="{DynamicResource SurfaceSubtleBrush}"
+                     BorderBrush="{DynamicResource BorderBrush}"
+                     Margin="0,0,8,8" />
+            <Button Classes="icon-only" Click="OnSelectOutputFolderClick" Margin="0,0,12,8" ToolTip.Tip="{Binding ChooseFolderButtonText}">
+                <Path Classes="line-icon" Data="{StaticResource IconFolderOpenGeometry}" />
+            </Button>
+
+            <Button x:Name="StartConversionButton" MinWidth="156" Classes="primary" Command="{Binding StartConversionCommand}" Margin="0,0,8,8" ToolTip.Tip="{Binding StartConversionButtonText}">
+                <StackPanel Classes="icon-label">
+                    <Path Classes="line-icon inverse" Data="{StaticResource IconPlayGeometry}" />
+                    <TextBlock Text="{Binding StartConversionButtonText}" />
+                </StackPanel>
+            </Button>
+
+            <Border Background="{DynamicResource SurfaceBrush}"
+                    BorderBrush="{DynamicResource BorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="10"
+                    Height="44"
+                    Padding="12,0"
+                    Margin="0,0,0,8"
+                    VerticalAlignment="Center">
+                <Grid ColumnDefinitions="Auto,Auto,Auto"
+                      ColumnSpacing="8"
+                      VerticalAlignment="Center">
+                    <Path Grid.Column="0"
+                          Classes="line-icon"
+                          Data="{StaticResource IconAiGeometry}"
+                          VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1"
+                               Text="{Binding AiEnhancementToggleText}"
+                               VerticalAlignment="Center" />
+                    <ToggleSwitch Grid.Column="2"
+                                  IsChecked="{Binding AiEnhancementEnabled}"
+                                  OnContent="{Binding YesText}"
+                                  OffContent="{Binding NoText}"
+                                  ToolTip.Tip="{Binding AiEnhancementToggleHintText}"
+                                  VerticalAlignment="Center"
+                                  Margin="0,-2,0,0" />
+                </Grid>
+            </Border>
+        </WrapPanel>
+    </Border>
+</UserControl>

@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="Imvix Pro.csproj" />
+  <Project Path="Tests\\ImvixPro.Tests\\ImvixPro.Tests.csproj" />
+</Solution>

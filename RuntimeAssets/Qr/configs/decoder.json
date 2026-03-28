@@ -1,0 +1,7 @@
+{
+  "autoRotate": true,
+  "tryHarder": true,
+  "tryInverted": true,
+  "pureBarcode": false,
+  "upscaleLongestEdge": 1800
+}

@@ -1,0 +1,44 @@
+# IDE and per-user files
+.vs/
+.idea/
+.vscode/
+*.user
+*.suo
+*.rsuser
+*.sln.docstates
+*.DotSettings.user
+
+# Build, test, and publish output
+**/bin/
+**/obj/
+**/TestResults/
+publish/
+*.trx
+*.coverage
+*.coveragexml
+
+# Local SDK / package / runtime state
+.appdata/
+.dotnet/
+.dotnet-home/
+.localappdata/
+.nuget/
+.nuget-packages/
+.nuget-user/
+.profile/
+.publish-appdata/
+.publish-localappdata/
+.sandbox-profile/
+AppData/
+LocalLow/
+
+# Temporary downloads and accidental root files
+AI/downloads/
+$enc
+$pdf
+System.IO.__ConsoleStream
+
+# OS noise
+Thumbs.db
+Desktop.ini
+.DS_Store

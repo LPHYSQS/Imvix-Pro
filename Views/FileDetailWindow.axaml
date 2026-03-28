@@ -1,0 +1,206 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        x:Class="ImvixPro.Views.FileDetailWindow"
+        x:CompileBindings="False"
+        Width="980"
+        Height="720"
+        MinWidth="760"
+        MinHeight="520"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource AppBackgroundBrush}">
+    <Window.Styles>
+        <Style Selector="TextBlock.secondary">
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+        </Style>
+    </Window.Styles>
+
+    <Grid RowDefinitions="Auto,*,Auto" Margin="16" RowSpacing="12">
+        <Border Grid.Row="0"
+                Background="{DynamicResource SurfaceAltBrush}"
+                BorderBrush="{DynamicResource BorderBrush}"
+                BorderThickness="1"
+                CornerRadius="10"
+                Padding="12">
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                <Border Classes="icon-badge">
+                    <Path Classes="line-icon" Data="{StaticResource IconInfoGeometry}" />
+                </Border>
+                <StackPanel Grid.Column="1" Spacing="4">
+                    <TextBlock Text="{Binding FileName}" FontSize="20" FontWeight="SemiBold" TextWrapping="Wrap" />
+                    <TextBlock Text="{Binding FileTypeText}" Classes="secondary" />
+                    <TextBlock Text="{Binding FilePath}" Classes="secondary" TextWrapping="Wrap" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="1" ColumnDefinitions="330,*" ColumnSpacing="12">
+            <Border Grid.Column="0"
+                    Background="{DynamicResource SurfaceBrush}"
+                    BorderBrush="{DynamicResource BorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="10"
+                    Padding="12">
+                <Grid RowDefinitions="Auto,*" RowSpacing="12">
+                    <StackPanel Grid.Row="0" Classes="icon-label">
+                        <Border Classes="icon-badge">
+                            <Path Classes="line-icon" Data="{StaticResource IconImageGeometry}" />
+                        </Border>
+                        <TextBlock Text="{Binding PreviewTitleText}" FontWeight="SemiBold" VerticalAlignment="Center" />
+                    </StackPanel>
+
+                    <Grid Grid.Row="1">
+                        <StackPanel HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Spacing="10"
+                                    IsVisible="{Binding IsLoading}">
+                            <ProgressBar Width="180" IsIndeterminate="True" />
+                            <TextBlock Text="{Binding LoadingText}" Classes="secondary" HorizontalAlignment="Center" />
+                        </StackPanel>
+
+                        <StackPanel Spacing="10" IsVisible="{Binding HasPreview}">
+                            <Border Height="360"
+                                    Background="{DynamicResource SurfaceSubtleBrush}"
+                                    BorderBrush="{DynamicResource BorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="8"
+                                    Padding="8">
+                                <Image Source="{Binding PreviewImage}" Stretch="Uniform" />
+                            </Border>
+                            <TextBlock Text="{Binding PreviewDescription}" Classes="secondary" TextWrapping="Wrap" />
+                        </StackPanel>
+
+                        <StackPanel HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Spacing="10"
+                                    IsVisible="{Binding IsPreviewMissing}">
+                            <Border Classes="icon-badge"
+                                    Width="44"
+                                    Height="44"
+                                    HorizontalAlignment="Center">
+                                <Path Classes="line-icon secondary" Data="{StaticResource IconFileGeometry}" />
+                            </Border>
+                            <TextBlock Text="{Binding NoPreviewText}" Classes="secondary" TextWrapping="Wrap" TextAlignment="Center" />
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+            </Border>
+
+            <Border Grid.Column="1"
+                    Background="{DynamicResource SurfaceBrush}"
+                    BorderBrush="{DynamicResource BorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="10"
+                    Padding="12">
+                <Grid>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                  HorizontalScrollBarVisibility="Disabled"
+                                  IsVisible="{Binding ShowGenericSections}">
+                        <ItemsControl ItemsSource="{Binding Sections}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="{DynamicResource SurfaceAltBrush}"
+                                            BorderBrush="{DynamicResource BorderBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="8"
+                                            Padding="12"
+                                            Margin="0,0,0,10">
+                                        <StackPanel Spacing="10">
+                                            <TextBlock Text="{Binding Title}" FontSize="15" FontWeight="SemiBold" />
+                                            <ItemsControl ItemsSource="{Binding Entries}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Grid ColumnDefinitions="180,*" ColumnSpacing="10" Margin="0,0,0,6">
+                                                            <TextBlock Grid.Column="0" Text="{Binding Label}" Classes="secondary" TextWrapping="Wrap" />
+                                                            <TextBlock Grid.Column="1" Text="{Binding Value}" TextWrapping="Wrap" />
+                                                        </Grid>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+
+                    <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                  HorizontalScrollBarVisibility="Disabled"
+                                  IsVisible="{Binding ShowPsdSections}">
+                        <ItemsControl ItemsSource="{Binding Sections}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="{DynamicResource SurfaceAltBrush}"
+                                            BorderBrush="{DynamicResource BorderBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="10"
+                                            Padding="14"
+                                            Margin="0,0,0,12">
+                                        <StackPanel Spacing="12">
+                                            <Border Background="{DynamicResource SurfaceBrush}"
+                                                    CornerRadius="8"
+                                                    Padding="10,8">
+                                                <TextBlock Text="{Binding Title}"
+                                                           FontSize="15"
+                                                           FontWeight="SemiBold" />
+                                            </Border>
+
+                                            <ItemsControl ItemsSource="{Binding Entries}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border Background="{DynamicResource SurfaceBrush}"
+                                                                BorderBrush="{DynamicResource BorderBrush}"
+                                                                BorderThickness="1"
+                                                                CornerRadius="8"
+                                                                Padding="10"
+                                                                Margin="0,0,0,8">
+                                                            <Grid ColumnDefinitions="190,*" ColumnSpacing="12">
+                                                                <TextBlock Grid.Column="0"
+                                                                           Text="{Binding Label}"
+                                                                           Classes="secondary"
+                                                                           FontWeight="SemiBold"
+                                                                           TextWrapping="Wrap" />
+                                                                <TextBlock Grid.Column="1"
+                                                                           Text="{Binding Value}"
+                                                                           TextWrapping="Wrap" />
+                                                            </Grid>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+
+                    <Border Background="{DynamicResource DangerBackgroundBrush}"
+                            BorderBrush="{DynamicResource DangerBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="8"
+                            Padding="12"
+                            IsVisible="{Binding HasError}">
+                        <TextBlock Text="{Binding ErrorMessage}"
+                                   Foreground="{DynamicResource DangerTextBrush}"
+                                   TextWrapping="Wrap" />
+                    </Border>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+            <Button Click="OnCopyInfoClick" IsEnabled="{Binding CanCopyInfo}">
+                <StackPanel Classes="icon-label">
+                    <Path Classes="line-icon" Data="{StaticResource IconSaveGeometry}" />
+                    <TextBlock Text="{Binding CopyInfoText}" />
+                </StackPanel>
+            </Button>
+            <Button Classes="primary" Click="OnCloseClick">
+                <TextBlock Text="{Binding CloseText}" />
+            </Button>
+        </StackPanel>
+    </Grid>
+</Window>

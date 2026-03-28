@@ -1,0 +1,266 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             x:Class="ImvixPro.Views.Controls.SettingsPanel"
+             x:CompileBindings="False"
+             mc:Ignorable="d">
+    <ScrollViewer Margin="8" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" AllowAutoHide="False">
+        <StackPanel Spacing="10" Margin="0,0,16,0">
+            <StackPanel Classes="icon-label">
+                <Border Classes="icon-badge">
+                    <Path Classes="line-icon" Data="{StaticResource IconLanguageGeometry}" />
+                </Border>
+                <TextBlock Text="{Binding LanguageLabelText}" VerticalAlignment="Center" />
+            </StackPanel>
+            <ComboBox ItemsSource="{Binding Languages}" SelectedItem="{Binding SelectedLanguage}">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding DisplayName}" />
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+            <TextBlock Text="{Binding LanguageSystemHintText}" Classes="secondary" TextWrapping="Wrap" IsVisible="{Binding IsSystemLanguageSelected}" />
+
+            <StackPanel Classes="icon-label">
+                <Border Classes="icon-badge">
+                    <Path Classes="line-icon" Data="{StaticResource IconThemeGeometry}" />
+                </Border>
+                <TextBlock Text="{Binding ThemeLabelText}" VerticalAlignment="Center" />
+            </StackPanel>
+            <ComboBox ItemsSource="{Binding Themes}" SelectedItem="{Binding SelectedTheme}">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding DisplayName}" />
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+
+            <StackPanel Classes="icon-label">
+                <Border Classes="icon-badge">
+                    <Path Classes="line-icon" Data="{StaticResource IconImageGeometry}" />
+                </Border>
+                <TextBlock Text="{Binding DefaultOutputFormatText}" VerticalAlignment="Center" />
+            </StackPanel>
+            <ComboBox ItemsSource="{Binding OutputFormats}" SelectedItem="{Binding SelectedOutputFormat}" />
+
+            <StackPanel Classes="icon-label">
+                <Border Classes="icon-badge">
+                    <Path Classes="line-icon" Data="{StaticResource IconCompressionGeometry}" />
+                </Border>
+                <TextBlock Text="{Binding CompressionModeText}" VerticalAlignment="Center" />
+            </StackPanel>
+            <ComboBox ItemsSource="{Binding CompressionModes}" SelectedItem="{Binding SelectedCompressionModeOption}">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding DisplayName}" />
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+            <TextBlock Text="{Binding CompressionModeHintText}" Classes="secondary" TextWrapping="Wrap" />
+
+            <TextBlock Text="{Binding QualityText}" />
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                <Slider Grid.Column="0" Minimum="1" Maximum="100" Value="{Binding Quality}" IsEnabled="{Binding IsQualityEditable}" />
+                <TextBlock Grid.Column="1" Text="{Binding Quality}" VerticalAlignment="Center" />
+            </Grid>
+
+            <Border Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="8" Padding="8">
+                <StackPanel Spacing="8">
+                    <StackPanel Classes="icon-label">
+                        <Border Classes="icon-badge">
+                            <Path Classes="line-icon" Data="{StaticResource IconResizeGeometry}" />
+                        </Border>
+                        <TextBlock Text="{Binding ResizeSettingsText}" FontWeight="SemiBold" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <TextBlock Text="{Binding ResizeModeText}" />
+                    <ComboBox ItemsSource="{Binding ResizeModes}" SelectedItem="{Binding SelectedResizeModeOption}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding DisplayName}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8" IsVisible="{Binding IsResizeWidthVisible}">
+                        <TextBlock Grid.Column="0" Text="{Binding ResizeWidthText}" VerticalAlignment="Center" />
+                        <TextBox Grid.Column="1" Text="{Binding ResizeWidth, UpdateSourceTrigger=LostFocus}" />
+                    </Grid>
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8" IsVisible="{Binding IsResizeHeightVisible}">
+                        <TextBlock Grid.Column="0" Text="{Binding ResizeHeightText}" VerticalAlignment="Center" />
+                        <TextBox Grid.Column="1" Text="{Binding ResizeHeight, UpdateSourceTrigger=LostFocus}" />
+                    </Grid>
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8" IsVisible="{Binding IsResizePercentVisible}">
+                        <TextBlock Grid.Column="0" Text="{Binding ResizePercentText}" VerticalAlignment="Center" />
+                        <TextBox Grid.Column="1" Text="{Binding ResizePercent, UpdateSourceTrigger=LostFocus}" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <Border Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="8" Padding="8">
+                <StackPanel Spacing="8">
+                    <StackPanel Classes="icon-label">
+                        <Border Classes="icon-badge">
+                            <Path Classes="line-icon" Data="{StaticResource IconRenameGeometry}" />
+                        </Border>
+                        <TextBlock Text="{Binding RenameSettingsText}" FontWeight="SemiBold" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <TextBlock Text="{Binding RenameModeText}" />
+                    <ComboBox ItemsSource="{Binding RenameModes}" SelectedItem="{Binding SelectedRenameModeOption}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding DisplayName}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8" IsVisible="{Binding IsRenamePrefixVisible}">
+                        <TextBlock Grid.Column="0" Text="{Binding RenamePrefixText}" VerticalAlignment="Center" />
+                        <TextBox Grid.Column="1" Text="{Binding RenamePrefix}" />
+                    </Grid>
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8" IsVisible="{Binding IsRenameSuffixVisible}">
+                        <TextBlock Grid.Column="0" Text="{Binding RenameSuffixText}" VerticalAlignment="Center" />
+                        <TextBox Grid.Column="1" Text="{Binding RenameSuffix}" />
+                    </Grid>
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8" IsVisible="{Binding IsRenameNumberVisible}">
+                        <TextBlock Grid.Column="0" Text="{Binding RenameStartNumberText}" VerticalAlignment="Center" />
+                        <TextBox Grid.Column="1" Text="{Binding RenameStartNumber, UpdateSourceTrigger=LostFocus}" />
+                    </Grid>
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8" IsVisible="{Binding IsRenameNumberVisible}">
+                        <TextBlock Grid.Column="0" Text="{Binding RenameDigitsText}" VerticalAlignment="Center" />
+                        <TextBox Grid.Column="1" Text="{Binding RenameNumberDigits, UpdateSourceTrigger=LostFocus}" />
+                    </Grid>
+                    <TextBlock Text="{Binding RenameHintText}" Classes="secondary" TextWrapping="Wrap" />
+                </StackPanel>
+            </Border>
+
+            <Border Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="8" Padding="8">
+                <StackPanel Spacing="8">
+                    <StackPanel Classes="icon-label">
+                        <Border Classes="icon-badge">
+                            <Path Classes="line-icon" Data="{StaticResource IconPresetGeometry}" />
+                        </Border>
+                        <TextBlock Text="{Binding PresetSettingsText}" FontWeight="SemiBold" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <ComboBox ItemsSource="{Binding Presets}" SelectedItem="{Binding SelectedPreset}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Name}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                        <TextBlock Grid.Column="0" Text="{Binding PresetNameText}" VerticalAlignment="Center" />
+                        <TextBox Grid.Column="1" Text="{Binding PresetNameInput}" Watermark="{Binding PresetNameHintText}" />
+                    </Grid>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Button Command="{Binding SavePresetCommand}" ToolTip.Tip="{Binding SavePresetText}">
+                            <StackPanel Classes="icon-label">
+                                <Path Classes="line-icon" Data="{StaticResource IconSaveGeometry}" />
+                                <TextBlock Text="{Binding SavePresetText}" />
+                            </StackPanel>
+                        </Button>
+                        <Button Command="{Binding ApplyPresetCommand}" ToolTip.Tip="{Binding ApplyPresetText}">
+                            <StackPanel Classes="icon-label">
+                                <Path Classes="line-icon" Data="{StaticResource IconCheckGeometry}" />
+                                <TextBlock Text="{Binding ApplyPresetText}" />
+                            </StackPanel>
+                        </Button>
+                        <Button Command="{Binding DeletePresetCommand}" ToolTip.Tip="{Binding DeletePresetText}">
+                            <StackPanel Classes="icon-label">
+                                <Path Classes="line-icon danger" Data="{StaticResource IconTrashGeometry}" />
+                                <TextBlock Text="{Binding DeletePresetText}" />
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <Border Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="8" Padding="8">
+                <StackPanel Spacing="8">
+                    <StackPanel Classes="icon-label">
+                        <Border Classes="icon-badge">
+                            <Path Classes="line-icon" Data="{StaticResource IconWatchGeometry}" />
+                        </Border>
+                        <TextBlock Text="{Binding WatchModeTitleText}" FontWeight="SemiBold" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <CheckBox IsChecked="{Binding WatchModeEnabled}" Content="{Binding WatchModeEnabledText}" />
+                    <TextBlock Text="{Binding WatchStatusLabelText}" />
+                    <TextBlock Text="{Binding WatchStatusText}" />
+                    <TextBlock Text="{Binding WatchMetricsText}" Classes="secondary" />
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                        <TextBox Grid.Column="0" Classes="settings-folder-input" Text="{Binding WatchInputDirectory}" Watermark="{Binding WatchInputFolderText}" />
+                        <Button Grid.Column="1" Classes="icon-only" Click="OnSelectWatchInputFolderClick" ToolTip.Tip="{Binding ChooseFolderButtonText}">
+                            <Path Classes="line-icon" Data="{StaticResource IconFolderOpenGeometry}" />
+                        </Button>
+                    </Grid>
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                        <TextBox Grid.Column="0" Classes="settings-folder-input" Text="{Binding WatchOutputDirectory}" Watermark="{Binding WatchOutputFolderText}" />
+                        <Button Grid.Column="1" Classes="icon-only" Click="OnSelectWatchOutputFolderClick" ToolTip.Tip="{Binding ChooseFolderButtonText}">
+                            <Path Classes="line-icon" Data="{StaticResource IconFolderOpenGeometry}" />
+                        </Button>
+                    </Grid>
+                    <CheckBox IsChecked="{Binding WatchIncludeSubfolders}" Content="{Binding WatchIncludeSubfoldersText}" />
+                    <TextBlock Text="{Binding WatchHintText}" Classes="secondary" TextWrapping="Wrap" />
+                </StackPanel>
+            </Border>
+
+            <Border Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="8" Padding="8">
+                <StackPanel Spacing="8">
+                    <StackPanel Classes="icon-label">
+                        <Border Classes="icon-badge">
+                            <Path Classes="line-icon" Data="{StaticResource IconLayersGeometry}" />
+                        </Border>
+                        <TextBlock Text="{Binding TraySettingsTitleText}" FontWeight="SemiBold" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <CheckBox IsChecked="{Binding KeepRunningInTray}" Content="{Binding KeepRunningInTrayText}" />
+                    <TextBlock Text="{Binding TrayHintText}" Classes="secondary" TextWrapping="Wrap" />
+                </StackPanel>
+            </Border>
+
+            <Border Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="8" Padding="8">
+                <StackPanel Spacing="8">
+                    <StackPanel Classes="icon-label">
+                        <Border Classes="icon-badge">
+                            <Path Classes="line-icon" Data="{StaticResource IconSettingsGeometry}" />
+                        </Border>
+                        <TextBlock Text="{Binding StartupSettingsTitleText}" FontWeight="SemiBold" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <CheckBox IsChecked="{Binding RunOnStartup}" Content="{Binding RunOnStartupText}" />
+                    <Button Command="{Binding CreateDesktopShortcutCommand}" ToolTip.Tip="{Binding CreateDesktopShortcutText}">
+                        <StackPanel Classes="icon-label">
+                            <Path Classes="line-icon" Data="{StaticResource IconFolderOpenGeometry}" />
+                            <TextBlock Text="{Binding CreateDesktopShortcutText}" />
+                        </StackPanel>
+                    </Button>
+                    <TextBlock Text="{Binding DesktopShortcutStatusText}"
+                               Classes="secondary"
+                               TextWrapping="Wrap"
+                               IsVisible="{Binding HasDesktopShortcutStatus}" />
+                </StackPanel>
+            </Border>
+
+            <CheckBox IsChecked="{Binding UseSourceFolder}" Content="{Binding UseSourceFolderText}" />
+            <CheckBox IsChecked="{Binding IncludeSubfoldersOnFolderImport}" Content="{Binding IncludeSubfoldersOnImportText}" />
+
+            <StackPanel Classes="icon-label">
+                <Border Classes="icon-badge">
+                    <Path Classes="line-icon" Data="{StaticResource IconFolderOpenGeometry}" />
+                </Border>
+                <TextBlock Text="{Binding DefaultOutputFolderLabelText}" VerticalAlignment="Center" />
+            </StackPanel>
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                <TextBox Grid.Column="0"
+                         Classes="settings-folder-input"
+                         Text="{Binding OutputDirectory}"
+                         Watermark="{Binding OutputDirectoryHintText}"
+                         Background="{DynamicResource SurfaceSubtleBrush}"
+                         BorderBrush="{DynamicResource BorderBrush}" />
+                <Button Grid.Column="1" Classes="icon-only" Click="OnSelectOutputFolderClick" ToolTip.Tip="{Binding ChooseFolderButtonText}">
+                    <Path Classes="line-icon" Data="{StaticResource IconFolderOpenGeometry}" />
+                </Button>
+            </Grid>
+
+            <CheckBox IsChecked="{Binding AutoOpenOutputDirectory}" Content="{Binding AutoOpenOutputFolderText}" />
+            <CheckBox IsChecked="{Binding AllowOverwrite}" Content="{Binding AllowOverwriteText}" />
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>
