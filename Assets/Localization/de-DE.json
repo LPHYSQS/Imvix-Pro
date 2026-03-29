@@ -159,6 +159,8 @@
     "WatchStatusLabel":  "Überwachungsstatus",
     "WatchIncludeSubfolders":  "Unterordner im Überwachungsmodus einschließen",
     "WatchHint":  "Wenn aktiviert, werden neue Bilder im Eingabeordner automatisch mit den aktuellen Einstellungen konvertiert.",
+    "WatchHintSavedProfile":  "Der Überwachungsmodus verwendet das gespeicherte Überwachungsprofil. Speichern Sie erneut, wenn die neuesten aktuellen Einstellungen übernommen werden sollen.",
+    "SaveCurrentWatchProfile":  "Aktuelle Einstellungen als Überwachungsprofil speichern",
     "SelectWatchInputFolderDialogTitle":  "Überwachten Eingabeordner auswählen",
     "SelectWatchOutputFolderDialogTitle":  "Überwachten Ausgabeordner auswählen",
     "Pause":  "Pausieren",

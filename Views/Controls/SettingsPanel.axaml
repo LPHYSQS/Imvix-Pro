@@ -199,6 +199,16 @@
                         </Button>
                     </Grid>
                     <CheckBox IsChecked="{Binding WatchIncludeSubfolders}" Content="{Binding WatchIncludeSubfoldersText}" />
+                    <Button Command="{Binding SaveCurrentWatchProfileCommand}" ToolTip.Tip="{Binding SaveCurrentWatchProfileText}">
+                        <StackPanel Classes="icon-label">
+                            <Path Classes="line-icon" Data="{StaticResource IconSaveGeometry}" />
+                            <TextBlock Text="{Binding SaveCurrentWatchProfileText}" />
+                        </StackPanel>
+                    </Button>
+                    <TextBlock Text="{Binding WatchProfileSummaryText}"
+                               Classes="secondary"
+                               TextWrapping="Wrap"
+                               IsVisible="{Binding HasWatchProfileSummary}" />
                     <TextBlock Text="{Binding WatchHintText}" Classes="secondary" TextWrapping="Wrap" />
                 </StackPanel>
             </Border>

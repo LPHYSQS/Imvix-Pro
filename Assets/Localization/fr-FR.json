@@ -159,6 +159,8 @@
     "WatchStatusLabel":  "Statut de surveillance",
     "WatchIncludeSubfolders":  "Inclure les sous-dossiers en mode surveillance",
     "WatchHint":  "Une fois activé, les nouvelles images ajoutées au dossier d\u0027entrée sont converties automatiquement selon les paramètres actuels.",
+    "WatchHintSavedProfile":  "Le mode surveillance s'exécute avec le profil de surveillance enregistré. Enregistrez à nouveau pour utiliser les paramètres actuels les plus récents.",
+    "SaveCurrentWatchProfile":  "Enregistrer les paramètres actuels comme profil de surveillance",
     "SelectWatchInputFolderDialogTitle":  "Sélectionner le dossier d\u0027entrée surveillé",
     "SelectWatchOutputFolderDialogTitle":  "Sélectionner le dossier de sortie surveillé",
     "Pause":  "Mettre en pause",

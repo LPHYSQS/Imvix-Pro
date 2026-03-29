@@ -159,6 +159,8 @@
     "WatchStatusLabel":  "Watch status",
     "WatchIncludeSubfolders":  "Include subfolders in watch mode",
     "WatchHint":  "When enabled, new images added to the input folder are converted automatically with the current conversion settings.",
+    "WatchHintSavedProfile":  "Watch mode runs with the saved watch profile. Save again when you want watch tasks to use the latest current settings.",
+    "SaveCurrentWatchProfile":  "Save current settings as watch profile",
     "SelectWatchInputFolderDialogTitle":  "Select watch input folder",
     "SelectWatchOutputFolderDialogTitle":  "Select watch output folder",
     "Pause":  "Pause",

@@ -159,6 +159,8 @@
     "WatchStatusLabel":  "حالة المراقبة",
     "WatchIncludeSubfolders":  "تضمين المجلدات الفرعية في وضع المراقبة",
     "WatchHint":  "عند التفعيل، تُحوَّل الصور الجديدة المضافة إلى مجلد الإدخال تلقائيًا باستخدام الإعدادات الحالية.",
+    "WatchHintSavedProfile":  "يعمل وضع المراقبة باستخدام ملف التعريف المحفوظ. احفظ مرة أخرى إذا أردت استخدام أحدث الإعدادات الحالية.",
+    "SaveCurrentWatchProfile":  "حفظ الإعدادات الحالية كملف تعريف للمراقبة",
     "SelectWatchInputFolderDialogTitle":  "اختر مجلد الإدخال للمراقبة",
     "SelectWatchOutputFolderDialogTitle":  "اختر مجلد الإخراج للمراقبة",
     "Pause":  "إيقاف مؤقت",

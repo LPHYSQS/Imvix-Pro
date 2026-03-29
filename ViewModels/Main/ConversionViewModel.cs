@@ -567,6 +567,7 @@ namespace ImvixPro.ViewModels
             OnPropertyChanged(nameof(StartupSettingsTitleText));
             OnPropertyChanged(nameof(RunOnStartupText));
             OnPropertyChanged(nameof(CreateDesktopShortcutText));
+            OnPropertyChanged(nameof(SaveCurrentWatchProfileText));
             OnPropertyChanged(nameof(WatchModeEnabledText));
             OnPropertyChanged(nameof(WatchInputFolderText));
             OnPropertyChanged(nameof(WatchOutputFolderText));
@@ -574,6 +575,7 @@ namespace ImvixPro.ViewModels
             OnPropertyChanged(nameof(WatchIncludeSubfoldersText));
             OnPropertyChanged(nameof(WatchHintText));
             OnPropertyChanged(nameof(WatchProfileSummaryText));
+            OnPropertyChanged(nameof(HasWatchProfileSummary));
             OnPropertyChanged(nameof(SelectWatchInputFolderDialogTitle));
             OnPropertyChanged(nameof(SelectWatchOutputFolderDialogTitle));
             OnPropertyChanged(nameof(PauseText));

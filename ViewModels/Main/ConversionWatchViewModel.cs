@@ -50,9 +50,13 @@ namespace ImvixPro.ViewModels
 
         public string CreateDesktopShortcutText => T("CreateDesktopShortcut");
 
+        public string SaveCurrentWatchProfileText => T("SaveCurrentWatchProfile");
+
         public bool HasDesktopShortcutStatus => !string.IsNullOrWhiteSpace(DesktopShortcutStatusText);
 
         public string WatchProfileSummaryText => BuildWatchProfileSummaryText();
+
+        public bool HasWatchProfileSummary => !string.IsNullOrWhiteSpace(WatchProfileSummaryText);
 
         [ObservableProperty]
         private bool watchModeEnabled;
@@ -378,7 +382,7 @@ namespace ImvixPro.ViewModels
                 return;
             }
 
-            if (value)
+            if (value && _watchJobDefinitionSnapshot is null)
             {
                 _watchJobDefinitionSnapshot = BuildCurrentJobDefinition(forWatch: true);
             }
@@ -470,13 +474,24 @@ namespace ImvixPro.ViewModels
                 : T("DesktopShortcutCreateFailed");
         }
 
+        [RelayCommand]
+        private async Task SaveCurrentWatchProfileAsync()
+        {
+            _watchJobDefinitionSnapshot = BuildCurrentJobDefinition(forWatch: true);
+            PersistSettings();
+
+            if (WatchModeEnabled)
+            {
+                await ReconfigureWatchModeAsync();
+                return;
+            }
+
+            RefreshWatchStatus();
+        }
+
         private string BuildWatchHintText()
         {
-            var baseHint = T("WatchHint");
-            var summary = BuildWatchProfileSummaryText();
-            return string.IsNullOrWhiteSpace(summary)
-                ? baseHint
-                : $"{baseHint}{Environment.NewLine}{summary}";
+            return T("WatchHintSavedProfile");
         }
 
         private string BuildWatchProfileSummaryText()
@@ -521,6 +536,7 @@ namespace ImvixPro.ViewModels
         {
             OnPropertyChanged(nameof(WatchHintText));
             OnPropertyChanged(nameof(WatchProfileSummaryText));
+            OnPropertyChanged(nameof(HasWatchProfileSummary));
         }
     }
 }

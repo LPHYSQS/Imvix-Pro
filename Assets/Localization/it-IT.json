@@ -159,6 +159,8 @@
     "WatchStatusLabel":  "Stato monitoraggio",
     "WatchIncludeSubfolders":  "Includi sottocartelle nel monitoraggio",
     "WatchHint":  "Quando attivo, le nuove immagini aggiunte alla cartella di input vengono convertite automaticamente con le impostazioni correnti.",
+    "WatchHintSavedProfile":  "La modalità di monitoraggio usa il profilo salvato. Salva di nuovo quando vuoi applicare le impostazioni correnti più recenti.",
+    "SaveCurrentWatchProfile":  "Salva le impostazioni correnti come profilo di monitoraggio",
     "SelectWatchInputFolderDialogTitle":  "Seleziona cartella input monitorata",
     "SelectWatchOutputFolderDialogTitle":  "Seleziona cartella output monitorata",
     "Pause":  "Pausa",

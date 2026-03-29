@@ -159,6 +159,8 @@
     "WatchStatusLabel":  "감시 상태",
     "WatchIncludeSubfolders":  "감시 시 하위 폴더 포함",
     "WatchHint":  "활성화하면 입력 폴더에 추가된 새 이미지를 현재 설정으로 자동 변환합니다.",
+    "WatchHintSavedProfile":  "감시 모드는 저장된 감시 프로필로 실행됩니다. 최신 현재 설정을 반영하려면 다시 저장하세요.",
+    "SaveCurrentWatchProfile":  "현재 설정을 감시 프로필로 저장",
     "SelectWatchInputFolderDialogTitle":  "감시 입력 폴더 선택",
     "SelectWatchOutputFolderDialogTitle":  "감시 출력 폴더 선택",
     "Pause":  "일시 중지",
