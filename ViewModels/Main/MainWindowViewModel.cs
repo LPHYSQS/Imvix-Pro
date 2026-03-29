@@ -52,6 +52,7 @@ namespace ImvixPro.ViewModels
         private readonly ConversionPlanningService _conversionPlanningService;
         private readonly ConversionStatusSummaryService _conversionStatusSummaryService;
         private readonly ConversionTextPresenter _conversionTextPresenter;
+        private readonly ConversionSummaryCoordinator _conversionSummaryCoordinator;
         private readonly WatchProfilePlanningService _watchProfilePlanningService;
         private readonly PdfSecurityService _pdfSecurityService;
         private readonly AppLogger _logger;
@@ -72,7 +73,7 @@ namespace ImvixPro.ViewModels
         private int _gifPreviewIndex;
         private long _gifPreviewRequestId;
 
-        public event EventHandler<CompletionSummaryModel>? ConversionCompleted;
+        public event EventHandler<ConversionSummaryFlowResult>? ConversionCompleted;
 
         public MainWindowViewModel()
             : this(AppServices.CreateMainWindowViewModelServices())
@@ -90,6 +91,7 @@ namespace ImvixPro.ViewModels
             _conversionPlanningService = services.ConversionPlanningService ?? throw new ArgumentNullException(nameof(services.ConversionPlanningService));
             _conversionStatusSummaryService = services.ConversionStatusSummaryService ?? throw new ArgumentNullException(nameof(services.ConversionStatusSummaryService));
             _conversionTextPresenter = services.ConversionTextPresenter ?? throw new ArgumentNullException(nameof(services.ConversionTextPresenter));
+            _conversionSummaryCoordinator = services.ConversionSummaryCoordinator ?? throw new ArgumentNullException(nameof(services.ConversionSummaryCoordinator));
             _watchProfilePlanningService = services.WatchProfilePlanningService ?? throw new ArgumentNullException(nameof(services.WatchProfilePlanningService));
             _conversionPipelineService = services.ConversionPipelineService ?? throw new ArgumentNullException(nameof(services.ConversionPipelineService));
             _conversionHistoryService = services.ConversionHistoryService ?? throw new ArgumentNullException(nameof(services.ConversionHistoryService));

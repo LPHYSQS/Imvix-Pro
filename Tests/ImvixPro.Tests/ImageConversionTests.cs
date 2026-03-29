@@ -207,6 +207,76 @@ public sealed class ImageConversionTests
     }
 
     [Fact]
+    public void ConversionSummaryCoordinator_UnifiesDialogAndHistoryOutputsForManualCompletion()
+    {
+        var coordinator = new ConversionSummaryCoordinator(
+            new ConversionStatusSummaryService(),
+            new ConversionTextPresenter());
+        var completion = new CompletionSummaryModel(
+            ConversionTriggerSource.Manual,
+            OutputImageFormat.Png,
+            TotalCount: 3,
+            ProcessedCount: 3,
+            SuccessCount: 2,
+            FailureCount: 1,
+            Duration: TimeSpan.FromSeconds(5),
+            WasCanceled: false,
+            OriginalTotalBytes: 4_096,
+            EstimatedMinBytes: 2_048,
+            EstimatedMaxBytes: 3_072,
+            FailureLogPath: @"C:\logs\manual.log");
+        var timestamp = new DateTimeOffset(2026, 3, 30, 10, 15, 0, TimeSpan.Zero);
+
+        var flow = coordinator.BuildCompletionFlow(
+            completion,
+            TranslateTestText,
+            includeDialog: true,
+            timestamp);
+
+        Assert.Equal(completion, flow.Summary);
+        Assert.True(flow.HasDialogRequest);
+        Assert.Equal("Summary", flow.DialogRequest!.Title);
+        Assert.Contains("Total: 3", flow.DialogRequest.SummaryText);
+        Assert.Equal("Close", flow.DialogRequest.CloseButtonText);
+        Assert.Equal(timestamp, flow.HistoryEntry.Timestamp);
+        Assert.Equal(completion.FailureLogPath, flow.HistoryEntry.FailureLogPath);
+
+        var historyItem = coordinator.CreateHistoryItem(flow.HistoryEntry, TranslateTestText);
+        Assert.Equal("Manual · PNG · 3 total / 2 success / 1 failed", historyItem.SummaryText);
+        Assert.Equal("Input 4.0 KB · Estimate 2.0 KB - 3.0 KB · Duration 00:05.00", historyItem.DetailText);
+        Assert.True(historyItem.HasFailureLog);
+    }
+
+    [Fact]
+    public void ConversionSummaryCoordinator_SkipsDialogForWatchCompletionWhileKeepingHistoryEntry()
+    {
+        var coordinator = new ConversionSummaryCoordinator(
+            new ConversionStatusSummaryService(),
+            new ConversionTextPresenter());
+        var flow = coordinator.BuildCompletionFlow(
+            new ConversionSummary(
+                totalCount: 1,
+                processedCount: 1,
+                successCount: 1,
+                failures: [],
+                outputDirectories: [],
+                duration: TimeSpan.FromSeconds(2),
+                wasCanceled: false),
+            ConversionTriggerSource.Watch,
+            OutputImageFormat.Webp,
+            new SizeEstimateResult(true, 1_024, 512, 768),
+            failureLogPath: null,
+            TranslateTestText,
+            includeDialog: false,
+            timestamp: new DateTimeOffset(2026, 3, 30, 12, 0, 0, TimeSpan.Zero));
+
+        Assert.False(flow.HasDialogRequest);
+        Assert.Equal(ConversionTriggerSource.Watch, flow.HistoryEntry.Source);
+        Assert.Equal(OutputImageFormat.Webp, flow.HistoryEntry.OutputFormat);
+        Assert.Equal(string.Empty, flow.HistoryEntry.FailureLogPath);
+    }
+
+    [Fact]
     public void WatchRuntimeStatusSummary_FormatsProcessingThroughSharedPresenter()
     {
         var summaryService = new ConversionStatusSummaryService();
@@ -282,6 +352,8 @@ public sealed class ImageConversionTests
             "SummaryCanceled" => "Canceled",
             "SummaryDuration" => "Duration",
             "YesText" => "Yes",
+            "ConversionSummaryTitle" => "Summary",
+            "Close" => "Close",
             "HistorySourceManual" => "Manual",
             "HistorySourceWatch" => "Watch",
             "HistorySummaryCanceledTemplate" => "{0} · {1} · Processed {2}/{3} before cancellation",

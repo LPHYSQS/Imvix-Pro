@@ -89,11 +89,6 @@ namespace ImvixPro.ViewModels
             UseSourceFolder = false;
         }
 
-        public string BuildConversionSummaryText(CompletionSummaryModel summary)
-        {
-            return _conversionTextPresenter.BuildCompletionSummaryText(summary, T);
-        }
-
         [RelayCommand(CanExecute = nameof(CanClearImages))]
         private void ClearImages()
         {

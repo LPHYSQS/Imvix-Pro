@@ -160,18 +160,20 @@ namespace ImvixPro.ViewModels
                 }
 
                 var logPath = _conversionLogService.WriteFailureLog(summary, options, snapshot, ConversionTriggerSource.Manual);
-                var completionSummary = _conversionStatusSummaryService.CreateCompletionSummary(
+                var completionFlow = _conversionSummaryCoordinator.BuildCompletionFlow(
                     summary,
                     ConversionTriggerSource.Manual,
                     options.OutputFormat,
                     estimate,
-                    logPath);
+                    logPath,
+                    T,
+                    includeDialog: true);
 
-                ApplyManualRuntimeStatus(_conversionStatusSummaryService.CreateCompletionRuntimeStatus(completionSummary));
-                LastFailureLogPath = completionSummary.FailureLogPath;
-                AppendHistory(completionSummary);
+                ApplyManualRuntimeStatus(_conversionStatusSummaryService.CreateCompletionRuntimeStatus(completionFlow.Summary));
+                LastFailureLogPath = completionFlow.Summary.FailureLogPath;
+                AppendHistory(completionFlow.HistoryEntry);
 
-                ConversionCompleted?.Invoke(this, completionSummary);
+                ConversionCompleted?.Invoke(this, completionFlow);
                 TryOpenOutputFolder(summary.OutputDirectories, summary.SuccessCount > 0);
             }
             catch (OperationCanceledException)
@@ -432,44 +434,13 @@ namespace ImvixPro.ViewModels
             RecentConversions.Clear();
             foreach (var entry in _historyCache)
             {
-                RecentConversions.Add(BuildHistoryItem(entry));
+                RecentConversions.Add(_conversionSummaryCoordinator.CreateHistoryItem(entry, T));
             }
         }
 
-        private RecentConversionItem BuildHistoryItem(ConversionHistoryEntry entry)
+        private void AppendHistory(ConversionHistoryEntry entry)
         {
-            var summary = _conversionStatusSummaryService.CreateCompletionSummary(entry);
-            var timestampText = entry.Timestamp.LocalDateTime.ToString("g", CultureInfo.CurrentCulture);
-            var summaryText = _conversionTextPresenter.BuildHistorySummaryText(summary, T);
-            var detailText = _conversionTextPresenter.BuildHistoryDetailText(summary, T);
-
-            return new RecentConversionItem
-            {
-                TimestampText = timestampText,
-                SummaryText = summaryText,
-                DetailText = detailText,
-                FailureLogPath = summary.FailureLogPath
-            };
-        }
-
-        private void AppendHistory(CompletionSummaryModel summary)
-        {
-            var updated = _conversionHistoryService.Append(new ConversionHistoryEntry
-            {
-                Timestamp = DateTimeOffset.Now,
-                Source = summary.Source,
-                OutputFormat = summary.OutputFormat,
-                TotalCount = summary.TotalCount,
-                ProcessedCount = summary.ProcessedCount,
-                SuccessCount = summary.SuccessCount,
-                FailureCount = summary.FailureCount,
-                OriginalTotalBytes = summary.OriginalTotalBytes,
-                EstimatedMinBytes = summary.EstimatedMinBytes,
-                EstimatedMaxBytes = summary.EstimatedMaxBytes,
-                DurationMilliseconds = summary.Duration.TotalMilliseconds,
-                WasCanceled = summary.WasCanceled,
-                FailureLogPath = summary.FailureLogPath
-            });
+            var updated = _conversionHistoryService.Append(entry);
 
             ReplaceHistory(updated);
         }

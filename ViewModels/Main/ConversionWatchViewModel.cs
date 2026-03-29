@@ -364,16 +364,18 @@ namespace ImvixPro.ViewModels
                 var summary = await _conversionPipelineService.ConvertAsync(snapshot, options, progress, pauseController: null, cancellationToken: cancellation.Token);
 
                 var logPath = _conversionLogService.WriteFailureLog(summary, options, snapshot, ConversionTriggerSource.Watch);
-                var completionSummary = _conversionStatusSummaryService.CreateCompletionSummary(
+                var completionFlow = _conversionSummaryCoordinator.BuildCompletionFlow(
                     summary,
                     ConversionTriggerSource.Watch,
                     options.OutputFormat,
                     estimate,
-                    logPath);
-                AppendHistory(completionSummary);
+                    logPath,
+                    T,
+                    includeDialog: false);
+                AppendHistory(completionFlow.HistoryEntry);
 
                 ApplyWatchRuntimeStatus(_conversionStatusSummaryService.CreateWatchCompletionStatus(
-                    completionSummary,
+                    completionFlow.Summary,
                     item.FileName,
                     summary.FailureCount > 0 ? summary.Failures[0].Reason : string.Empty,
                     WatchInputDirectory,

@@ -149,23 +149,19 @@ namespace ImvixPro.Views
             }
         }
 
-        private async void OnConversionCompleted(object? sender, CompletionSummaryModel summary)
+        private async void OnConversionCompleted(object? sender, ConversionSummaryFlowResult result)
         {
-            if (!IsVisible)
+            if (!IsVisible || !result.HasDialogRequest)
             {
                 return;
             }
 
-            var vm = ViewModel;
-            if (vm is null)
-            {
-                return;
-            }
+            var dialogRequest = result.DialogRequest!;
 
             var dialog = new ConversionSummaryWindow(
-                vm.ConversionSummaryTitleText,
-                vm.BuildConversionSummaryText(summary),
-                vm.CloseText)
+                dialogRequest.Title,
+                dialogRequest.SummaryText,
+                dialogRequest.CloseButtonText)
             {
                 FlowDirection = this.FlowDirection
             };
