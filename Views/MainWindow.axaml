@@ -124,7 +124,7 @@
                     <controls:SettingsPanel />
                 </TabItem>
 
-                <TabItem IsVisible="{Binding IsAiEnhancementPanelVisible}">
+                <TabItem>
                     <TabItem.Header>
                         <StackPanel Classes="icon-label">
                             <Path Classes="line-icon" Data="{StaticResource IconAiGeometry}" />

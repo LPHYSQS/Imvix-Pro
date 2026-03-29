@@ -74,7 +74,7 @@ namespace ImvixPro.Views
 
         private void RefreshAiMattingUi()
         {
-            var shouldShowMattingButton = (_sourceAiPreviewEligible && IsAiPanelEnabledFromCurrentOptions() && !_isAiMattingCompareActive) || _isAiMattingBusy;
+            var shouldShowMattingButton = (_sourceAiMattingEligible && !_isAiMattingCompareActive) || _isAiMattingBusy;
             var sourceBitmap = ResolveAiMattingCompareSourceBitmap();
             var hasOriginalView = sourceBitmap is not null;
             var hasResultView = _aiMattingPreviewBitmap is not null;
@@ -241,18 +241,12 @@ namespace ImvixPro.Views
                 _isAiCompareActive ||
                 _isAiSaveBusy ||
                 string.IsNullOrWhiteSpace(_sourceFilePath) ||
-                !_sourceAiPreviewEligible)
+                !_sourceAiMattingEligible)
             {
                 return;
             }
 
             var options = BuildAiEnhancementOptions();
-            if (!IsAiPanelEnabledFromCurrentOptions())
-            {
-                RefreshPreviewActionStates();
-                return;
-            }
-
             var cacheKey = BuildAiMattingCacheKey(options);
             if (string.Equals(_aiMattingCacheKey, cacheKey, StringComparison.Ordinal) &&
                 !string.IsNullOrWhiteSpace(_aiMattingResultPath) &&

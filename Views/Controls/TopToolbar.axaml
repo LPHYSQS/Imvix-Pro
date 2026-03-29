@@ -52,34 +52,6 @@
                     <TextBlock Text="{Binding StartConversionButtonText}" />
                 </StackPanel>
             </Button>
-
-            <Border Background="{DynamicResource SurfaceBrush}"
-                    BorderBrush="{DynamicResource BorderBrush}"
-                    BorderThickness="1"
-                    CornerRadius="10"
-                    Height="44"
-                    Padding="12,0"
-                    Margin="0,0,0,8"
-                    VerticalAlignment="Center">
-                <Grid ColumnDefinitions="Auto,Auto,Auto"
-                      ColumnSpacing="8"
-                      VerticalAlignment="Center">
-                    <Path Grid.Column="0"
-                          Classes="line-icon"
-                          Data="{StaticResource IconAiGeometry}"
-                          VerticalAlignment="Center" />
-                    <TextBlock Grid.Column="1"
-                               Text="{Binding AiEnhancementToggleText}"
-                               VerticalAlignment="Center" />
-                    <ToggleSwitch Grid.Column="2"
-                                  IsChecked="{Binding AiPanelEnabled}"
-                                  OnContent="{Binding YesText}"
-                                  OffContent="{Binding NoText}"
-                                  ToolTip.Tip="{Binding AiPanelToggleHintText}"
-                                  VerticalAlignment="Center"
-                                  Margin="0,-2,0,0" />
-                </Grid>
-            </Border>
         </WrapPanel>
     </Border>
 </UserControl>

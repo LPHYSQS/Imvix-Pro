@@ -31,10 +31,6 @@ namespace ImvixPro.ViewModels
 
         public ObservableCollection<EnumOption<AiMattingResolutionMode>> AiMattingResolutionModes { get; } = [];
 
-        public string AiEnhancementToggleText => T("AiEnhancementToggle");
-
-        public string AiPanelToggleHintText => T("AiPanelToggleHint");
-
         public string AiEnhancementToggleHintText => T("AiEnhancementToggleHint");
 
         public string AiEnhancementTabText => T("AiEnhancementTab");
@@ -72,8 +68,6 @@ namespace ImvixPro.ViewModels
         public string SelectedAiEnhancementModelRestrictionText => HasSelectedAiEnhancementModelRestriction
             ? T("AiModelSelectedRestriction_NonCommercial")
             : string.Empty;
-
-        public bool IsAiEnhancementPanelVisible => AiPanelEnabled;
 
         public bool HasAiEnhancementModelFallbackWarning => !string.IsNullOrWhiteSpace(AiEnhancementModelFallbackWarningText);
 
@@ -177,9 +171,7 @@ namespace ImvixPro.ViewModels
 
         private void InitializeAiFeatures(AppSettings settings)
         {
-            AiPanelEnabled = settings.HasAiPanelVisibilityPreference
-                ? settings.AiPanelEnabled
-                : settings.AiEnhancementEnabled;
+            AiPanelEnabled = true;
             AiEnhancementEnabled = settings.AiEnhancementEnabled;
             AiEnhancementScale = AiEnhancementModelCatalog.NormalizeRequestedOutputScale(settings.DefaultAiEnhancementScale);
             SelectedAiEnhancementModel = settings.DefaultAiEnhancementModel;
@@ -292,8 +284,6 @@ namespace ImvixPro.ViewModels
 
         private void RefreshLocalizedPropertiesAi()
         {
-            OnPropertyChanged(nameof(AiEnhancementToggleText));
-            OnPropertyChanged(nameof(AiPanelToggleHintText));
             OnPropertyChanged(nameof(AiEnhancementToggleHintText));
             OnPropertyChanged(nameof(AiEnhancementTabText));
             OnPropertyChanged(nameof(AiEnhancementPanelTitleText));
@@ -343,10 +333,10 @@ namespace ImvixPro.ViewModels
                 return;
             }
 
-            OnPropertyChanged(nameof(IsAiEnhancementPanelVisible));
-            if (!value && RightPanelTabIndex == 2)
+            if (!value)
             {
-                RightPanelTabIndex = 0;
+                AiPanelEnabled = true;
+                return;
             }
 
             PersistSettings();

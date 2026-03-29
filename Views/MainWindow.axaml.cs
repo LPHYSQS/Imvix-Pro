@@ -7,6 +7,7 @@ using Avalonia.Interactivity;
 using Avalonia.Platform;
 using Avalonia.Platform.Storage;
 using Avalonia.VisualTree;
+using ImvixPro.AI.Matting.Inference;
 using ImvixPro.Models;
 using ImvixPro.Services;
 using ImvixPro.ViewModels;
@@ -841,7 +842,8 @@ namespace ImvixPro.Views
                 ocrLanguageOption: PreviewOcrLanguageOption.Auto,
                 previewOptionsProvider: vm.CreatePreviewWindowOptions,
                 previewAiBusyChanged: vm.SetPreviewAiBusy,
-                isSourceAiPreviewEligible: AiImageEnhancementService.IsEligible(vm.SelectedImage),
+                isSourceAiEnhancementEligible: AiImageEnhancementService.IsEligible(vm.SelectedImage),
+                isSourceAiMattingEligible: AiMattingService.IsEligible(vm.SelectedImage),
                 services: _imagePreviewWindowServices)
             {
                 FlowDirection = this.FlowDirection
@@ -946,7 +948,8 @@ namespace ImvixPro.Views
                 ocrLanguageOption: PreviewOcrLanguageOption.Auto,
                 previewOptionsProvider: vm is null ? null : new Func<ConversionOptions>(vm.CreatePreviewWindowOptions),
                 previewAiBusyChanged: vm is null ? null : new Action<bool>(vm.SetPreviewAiBusy),
-                isSourceAiPreviewEligible: AiImageEnhancementService.IsEligible(image),
+                isSourceAiEnhancementEligible: AiImageEnhancementService.IsEligible(image),
+                isSourceAiMattingEligible: AiMattingService.IsEligible(image),
                 services: _imagePreviewWindowServices)
             {
                 FlowDirection = this.FlowDirection

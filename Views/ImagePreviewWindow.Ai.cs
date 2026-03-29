@@ -30,7 +30,8 @@ namespace ImvixPro.Views
         private Func<ConversionOptions>? _previewOptionsProvider;
         private Action<bool>? _previewAiBusyChanged;
         private string? _sourceFilePath;
-        private bool _sourceAiPreviewEligible;
+        private bool _sourceAiEnhancementEligible;
+        private bool _sourceAiMattingEligible;
         private CancellationTokenSource? _aiPreviewCts;
         private AiEnhancementBatchResult? _aiPreviewBatchResult;
         private string? _aiPreviewCacheKey;
@@ -52,12 +53,14 @@ namespace ImvixPro.Views
             string filePath,
             Func<ConversionOptions>? previewOptionsProvider,
             Action<bool>? previewAiBusyChanged,
-            bool isSourceAiPreviewEligible)
+            bool isSourceAiEnhancementEligible,
+            bool isSourceAiMattingEligible)
         {
             _sourceFilePath = filePath;
             _previewOptionsProvider = previewOptionsProvider;
             _previewAiBusyChanged = previewAiBusyChanged;
-            _sourceAiPreviewEligible = isSourceAiPreviewEligible;
+            _sourceAiEnhancementEligible = isSourceAiEnhancementEligible;
+            _sourceAiMattingEligible = isSourceAiMattingEligible;
             Activated += OnWindowActivated;
         }
 
@@ -99,7 +102,7 @@ namespace ImvixPro.Views
 
         private void RefreshAiPreviewUi()
         {
-            var shouldShowAiButton = (_sourceAiPreviewEligible && IsAiPanelEnabledFromCurrentOptions() && !_isAiCompareActive) || _isAiPreviewBusy;
+            var shouldShowAiButton = (_sourceAiEnhancementEligible && !_isAiCompareActive) || _isAiPreviewBusy;
             var sourceBitmap = ResolveAiCompareSourceBitmap();
             var hasOriginalView = sourceBitmap is not null;
             var hasEnhancedView = _aiPreviewBitmap is not null;
@@ -218,12 +221,6 @@ namespace ImvixPro.Views
             }
 
             PreviewImage.Source = _previewBitmap;
-        }
-
-        private bool IsAiPanelEnabledFromCurrentOptions()
-        {
-            var options = _previewOptionsProvider?.Invoke();
-            return options?.AiPanelEnabled == true;
         }
 
         private ConversionOptions BuildAiEnhancementOptions()
@@ -471,7 +468,7 @@ namespace ImvixPro.Views
             }
 
             var options = BuildAiEnhancementOptions();
-            if (!_sourceAiPreviewEligible || !IsAiPanelEnabledFromCurrentOptions())
+            if (!_sourceAiEnhancementEligible)
             {
                 RefreshAiPreviewUi();
                 return;

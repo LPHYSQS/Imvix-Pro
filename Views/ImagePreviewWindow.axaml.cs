@@ -124,7 +124,8 @@ namespace ImvixPro.Views
             PreviewOcrLanguageOption ocrLanguageOption = PreviewOcrLanguageOption.Auto,
             Func<ConversionOptions>? previewOptionsProvider = null,
             Action<bool>? previewAiBusyChanged = null,
-            bool isSourceAiPreviewEligible = false)
+            bool isSourceAiEnhancementEligible = false,
+            bool isSourceAiMattingEligible = false)
             : this(
                 filePath,
                 useBackground,
@@ -136,7 +137,8 @@ namespace ImvixPro.Views
                 ocrLanguageOption,
                 previewOptionsProvider,
                 previewAiBusyChanged,
-                isSourceAiPreviewEligible,
+                isSourceAiEnhancementEligible,
+                isSourceAiMattingEligible,
                 AppServices.CreateImagePreviewWindowServices())
         {
         }
@@ -152,14 +154,20 @@ namespace ImvixPro.Views
             PreviewOcrLanguageOption ocrLanguageOption,
             Func<ConversionOptions>? previewOptionsProvider,
             Action<bool>? previewAiBusyChanged,
-            bool isSourceAiPreviewEligible,
+            bool isSourceAiEnhancementEligible,
+            bool isSourceAiMattingEligible,
             ImagePreviewWindowServices services)
             : this(services)
         {
             _gifFrameRange = gifFrameRange;
             _ocrLanguageOption = ocrLanguageOption;
             _localizationService.SetLanguage(string.IsNullOrWhiteSpace(uiLanguageCode) ? "en-US" : uiLanguageCode);
-            InitializeAiPreview(filePath, previewOptionsProvider, previewAiBusyChanged, isSourceAiPreviewEligible);
+            InitializeAiPreview(
+                filePath,
+                previewOptionsProvider,
+                previewAiBusyChanged,
+                isSourceAiEnhancementEligible,
+                isSourceAiMattingEligible);
 
             _isPdfDocument = Path.GetExtension(filePath).Equals(".pdf", StringComparison.OrdinalIgnoreCase) || pdfPageCount > 0;
             _pdfFilePath = _isPdfDocument ? filePath : null;

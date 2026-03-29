@@ -1,6 +1,7 @@
 ﻿using Avalonia;
 using ImvixPro.Services;
 using ImvixPro.AI.Matting.Models;
+using ImvixPro.Models;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
 using SkiaSharp;
@@ -16,11 +17,36 @@ namespace ImvixPro.AI.Matting.Inference
 {
     public sealed class AiMattingService
     {
+        private static readonly HashSet<string> SupportedInputExtensions = new(StringComparer.OrdinalIgnoreCase)
+        {
+            ".jpg",
+            ".jpeg",
+            ".png",
+            ".webp",
+            ".bmp",
+            ".gif",
+            ".tif",
+            ".tiff"
+        };
+
         private readonly AppLogger _logger;
 
         public AiMattingService(AppLogger logger)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        }
+
+        public static bool IsEligible(ImageItemViewModel image)
+        {
+            ArgumentNullException.ThrowIfNull(image);
+
+            if (image.IsPdfDocument || image.IsAnimatedGif)
+            {
+                return false;
+            }
+
+            var extension = Path.GetExtension(image.FilePath);
+            return SupportedInputExtensions.Contains(extension);
         }
 
         public async Task<AiMattingResult> ProcessAsync(
