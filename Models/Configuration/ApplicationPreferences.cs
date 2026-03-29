@@ -1,17 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using ImvixPro.AI.Matting.Models;
 
 namespace ImvixPro.Models
 {
-    public sealed class AppSettings
+    public sealed class ApplicationPreferences
     {
-        public ApplicationPreferences? ApplicationPreferences { get; set; }
-
-        public PreviewToolState? PreviewToolState { get; set; }
-
-        public WatchProfile? WatchProfile { get; set; }
-
         public string LanguageCode { get; set; } = "System";
 
         public string ThemeCode { get; set; } = "System";
@@ -48,8 +41,6 @@ namespace ImvixPro.Models
 
         public OutputDirectoryRule OutputDirectoryRule { get; set; } = OutputDirectoryRule.SourceFolder;
 
-        public string AutoResultFolderName { get; set; } = "Imvix_Output";
-
         public bool IncludeSubfoldersOnFolderImport { get; set; } = true;
 
         public ListSortMode DefaultListSortMode { get; set; } = ListSortMode.NameAscending;
@@ -72,10 +63,6 @@ namespace ImvixPro.Models
 
         public int DefaultGifSpecificFrameIndex { get; set; }
 
-        public bool AiPanelEnabled { get; set; }
-
-        public bool HasAiPanelVisibilityPreference { get; set; }
-
         public bool AiEnhancementEnabled { get; set; }
 
         public int DefaultAiEnhancementScale { get; set; } = 2;
@@ -84,45 +71,10 @@ namespace ImvixPro.Models
 
         public AiExecutionMode DefaultAiExecutionMode { get; set; } = AiExecutionMode.Auto;
 
-        public AiMattingModel DefaultAiMattingModel { get; set; } = AiMattingModel.GeneralClassic;
-
-        public AiMattingDevice DefaultAiMattingDevice { get; set; } = AiMattingDevice.Cpu;
-
-        public OutputImageFormat DefaultAiMattingOutputFormat { get; set; } = OutputImageFormat.Png;
-
-        public AiMattingBackgroundMode DefaultAiMattingBackgroundMode { get; set; } = AiMattingBackgroundMode.Transparent;
-
-        public string DefaultAiMattingBackgroundColor { get; set; } = "#FFFFFFFF";
-
-        public bool AiMattingEdgeOptimizationEnabled { get; set; } = true;
-
-        public int DefaultAiMattingEdgeOptimizationStrength { get; set; } = 35;
-
-        public AiMattingResolutionMode DefaultAiMattingResolutionMode { get; set; } = AiMattingResolutionMode.Original;
-
         public List<ConversionPreset> Presets { get; set; } = [];
-
-        public bool WatchModeEnabled { get; set; }
-
-        public string WatchInputDirectory { get; set; } = string.Empty;
-
-        public string WatchOutputDirectory { get; set; } = string.Empty;
-
-        public bool WatchIncludeSubfolders { get; set; } = true;
 
         public bool KeepRunningInTray { get; set; }
 
         public bool RunOnStartup { get; set; }
-
-        public bool HasWindowPlacement { get; set; }
-
-        public int WindowPositionX { get; set; }
-
-        public int WindowPositionY { get; set; }
-
-        public double WindowWidth { get; set; }
-
-        public double WindowHeight { get; set; }
     }
 }
-

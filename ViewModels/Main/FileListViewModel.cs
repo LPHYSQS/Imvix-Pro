@@ -221,16 +221,6 @@ namespace ImvixPro.ViewModels
             AiEnhancementScale = AiEnhancementModelCatalog.NormalizeRequestedOutputScale(SelectedPreset.AiEnhancementScale);
             SelectedAiEnhancementModel = SelectedPreset.AiEnhancementModel;
             SelectedAiExecutionMode = SelectedPreset.AiExecutionMode;
-            SelectedAiMattingModel = SelectedPreset.AiMattingModel;
-            SelectedAiMattingDevice = SelectedPreset.AiMattingDevice;
-            SelectedAiMattingOutputFormat = SelectedPreset.AiMattingOutputFormat;
-            SelectedAiMattingBackgroundMode = SelectedPreset.AiMattingBackgroundMode;
-            AiMattingBackgroundColor = string.IsNullOrWhiteSpace(SelectedPreset.AiMattingBackgroundColor)
-                ? "#FFFFFFFF"
-                : SelectedPreset.AiMattingBackgroundColor;
-            AiMattingEdgeOptimizationEnabled = SelectedPreset.AiMattingEdgeOptimizationEnabled;
-            AiMattingEdgeOptimizationStrength = Math.Clamp(SelectedPreset.AiMattingEdgeOptimizationStrength, 0, 100);
-            SelectedAiMattingResolutionMode = SelectedPreset.AiMattingResolutionMode;
             OutputDirectory = SelectedPreset.OutputDirectory;
             UseSourceFolder = SelectedPreset.OutputDirectoryRule == OutputDirectoryRule.SourceFolder;
             AllowOverwrite = SelectedPreset.AllowOverwrite;

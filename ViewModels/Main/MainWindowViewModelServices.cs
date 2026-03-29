@@ -9,6 +9,7 @@ namespace ImvixPro.ViewModels
         LocalizationService LocalizationService,
         ImageConversionService ImageConversionService,
         ImageAnalysisService ImageAnalysisService,
+        ConversionPlanningService ConversionPlanningService,
         ConversionPipelineService ConversionPipelineService,
         ConversionHistoryService ConversionHistoryService,
         ConversionLogService ConversionLogService,

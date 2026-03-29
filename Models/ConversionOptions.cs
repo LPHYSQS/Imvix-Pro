@@ -95,6 +95,58 @@ namespace ImvixPro.Models
         public Dictionary<string, bool> PdfUnlockStates { get; set; } = new(StringComparer.OrdinalIgnoreCase);
 
         public int MaxDegreeOfParallelism { get; set; } = Math.Max(1, Environment.ProcessorCount);
+
+        public ConversionOptions Clone()
+        {
+            return new ConversionOptions
+            {
+                OutputFormat = OutputFormat,
+                CompressionMode = CompressionMode,
+                Quality = Quality,
+                ResizeMode = ResizeMode,
+                ResizeWidth = ResizeWidth,
+                ResizeHeight = ResizeHeight,
+                ResizePercent = ResizePercent,
+                RenameMode = RenameMode,
+                RenamePrefix = RenamePrefix,
+                RenameSuffix = RenameSuffix,
+                RenameStartNumber = RenameStartNumber,
+                RenameNumberDigits = RenameNumberDigits,
+                OutputDirectoryRule = OutputDirectoryRule,
+                OutputDirectory = OutputDirectory,
+                AutoResultFolderName = AutoResultFolderName,
+                AllowOverwrite = AllowOverwrite,
+                SvgUseBackground = SvgUseBackground,
+                SvgBackgroundColor = SvgBackgroundColor,
+                IconUseTransparency = IconUseTransparency,
+                IconBackgroundColor = IconBackgroundColor,
+                GifHandlingMode = GifHandlingMode,
+                GifSpecificFrameIndex = GifSpecificFrameIndex,
+                AiPanelEnabled = AiPanelEnabled,
+                AiEnhancementEnabled = AiEnhancementEnabled,
+                AiEnhancementScale = AiEnhancementScale,
+                AiEnhancementModel = AiEnhancementModel,
+                AiExecutionMode = AiExecutionMode,
+                AiMattingModel = AiMattingModel,
+                AiMattingDevice = AiMattingDevice,
+                AiMattingOutputFormat = AiMattingOutputFormat,
+                AiMattingBackgroundMode = AiMattingBackgroundMode,
+                AiMattingBackgroundColor = AiMattingBackgroundColor,
+                AiMattingEdgeOptimizationEnabled = AiMattingEdgeOptimizationEnabled,
+                AiMattingEdgeOptimizationStrength = AiMattingEdgeOptimizationStrength,
+                AiMattingResolutionMode = AiMattingResolutionMode,
+                LanguageCode = LanguageCode,
+                GifSpecificFrameSelections = new Dictionary<string, int>(GifSpecificFrameSelections, StringComparer.OrdinalIgnoreCase),
+                GifFrameRanges = new Dictionary<string, GifFrameRangeSelection>(GifFrameRanges, StringComparer.OrdinalIgnoreCase),
+                PdfImageExportMode = PdfImageExportMode,
+                PdfDocumentExportMode = PdfDocumentExportMode,
+                PdfPageIndex = PdfPageIndex,
+                PdfPageSelections = new Dictionary<string, int>(PdfPageSelections, StringComparer.OrdinalIgnoreCase),
+                PdfPageRanges = new Dictionary<string, PdfPageRangeSelection>(PdfPageRanges, StringComparer.OrdinalIgnoreCase),
+                PdfUnlockStates = new Dictionary<string, bool>(PdfUnlockStates, StringComparer.OrdinalIgnoreCase),
+                MaxDegreeOfParallelism = MaxDegreeOfParallelism
+            };
+        }
     }
 }
 

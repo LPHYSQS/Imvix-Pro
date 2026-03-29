@@ -12,20 +12,23 @@ namespace ImvixPro.Services
     {
         private readonly ImageConversionService _imageConversionService;
         private readonly AiImageEnhancementService _aiImageEnhancementService;
+        private readonly ConversionPlanningService _conversionPlanningService;
         private readonly AppLogger _logger;
 
         public ConversionPipelineService()
-            : this(AppServices.ImageConversionService, AppServices.AiImageEnhancementService, AppServices.Logger)
+            : this(AppServices.ImageConversionService, AppServices.AiImageEnhancementService, AppServices.ConversionPlanningService, AppServices.Logger)
         {
         }
 
         internal ConversionPipelineService(
             ImageConversionService imageConversionService,
             AiImageEnhancementService aiImageEnhancementService,
+            ConversionPlanningService conversionPlanningService,
             AppLogger logger)
         {
             _imageConversionService = imageConversionService ?? throw new ArgumentNullException(nameof(imageConversionService));
             _aiImageEnhancementService = aiImageEnhancementService ?? throw new ArgumentNullException(nameof(aiImageEnhancementService));
+            _conversionPlanningService = conversionPlanningService ?? throw new ArgumentNullException(nameof(conversionPlanningService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -44,9 +47,9 @@ namespace ImvixPro.Services
             }
 
             var stopwatch = Stopwatch.StartNew();
-            var eligibleCount = AiImageEnhancementService.CountEligible(images);
-            var totalConversionWork = images.Sum(image => ImageConversionService.EstimateWorkItemCount(image, options));
-            var overallTotalWork = eligibleCount + totalConversionWork;
+            var plan = _conversionPlanningService.BuildPlan(images, options);
+            var eligibleCount = plan.AiEligibleInputCount;
+            var overallTotalWork = plan.TotalEstimatedWorkItems;
 
             AiEnhancementBatchResult? batchResult = null;
             var skippedConversionWork = 0;

@@ -27,7 +27,7 @@ namespace ImvixPro.Views
 
         private readonly AiImageEnhancementService _aiImageEnhancementService;
         private readonly AiPreviewComparisonService _aiPreviewComparisonService;
-        private Func<ConversionOptions>? _previewOptionsProvider;
+        private Func<PreviewSessionState>? _previewSessionStateProvider;
         private Action<bool>? _previewAiBusyChanged;
         private string? _sourceFilePath;
         private bool _sourceAiEnhancementEligible;
@@ -51,13 +51,13 @@ namespace ImvixPro.Views
 
         private void InitializeAiPreview(
             string filePath,
-            Func<ConversionOptions>? previewOptionsProvider,
+            Func<PreviewSessionState>? previewSessionStateProvider,
             Action<bool>? previewAiBusyChanged,
             bool isSourceAiEnhancementEligible,
             bool isSourceAiMattingEligible)
         {
             _sourceFilePath = filePath;
-            _previewOptionsProvider = previewOptionsProvider;
+            _previewSessionStateProvider = previewSessionStateProvider;
             _previewAiBusyChanged = previewAiBusyChanged;
             _sourceAiEnhancementEligible = isSourceAiEnhancementEligible;
             _sourceAiMattingEligible = isSourceAiMattingEligible;
@@ -232,7 +232,8 @@ namespace ImvixPro.Views
 
         private ConversionOptions BuildAiEnhancementOptions()
         {
-            var options = _previewOptionsProvider?.Invoke() ?? new ConversionOptions();
+            var session = _previewSessionStateProvider?.Invoke();
+            var options = session?.JobDefinition.ToConversionOptions() ?? new ConversionOptions();
             options.LanguageCode = string.IsNullOrWhiteSpace(options.LanguageCode)
                 ? _localizationService.CurrentLanguageCode
                 : options.LanguageCode;

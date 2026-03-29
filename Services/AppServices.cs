@@ -15,12 +15,13 @@ namespace ImvixPro.Services
         private static readonly Lazy<LocalizationService> LocalizationServiceFactory = new(static () => new LocalizationService());
         private static readonly Lazy<ImageConversionService> ImageConversionServiceFactory = new(static () => new ImageConversionService());
         private static readonly Lazy<ImageAnalysisService> ImageAnalysisServiceFactory = new(static () => new ImageAnalysisService());
+        private static readonly Lazy<ConversionPlanningService> ConversionPlanningServiceFactory = new(static () => new ConversionPlanningService());
         private static readonly Lazy<AiImageEnhancementService> AiImageEnhancementServiceFactory = new(static () => new AiImageEnhancementService());
         private static readonly Lazy<AiMattingService> AiMattingServiceFactory = new(static () => new AiMattingService(LoggerFactory.Value));
         private static readonly Lazy<AiPreviewComparisonService> AiPreviewComparisonServiceFactory = new(static () => new AiPreviewComparisonService());
         private static readonly Lazy<DisplayRefreshRateService> DisplayRefreshRateServiceFactory = new(static () => new DisplayRefreshRateService());
         private static readonly Lazy<PreviewOcrService> PreviewOcrServiceFactory = new(static () => new PreviewOcrService());
-        private static readonly Lazy<ConversionPipelineService> ConversionPipelineServiceFactory = new(static () => new ConversionPipelineService(ImageConversionServiceFactory.Value, AiImageEnhancementServiceFactory.Value, LoggerFactory.Value));
+        private static readonly Lazy<ConversionPipelineService> ConversionPipelineServiceFactory = new(static () => new ConversionPipelineService(ImageConversionServiceFactory.Value, AiImageEnhancementServiceFactory.Value, ConversionPlanningServiceFactory.Value, LoggerFactory.Value));
         private static readonly Lazy<ConversionHistoryService> ConversionHistoryServiceFactory = new(static () => new ConversionHistoryService());
         private static readonly Lazy<ConversionLogService> ConversionLogServiceFactory = new(static () => new ConversionLogService());
         private static readonly Lazy<FolderWatchService> FolderWatchServiceFactory = new(static () => new FolderWatchService());
@@ -41,6 +42,8 @@ namespace ImvixPro.Services
         public static ImageConversionService ImageConversionService => ImageConversionServiceFactory.Value;
 
         public static ImageAnalysisService ImageAnalysisService => ImageAnalysisServiceFactory.Value;
+
+        public static ConversionPlanningService ConversionPlanningService => ConversionPlanningServiceFactory.Value;
 
         public static AiImageEnhancementService AiImageEnhancementService => AiImageEnhancementServiceFactory.Value;
 
@@ -81,6 +84,7 @@ namespace ImvixPro.Services
                 LocalizationService,
                 ImageConversionService,
                 ImageAnalysisService,
+                ConversionPlanningService,
                 ConversionPipelineService,
                 ConversionHistoryService,
                 ConversionLogService,

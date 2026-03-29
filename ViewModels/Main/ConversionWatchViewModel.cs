@@ -26,7 +26,7 @@ namespace ImvixPro.ViewModels
 
         public string WatchIncludeSubfoldersText => T("WatchIncludeSubfolders");
 
-        public string WatchHintText => T("WatchHint");
+        public string WatchHintText => BuildWatchHintText();
 
         public string SelectWatchInputFolderDialogTitle => T("SelectWatchInputFolderDialogTitle");
 
@@ -51,6 +51,8 @@ namespace ImvixPro.ViewModels
         public string CreateDesktopShortcutText => T("CreateDesktopShortcut");
 
         public bool HasDesktopShortcutStatus => !string.IsNullOrWhiteSpace(DesktopShortcutStatusText);
+
+        public string WatchProfileSummaryText => BuildWatchProfileSummaryText();
 
         [ObservableProperty]
         private bool watchModeEnabled;
@@ -93,23 +95,25 @@ namespace ImvixPro.ViewModels
         [ObservableProperty]
         private bool isWatchProcessing;
 
-        private void InitializeVersion3Features(AppSettings settings)
+        private void InitializeVersion3Features(ApplicationPreferences preferences, WatchProfile watchProfile)
         {
             ActiveWarnings.CollectionChanged += OnActiveWarningsCollectionChanged;
             RecentConversions.CollectionChanged += OnRecentConversionsCollectionChanged;
             _folderWatchService.FileReady += OnWatchedFileReady;
 
-            _maxParallelism = Math.Clamp(Math.Max(1, settings.MaxParallelism), 1, 4);
-            WatchModeEnabled = settings.WatchModeEnabled;
-            WatchInputDirectory = settings.WatchInputDirectory;
-            WatchOutputDirectory = settings.WatchOutputDirectory;
-            WatchIncludeSubfolders = settings.WatchIncludeSubfolders;
-            KeepRunningInTray = settings.KeepRunningInTray;
-            RunOnStartup = settings.RunOnStartup;
+            _maxParallelism = Math.Clamp(Math.Max(1, preferences.MaxParallelism), 1, 4);
+            _watchJobDefinitionSnapshot = watchProfile.JobDefinition?.Clone();
+            WatchModeEnabled = watchProfile.IsEnabled;
+            WatchInputDirectory = watchProfile.InputDirectory;
+            WatchOutputDirectory = watchProfile.OutputDirectory;
+            WatchIncludeSubfolders = watchProfile.IncludeSubfolders;
+            KeepRunningInTray = preferences.KeepRunningInTray;
+            RunOnStartup = preferences.RunOnStartup;
             WatchStatusText = T("WatchStatusStopped");
 
             LoadRecentConversionHistory();
             RefreshConversionInsights();
+            RefreshWatchProfileSummary();
         }
 
         private async Task CompleteVersion3InitializationAsync()
@@ -191,9 +195,16 @@ namespace ImvixPro.ViewModels
                     return;
                 }
 
+                if (_watchJobDefinitionSnapshot is null)
+                {
+                    _watchJobDefinitionSnapshot = BuildCurrentJobDefinition(forWatch: true);
+                }
+
                 Directory.CreateDirectory(WatchOutputDirectory);
                 _watchProcessingCancellationSource = new CancellationTokenSource();
                 _folderWatchService.Start(WatchInputDirectory, WatchIncludeSubfolders);
+                PersistSettings();
+                RefreshWatchProfileSummary();
                 RefreshWatchStatus();
             }
             catch (Exception ex)
@@ -289,7 +300,8 @@ namespace ImvixPro.ViewModels
                 RefreshWatchStatus();
 
                 var snapshot = new System.Collections.Generic.List<ImageItemViewModel> { item };
-                var options = BuildCurrentConversionOptions(forWatch: true);
+                var watchProfile = BuildConfiguredWatchProfile();
+                var options = watchProfile.JobDefinition.ToConversionOptions();
                 ApplyWatchContentAwareOptions(item, options);
                 var estimate = _imageAnalysisService.Estimate(snapshot, options);
                 var progress = new Progress<ConversionProgress>(p =>
@@ -366,8 +378,14 @@ namespace ImvixPro.ViewModels
                 return;
             }
 
+            if (value)
+            {
+                _watchJobDefinitionSnapshot = BuildCurrentJobDefinition(forWatch: true);
+            }
+
             _ = ReconfigureWatchModeAsync();
             PersistSettings();
+            RefreshWatchProfileSummary();
         }
 
         partial void OnWatchInputDirectoryChanged(string value)
@@ -379,6 +397,7 @@ namespace ImvixPro.ViewModels
 
             _ = ReconfigureWatchModeAsync();
             PersistSettings();
+            RefreshWatchProfileSummary();
         }
 
         partial void OnWatchOutputDirectoryChanged(string value)
@@ -390,6 +409,7 @@ namespace ImvixPro.ViewModels
 
             _ = ReconfigureWatchModeAsync();
             PersistSettings();
+            RefreshWatchProfileSummary();
         }
 
         partial void OnWatchIncludeSubfoldersChanged(bool value)
@@ -401,6 +421,7 @@ namespace ImvixPro.ViewModels
 
             _ = ReconfigureWatchModeAsync();
             PersistSettings();
+            RefreshWatchProfileSummary();
         }
 
         partial void OnKeepRunningInTrayChanged(bool value)
@@ -447,6 +468,59 @@ namespace ImvixPro.ViewModels
             DesktopShortcutStatusText = created
                 ? T("DesktopShortcutCreated")
                 : T("DesktopShortcutCreateFailed");
+        }
+
+        private string BuildWatchHintText()
+        {
+            var baseHint = T("WatchHint");
+            var summary = BuildWatchProfileSummaryText();
+            return string.IsNullOrWhiteSpace(summary)
+                ? baseHint
+                : $"{baseHint}{Environment.NewLine}{summary}";
+        }
+
+        private string BuildWatchProfileSummaryText()
+        {
+            var watchProfile = BuildConfiguredWatchProfile();
+            if (string.IsNullOrWhiteSpace(watchProfile.OutputDirectory))
+            {
+                return string.Empty;
+            }
+
+            var options = watchProfile.JobDefinition.ToConversionOptions();
+            var parts = new System.Collections.Generic.List<string>
+            {
+                $"{OutputFormatText}: {FormatOutputFormat(options.OutputFormat)}",
+                $"{WatchOutputFolderText}: {watchProfile.OutputDirectory}"
+            };
+
+            if (options.AiEnhancementEnabled)
+            {
+                parts.Add($"{AiEnhancementTabText}: {options.AiEnhancementScale}x");
+            }
+
+            if (options.ResizeMode != ResizeMode.None)
+            {
+                parts.Add($"{ResizeModeText}: {T($"ResizeMode_{options.ResizeMode}")}");
+            }
+
+            if (options.GifHandlingMode != GifHandlingMode.FirstFrame)
+            {
+                parts.Add($"{GifHandlingText}: {T($"GifHandlingMode_{options.GifHandlingMode}")}");
+            }
+
+            if (options.AllowOverwrite)
+            {
+                parts.Add(AllowOverwriteText);
+            }
+
+            return string.Join(" | ", parts);
+        }
+
+        private void RefreshWatchProfileSummary()
+        {
+            OnPropertyChanged(nameof(WatchHintText));
+            OnPropertyChanged(nameof(WatchProfileSummaryText));
         }
     }
 }

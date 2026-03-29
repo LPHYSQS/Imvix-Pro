@@ -227,19 +227,10 @@ namespace ImvixPro.ViewModels
                 IconBackgroundColor = EffectiveIconBackgroundColor,
                 GifHandlingMode = SelectedGifHandlingMode,
                 GifSpecificFrameIndex = SelectedGifSpecificFrameIndex,
-                AiPanelEnabled = AiPanelEnabled,
                 AiEnhancementEnabled = AiEnhancementEnabled,
                 AiEnhancementScale = AiEnhancementScale,
                 AiEnhancementModel = SelectedAiEnhancementModel,
                 AiExecutionMode = SelectedAiExecutionMode,
-                AiMattingModel = SelectedAiMattingModel,
-                AiMattingDevice = SelectedAiMattingDevice,
-                AiMattingOutputFormat = SelectedAiMattingOutputFormat,
-                AiMattingBackgroundMode = SelectedAiMattingBackgroundMode,
-                AiMattingBackgroundColor = AiMattingBackgroundColor,
-                AiMattingEdgeOptimizationEnabled = AiMattingEdgeOptimizationEnabled,
-                AiMattingEdgeOptimizationStrength = AiMattingEdgeOptimizationStrength,
-                AiMattingResolutionMode = SelectedAiMattingResolutionMode,
                 LanguageCode = _localizationService.CurrentLanguageCode,
                 GifSpecificFrameSelections = new Dictionary<string, int>(_gifSpecificFrameSelections, StringComparer.OrdinalIgnoreCase),
                 GifFrameRanges = new Dictionary<string, GifFrameRangeSelection>(_gifTrimSelections, StringComparer.OrdinalIgnoreCase),
@@ -279,6 +270,8 @@ namespace ImvixPro.ViewModels
         private async Task<List<string>> BuildPreflightWarningsAsync()
         {
             var warnings = new List<string>();
+            var options = BuildCurrentConversionOptions();
+            var plan = _conversionPlanningService.BuildPlan(Images.ToList(), options);
 
             if (SelectedOutputFormat == OutputImageFormat.Jpeg)
             {
@@ -303,7 +296,7 @@ namespace ImvixPro.ViewModels
                     gifPdfFrameCount));
             }
 
-            var unsupportedAiInputCount = GetAiUnsupportedInputCount(Images.ToList());
+            var unsupportedAiInputCount = plan.AiBypassedInputCount;
             if (unsupportedAiInputCount > 0)
             {
                 warnings.Add(string.Format(
@@ -580,6 +573,7 @@ namespace ImvixPro.ViewModels
             OnPropertyChanged(nameof(WatchStatusLabelText));
             OnPropertyChanged(nameof(WatchIncludeSubfoldersText));
             OnPropertyChanged(nameof(WatchHintText));
+            OnPropertyChanged(nameof(WatchProfileSummaryText));
             OnPropertyChanged(nameof(SelectWatchInputFolderDialogTitle));
             OnPropertyChanged(nameof(SelectWatchOutputFolderDialogTitle));
             OnPropertyChanged(nameof(PauseText));

@@ -210,9 +210,22 @@ namespace ImvixPro.Views
                 $"{_sourceFilePath}|{options.AiMattingModel}|{options.AiMattingDevice}|{options.AiMattingResolutionMode}|{options.AiMattingEdgeOptimizationEnabled}|{options.AiMattingEdgeOptimizationStrength}");
         }
 
-        private ConversionOptions BuildAiMattingSaveOptions()
+        private PreviewToolState BuildAiMattingState()
+        {
+            var session = _previewSessionStateProvider?.Invoke();
+            return session?.PreviewToolState.Clone() ?? new PreviewToolState();
+        }
+
+        private ConversionOptions BuildAiMattingOptions()
         {
             var options = BuildAiEnhancementOptions();
+            BuildAiMattingState().ApplyTo(options);
+            return options;
+        }
+
+        private ConversionOptions BuildAiMattingSaveOptions()
+        {
+            var options = BuildAiMattingOptions();
             options.OutputFormat = AiMattingFormatCatalog.Normalize(options.AiMattingOutputFormat);
             options.ResizeMode = ResizeMode.None;
             options.RenameMode = RenameMode.KeepOriginal;
@@ -248,7 +261,7 @@ namespace ImvixPro.Views
                 return;
             }
 
-            var options = BuildAiEnhancementOptions();
+            var options = BuildAiMattingOptions();
             var cacheKey = BuildAiMattingCacheKey(options);
             if (string.Equals(_aiMattingCacheKey, cacheKey, StringComparison.Ordinal) &&
                 !string.IsNullOrWhiteSpace(_aiMattingResultPath) &&

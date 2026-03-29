@@ -169,24 +169,24 @@ namespace ImvixPro.ViewModels
         [ObservableProperty]
         private EnumOption<AiMattingResolutionMode>? selectedAiMattingResolutionModeOption;
 
-        private void InitializeAiFeatures(AppSettings settings)
+        private void InitializeAiFeatures(ApplicationPreferences preferences, PreviewToolState previewToolState)
         {
             AiPanelEnabled = true;
-            AiEnhancementEnabled = settings.AiEnhancementEnabled;
-            AiEnhancementScale = AiEnhancementModelCatalog.NormalizeRequestedOutputScale(settings.DefaultAiEnhancementScale);
-            SelectedAiEnhancementModel = settings.DefaultAiEnhancementModel;
-            SelectedAiExecutionMode = settings.DefaultAiExecutionMode;
+            AiEnhancementEnabled = preferences.AiEnhancementEnabled;
+            AiEnhancementScale = AiEnhancementModelCatalog.NormalizeRequestedOutputScale(preferences.DefaultAiEnhancementScale);
+            SelectedAiEnhancementModel = preferences.DefaultAiEnhancementModel;
+            SelectedAiExecutionMode = preferences.DefaultAiExecutionMode;
 
-            SelectedAiMattingModel = settings.DefaultAiMattingModel;
-            SelectedAiMattingDevice = settings.DefaultAiMattingDevice;
-            SelectedAiMattingOutputFormat = AiMattingFormatCatalog.Normalize(settings.DefaultAiMattingOutputFormat);
-            SelectedAiMattingBackgroundMode = settings.DefaultAiMattingBackgroundMode;
-            AiMattingBackgroundColor = string.IsNullOrWhiteSpace(settings.DefaultAiMattingBackgroundColor)
+            SelectedAiMattingModel = previewToolState.AiMattingModel;
+            SelectedAiMattingDevice = previewToolState.AiMattingDevice;
+            SelectedAiMattingOutputFormat = AiMattingFormatCatalog.Normalize(previewToolState.AiMattingOutputFormat);
+            SelectedAiMattingBackgroundMode = previewToolState.AiMattingBackgroundMode;
+            AiMattingBackgroundColor = string.IsNullOrWhiteSpace(previewToolState.AiMattingBackgroundColor)
                 ? "#FFFFFFFF"
-                : settings.DefaultAiMattingBackgroundColor;
-            AiMattingEdgeOptimizationEnabled = settings.AiMattingEdgeOptimizationEnabled;
-            AiMattingEdgeOptimizationStrength = Math.Clamp(settings.DefaultAiMattingEdgeOptimizationStrength, 0, 100);
-            SelectedAiMattingResolutionMode = settings.DefaultAiMattingResolutionMode;
+                : previewToolState.AiMattingBackgroundColor;
+            AiMattingEdgeOptimizationEnabled = previewToolState.AiMattingEdgeOptimizationEnabled;
+            AiMattingEdgeOptimizationStrength = Math.Clamp(previewToolState.AiMattingEdgeOptimizationStrength, 0, 100);
+            SelectedAiMattingResolutionMode = previewToolState.AiMattingResolutionMode;
         }
 
         [RelayCommand]

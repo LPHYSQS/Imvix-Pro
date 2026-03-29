@@ -49,8 +49,10 @@ namespace ImvixPro.ViewModels
         private readonly SettingsService _settingsService;
         private readonly LocalizationService _localizationService;
         private readonly ImageConversionService _imageConversionService;
+        private readonly ConversionPlanningService _conversionPlanningService;
         private readonly PdfSecurityService _pdfSecurityService;
         private readonly AppLogger _logger;
+        private ConversionJobDefinition? _watchJobDefinitionSnapshot;
 
         private string _statusKey = "StatusReady";
         private bool _isLoadingSettings;
@@ -80,6 +82,7 @@ namespace ImvixPro.ViewModels
             _localizationService = services.LocalizationService ?? throw new ArgumentNullException(nameof(services.LocalizationService));
             _imageConversionService = services.ImageConversionService ?? throw new ArgumentNullException(nameof(services.ImageConversionService));
             _imageAnalysisService = services.ImageAnalysisService ?? throw new ArgumentNullException(nameof(services.ImageAnalysisService));
+            _conversionPlanningService = services.ConversionPlanningService ?? throw new ArgumentNullException(nameof(services.ConversionPlanningService));
             _conversionPipelineService = services.ConversionPipelineService ?? throw new ArgumentNullException(nameof(services.ConversionPipelineService));
             _conversionHistoryService = services.ConversionHistoryService ?? throw new ArgumentNullException(nameof(services.ConversionHistoryService));
             _conversionLogService = services.ConversionLogService ?? throw new ArgumentNullException(nameof(services.ConversionLogService));
@@ -100,56 +103,60 @@ namespace ImvixPro.ViewModels
             _isLoadingSettings = true;
 
             var settings = _settingsService.Load();
-            var initialLanguageCode = string.IsNullOrWhiteSpace(settings.LanguageCode)
+            var applicationPreferences = AppSettingsStateMapper.ResolveApplicationPreferences(settings);
+            var previewToolState = AppSettingsStateMapper.ResolvePreviewToolState(settings);
+            var watchProfile = AppSettingsStateMapper.ResolveWatchProfile(settings);
+
+            var initialLanguageCode = string.IsNullOrWhiteSpace(applicationPreferences.LanguageCode)
                 ? LanguageCodeSystem
-                : settings.LanguageCode;
+                : applicationPreferences.LanguageCode;
             var effectiveLanguageCode = ResolveEffectiveLanguageCode(initialLanguageCode);
             _localizationService.SetLanguage(effectiveLanguageCode);
             UiFlowDirection = ResolveFlowDirection(effectiveLanguageCode);
 
             RefreshLanguageOptions(initialLanguageCode);
-            RefreshThemeOptions(settings.ThemeCode);
+            RefreshThemeOptions(applicationPreferences.ThemeCode);
             if (SelectedTheme is not null)
             {
                 ApplyTheme(SelectedTheme.Code);
             }
 
-            SelectedOutputFormat = settings.DefaultOutputFormat;
-            SelectedCompressionMode = settings.DefaultCompressionMode;
-            Quality = Math.Clamp(settings.DefaultQuality, 1, 100);
+            SelectedOutputFormat = applicationPreferences.DefaultOutputFormat;
+            SelectedCompressionMode = applicationPreferences.DefaultCompressionMode;
+            Quality = Math.Clamp(applicationPreferences.DefaultQuality, 1, 100);
 
-            SelectedResizeMode = settings.DefaultResizeMode;
-            ResizeWidth = Math.Max(1, settings.DefaultResizeWidth);
-            ResizeHeight = Math.Max(1, settings.DefaultResizeHeight);
-            ResizePercent = Math.Clamp(settings.DefaultResizePercent, 1, 1000);
+            SelectedResizeMode = applicationPreferences.DefaultResizeMode;
+            ResizeWidth = Math.Max(1, applicationPreferences.DefaultResizeWidth);
+            ResizeHeight = Math.Max(1, applicationPreferences.DefaultResizeHeight);
+            ResizePercent = Math.Clamp(applicationPreferences.DefaultResizePercent, 1, 1000);
 
-            SelectedRenameMode = settings.DefaultRenameMode;
-            RenamePrefix = settings.DefaultRenamePrefix;
-            RenameSuffix = settings.DefaultRenameSuffix;
-            RenameStartNumber = Math.Max(0, settings.DefaultRenameStartNumber);
-            RenameNumberDigits = Math.Clamp(settings.DefaultRenameNumberDigits, 1, 8);
+            SelectedRenameMode = applicationPreferences.DefaultRenameMode;
+            RenamePrefix = applicationPreferences.DefaultRenamePrefix;
+            RenameSuffix = applicationPreferences.DefaultRenameSuffix;
+            RenameStartNumber = Math.Max(0, applicationPreferences.DefaultRenameStartNumber);
+            RenameNumberDigits = Math.Clamp(applicationPreferences.DefaultRenameNumberDigits, 1, 8);
 
-            OutputDirectory = settings.DefaultOutputDirectory;
-            UseSourceFolder = ResolveUseSourceFolder(settings);
-            IncludeSubfoldersOnFolderImport = settings.IncludeSubfoldersOnFolderImport;
+            OutputDirectory = applicationPreferences.DefaultOutputDirectory;
+            UseSourceFolder = ResolveUseSourceFolder(applicationPreferences);
+            IncludeSubfoldersOnFolderImport = applicationPreferences.IncludeSubfoldersOnFolderImport;
 
-            AutoOpenOutputDirectory = settings.AutoOpenOutputDirectory;
-            AllowOverwrite = settings.AllowOverwrite;
-            SvgUseBackground = settings.SvgUseBackground;
-            SvgBackgroundColor = string.IsNullOrWhiteSpace(settings.SvgBackgroundColor) ? "#FFFFFFFF" : settings.SvgBackgroundColor;
-            IconUseTransparency = settings.IconUseTransparency;
-            IconBackgroundColor = string.IsNullOrWhiteSpace(settings.IconBackgroundColor) ? "#FFFFFFFF" : settings.IconBackgroundColor;
-            SelectedGifHandlingMode = settings.DefaultGifHandlingMode;
-            SelectedGifSpecificFrameIndex = Math.Max(0, settings.DefaultGifSpecificFrameIndex);
+            AutoOpenOutputDirectory = applicationPreferences.AutoOpenOutputDirectory;
+            AllowOverwrite = applicationPreferences.AllowOverwrite;
+            SvgUseBackground = applicationPreferences.SvgUseBackground;
+            SvgBackgroundColor = string.IsNullOrWhiteSpace(applicationPreferences.SvgBackgroundColor) ? "#FFFFFFFF" : applicationPreferences.SvgBackgroundColor;
+            IconUseTransparency = applicationPreferences.IconUseTransparency;
+            IconBackgroundColor = string.IsNullOrWhiteSpace(applicationPreferences.IconBackgroundColor) ? "#FFFFFFFF" : applicationPreferences.IconBackgroundColor;
+            SelectedGifHandlingMode = applicationPreferences.DefaultGifHandlingMode;
+            SelectedGifSpecificFrameIndex = Math.Max(0, applicationPreferences.DefaultGifSpecificFrameIndex);
 
             Presets.Clear();
-            foreach (var preset in settings.Presets.Where(static p => !string.IsNullOrWhiteSpace(p.Name)))
+            foreach (var preset in applicationPreferences.Presets.Where(static p => !string.IsNullOrWhiteSpace(p.Name)))
             {
                 Presets.Add(ClonePreset(preset));
             }
 
-            InitializeVersion3Features(settings);
-            InitializeAiFeatures(settings);
+            InitializeVersion3Features(applicationPreferences, watchProfile);
+            InitializeAiFeatures(applicationPreferences, previewToolState);
             RefreshEnumOptions();
 
             RightPanelTabIndex = 0;

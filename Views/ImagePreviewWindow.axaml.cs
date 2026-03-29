@@ -122,7 +122,7 @@ namespace ImvixPro.Views
             int pdfPageCount = 0,
             string uiLanguageCode = "en-US",
             PreviewOcrLanguageOption ocrLanguageOption = PreviewOcrLanguageOption.Auto,
-            Func<ConversionOptions>? previewOptionsProvider = null,
+            Func<PreviewSessionState>? previewSessionStateProvider = null,
             Action<bool>? previewAiBusyChanged = null,
             bool isSourceAiEnhancementEligible = false,
             bool isSourceAiMattingEligible = false)
@@ -135,7 +135,7 @@ namespace ImvixPro.Views
                 pdfPageCount,
                 uiLanguageCode,
                 ocrLanguageOption,
-                previewOptionsProvider,
+                previewSessionStateProvider,
                 previewAiBusyChanged,
                 isSourceAiEnhancementEligible,
                 isSourceAiMattingEligible,
@@ -152,7 +152,7 @@ namespace ImvixPro.Views
             int pdfPageCount,
             string uiLanguageCode,
             PreviewOcrLanguageOption ocrLanguageOption,
-            Func<ConversionOptions>? previewOptionsProvider,
+            Func<PreviewSessionState>? previewSessionStateProvider,
             Action<bool>? previewAiBusyChanged,
             bool isSourceAiEnhancementEligible,
             bool isSourceAiMattingEligible,
@@ -164,7 +164,7 @@ namespace ImvixPro.Views
             _localizationService.SetLanguage(string.IsNullOrWhiteSpace(uiLanguageCode) ? "en-US" : uiLanguageCode);
             InitializeAiPreview(
                 filePath,
-                previewOptionsProvider,
+                previewSessionStateProvider,
                 previewAiBusyChanged,
                 isSourceAiEnhancementEligible,
                 isSourceAiMattingEligible);

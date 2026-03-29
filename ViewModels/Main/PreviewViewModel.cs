@@ -21,9 +21,18 @@ namespace ImvixPro.ViewModels
         [ObservableProperty]
         private bool isPreviewAiBusy;
 
+        public PreviewSessionState CreatePreviewSessionState()
+        {
+            return new PreviewSessionState
+            {
+                JobDefinition = BuildCurrentJobDefinition(),
+                PreviewToolState = BuildCurrentPreviewToolState()
+            };
+        }
+
         public ConversionOptions CreatePreviewWindowOptions()
         {
-            return BuildCurrentConversionOptions();
+            return BuildCurrentJobDefinition().ToConversionOptions();
         }
 
         public void SetPreviewAiBusy(bool isBusy)

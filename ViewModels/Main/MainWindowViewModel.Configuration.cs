@@ -2,6 +2,7 @@
 using Avalonia.Media;
 using Avalonia.Styling;
 using ImvixPro.Models;
+using ImvixPro.Services;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -23,7 +24,31 @@ namespace ImvixPro.ViewModels
 
             var existing = _settingsService.Load();
 
-            _settingsService.Save(new AppSettings
+            var preferences = BuildApplicationPreferences(existing);
+            var previewToolState = BuildCurrentPreviewToolState();
+            var watchProfile = BuildConfiguredWatchProfile();
+
+            _settingsService.Save(AppSettingsStateMapper.CreateSettings(existing, preferences, previewToolState, watchProfile));
+
+            RefreshConversionInsights();
+            RefreshWatchProfileSummary();
+        }
+
+        private static bool ResolveUseSourceFolder(ApplicationPreferences settings)
+        {
+            if (settings.HasOutputDirectoryRule)
+            {
+                return settings.OutputDirectoryRule == OutputDirectoryRule.SourceFolder;
+            }
+
+            return settings.UseSourceFolderByDefault;
+        }
+
+        private ApplicationPreferences BuildApplicationPreferences(AppSettings existing)
+        {
+            var existingPreferences = AppSettingsStateMapper.ResolveApplicationPreferences(existing);
+
+            return new ApplicationPreferences
             {
                 LanguageCode = SelectedLanguage?.Code ?? LanguageCodeSystem,
                 ThemeCode = SelectedTheme?.Code ?? ThemeCodeSystem,
@@ -41,25 +66,12 @@ namespace ImvixPro.ViewModels
                 DefaultRenameNumberDigits = RenameNumberDigits,
                 DefaultGifHandlingMode = SelectedGifHandlingMode,
                 DefaultGifSpecificFrameIndex = SelectedGifSpecificFrameIndex,
-                AiPanelEnabled = AiPanelEnabled,
-                HasAiPanelVisibilityPreference = true,
-                AiEnhancementEnabled = AiEnhancementEnabled,
-                DefaultAiEnhancementScale = AiEnhancementScale,
-                DefaultAiEnhancementModel = SelectedAiEnhancementModel,
-                DefaultAiExecutionMode = SelectedAiExecutionMode,
-                DefaultAiMattingModel = SelectedAiMattingModel,
-                DefaultAiMattingDevice = SelectedAiMattingDevice,
-                DefaultAiMattingOutputFormat = SelectedAiMattingOutputFormat,
-                DefaultAiMattingBackgroundMode = SelectedAiMattingBackgroundMode,
-                DefaultAiMattingBackgroundColor = AiMattingBackgroundColor,
-                AiMattingEdgeOptimizationEnabled = AiMattingEdgeOptimizationEnabled,
-                DefaultAiMattingEdgeOptimizationStrength = AiMattingEdgeOptimizationStrength,
-                DefaultAiMattingResolutionMode = SelectedAiMattingResolutionMode,
                 DefaultOutputDirectory = OutputDirectory,
                 UseSourceFolderByDefault = UseSourceFolder,
                 HasOutputDirectoryRule = true,
                 OutputDirectoryRule = UseSourceFolder ? OutputDirectoryRule.SourceFolder : OutputDirectoryRule.SpecificFolder,
                 IncludeSubfoldersOnFolderImport = IncludeSubfoldersOnFolderImport,
+                DefaultListSortMode = existingPreferences.DefaultListSortMode,
                 AutoOpenOutputDirectory = AutoOpenOutputDirectory,
                 AllowOverwrite = AllowOverwrite,
                 SvgUseBackground = SvgUseBackground,
@@ -67,31 +79,55 @@ namespace ImvixPro.ViewModels
                 IconUseTransparency = IconUseTransparency,
                 IconBackgroundColor = EffectiveIconBackgroundColor,
                 MaxParallelism = _maxParallelism,
+                AiEnhancementEnabled = AiEnhancementEnabled,
+                DefaultAiEnhancementScale = AiEnhancementScale,
+                DefaultAiEnhancementModel = SelectedAiEnhancementModel,
+                DefaultAiExecutionMode = SelectedAiExecutionMode,
                 Presets = Presets.Select(ClonePreset).ToList(),
-                WatchModeEnabled = WatchModeEnabled,
-                WatchInputDirectory = WatchInputDirectory,
-                WatchOutputDirectory = WatchOutputDirectory,
-                WatchIncludeSubfolders = WatchIncludeSubfolders,
                 KeepRunningInTray = KeepRunningInTray,
-                RunOnStartup = RunOnStartup,
-                HasWindowPlacement = existing.HasWindowPlacement,
-                WindowPositionX = existing.WindowPositionX,
-                WindowPositionY = existing.WindowPositionY,
-                WindowWidth = existing.WindowWidth,
-                WindowHeight = existing.WindowHeight
-            });
-
-            RefreshConversionInsights();
+                RunOnStartup = RunOnStartup
+            };
         }
 
-        private static bool ResolveUseSourceFolder(AppSettings settings)
+        private PreviewToolState BuildCurrentPreviewToolState()
         {
-            if (settings.HasOutputDirectoryRule)
+            return new PreviewToolState
             {
-                return settings.OutputDirectoryRule == OutputDirectoryRule.SourceFolder;
-            }
+                AiMattingModel = SelectedAiMattingModel,
+                AiMattingDevice = SelectedAiMattingDevice,
+                AiMattingOutputFormat = SelectedAiMattingOutputFormat,
+                AiMattingBackgroundMode = SelectedAiMattingBackgroundMode,
+                AiMattingBackgroundColor = AiMattingBackgroundColor,
+                AiMattingEdgeOptimizationEnabled = AiMattingEdgeOptimizationEnabled,
+                AiMattingEdgeOptimizationStrength = AiMattingEdgeOptimizationStrength,
+                AiMattingResolutionMode = SelectedAiMattingResolutionMode
+            };
+        }
 
-            return settings.UseSourceFolderByDefault;
+        private ConversionJobDefinition BuildCurrentJobDefinition(bool forWatch = false)
+        {
+            return new ConversionJobDefinition
+            {
+                Options = BuildCurrentConversionOptions(forWatch)
+            };
+        }
+
+        private WatchProfile BuildConfiguredWatchProfile()
+        {
+            var jobDefinition = _watchJobDefinitionSnapshot?.Clone() ?? BuildCurrentJobDefinition(forWatch: true);
+            var options = jobDefinition.ToConversionOptions();
+            options.OutputDirectoryRule = OutputDirectoryRule.SpecificFolder;
+            options.OutputDirectory = WatchOutputDirectory;
+            jobDefinition.Options = options;
+
+            return new WatchProfile
+            {
+                IsEnabled = WatchModeEnabled,
+                InputDirectory = WatchInputDirectory,
+                OutputDirectory = WatchOutputDirectory,
+                IncludeSubfolders = WatchIncludeSubfolders,
+                JobDefinition = jobDefinition
+            };
         }
 
         private ConversionPreset BuildPreset(string name)
@@ -117,14 +153,6 @@ namespace ImvixPro.ViewModels
                 AiEnhancementScale = AiEnhancementScale,
                 AiEnhancementModel = SelectedAiEnhancementModel,
                 AiExecutionMode = SelectedAiExecutionMode,
-                AiMattingModel = SelectedAiMattingModel,
-                AiMattingDevice = SelectedAiMattingDevice,
-                AiMattingOutputFormat = SelectedAiMattingOutputFormat,
-                AiMattingBackgroundMode = SelectedAiMattingBackgroundMode,
-                AiMattingBackgroundColor = AiMattingBackgroundColor,
-                AiMattingEdgeOptimizationEnabled = AiMattingEdgeOptimizationEnabled,
-                AiMattingEdgeOptimizationStrength = AiMattingEdgeOptimizationStrength,
-                AiMattingResolutionMode = SelectedAiMattingResolutionMode,
                 OutputDirectoryRule = UseSourceFolder ? OutputDirectoryRule.SourceFolder : OutputDirectoryRule.SpecificFolder,
                 OutputDirectory = OutputDirectory,
                 AllowOverwrite = AllowOverwrite,
@@ -158,14 +186,6 @@ namespace ImvixPro.ViewModels
                 AiEnhancementScale = source.AiEnhancementScale,
                 AiEnhancementModel = source.AiEnhancementModel,
                 AiExecutionMode = source.AiExecutionMode,
-                AiMattingModel = source.AiMattingModel,
-                AiMattingDevice = source.AiMattingDevice,
-                AiMattingOutputFormat = source.AiMattingOutputFormat,
-                AiMattingBackgroundMode = source.AiMattingBackgroundMode,
-                AiMattingBackgroundColor = source.AiMattingBackgroundColor,
-                AiMattingEdgeOptimizationEnabled = source.AiMattingEdgeOptimizationEnabled,
-                AiMattingEdgeOptimizationStrength = source.AiMattingEdgeOptimizationStrength,
-                AiMattingResolutionMode = source.AiMattingResolutionMode,
                 OutputDirectoryRule = source.OutputDirectoryRule,
                 OutputDirectory = source.OutputDirectory,
                 AllowOverwrite = source.AllowOverwrite,
