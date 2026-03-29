@@ -430,6 +430,24 @@
                 </StackPanel>
             </Border>
 
+            <Border IsVisible="{Binding HasConversionPlanHighlights}"
+                    Background="{DynamicResource SurfaceAltBrush}"
+                    BorderBrush="{DynamicResource BorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="10">
+                <StackPanel Spacing="6">
+                    <TextBlock Text="{Binding TaskAnalysisTitleText}" FontWeight="SemiBold" />
+                    <ItemsControl ItemsSource="{Binding ConversionPlanHighlights}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding}" TextWrapping="Wrap" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+
             <Border IsVisible="{Binding IsGifTrimRangeVisible}"
                     Background="{DynamicResource SurfaceAltBrush}"
                     BorderBrush="{DynamicResource BorderBrush}"
@@ -474,6 +492,10 @@
                     <TextBlock Text="{Binding EstimatedSizeTitleText}" FontWeight="SemiBold" />
                     <TextBlock Text="{Binding OriginalSizeSummaryText}" />
                     <TextBlock Text="{Binding EstimatedSizeSummaryText}" Classes="secondary" />
+                    <TextBlock Text="{Binding EstimateDisclaimerText}"
+                               Classes="secondary"
+                               TextWrapping="Wrap"
+                               IsVisible="{Binding HasEstimateDisclaimer}" />
                 </StackPanel>
             </Border>
 

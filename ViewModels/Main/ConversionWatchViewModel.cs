@@ -102,6 +102,7 @@ namespace ImvixPro.ViewModels
         private void InitializeVersion3Features(ApplicationPreferences preferences, WatchProfile watchProfile)
         {
             ActiveWarnings.CollectionChanged += OnActiveWarningsCollectionChanged;
+            ConversionPlanHighlights.CollectionChanged += OnConversionPlanHighlightsCollectionChanged;
             RecentConversions.CollectionChanged += OnRecentConversionsCollectionChanged;
             _folderWatchService.FileReady += OnWatchedFileReady;
 

@@ -7,16 +7,18 @@ namespace ImvixPro.Models
             bool usesAiPreprocessing,
             int totalInputCount,
             int aiEligibleInputCount,
-            bool expandsGifFrames,
-            bool expandsPdfPages,
+            int gifFrameExpansionInputCount,
+            int pdfPageExpansionInputCount,
+            int totalEstimatedOutputItems,
             int totalEstimatedWorkItems)
         {
             IsAiRequested = isAiRequested;
             UsesAiPreprocessing = usesAiPreprocessing;
             TotalInputCount = totalInputCount;
             AiEligibleInputCount = aiEligibleInputCount;
-            ExpandsGifFrames = expandsGifFrames;
-            ExpandsPdfPages = expandsPdfPages;
+            GifFrameExpansionInputCount = gifFrameExpansionInputCount;
+            PdfPageExpansionInputCount = pdfPageExpansionInputCount;
+            TotalEstimatedOutputItems = totalEstimatedOutputItems;
             TotalEstimatedWorkItems = totalEstimatedWorkItems;
         }
 
@@ -29,13 +31,23 @@ namespace ImvixPro.Models
         public int AiEligibleInputCount { get; }
 
         public int AiBypassedInputCount => IsAiRequested
-            ? TotalInputCount - AiEligibleInputCount
+            ? System.Math.Max(0, TotalInputCount - AiEligibleInputCount)
             : 0;
 
-        public bool ExpandsGifFrames { get; }
+        public int GifFrameExpansionInputCount { get; }
 
-        public bool ExpandsPdfPages { get; }
+        public int PdfPageExpansionInputCount { get; }
+
+        public bool ExpandsGifFrames => GifFrameExpansionInputCount > 0;
+
+        public bool ExpandsPdfPages => PdfPageExpansionInputCount > 0;
+
+        public bool HasExpandedOutputs => ExpandsGifFrames || ExpandsPdfPages;
+
+        public int TotalEstimatedOutputItems { get; }
 
         public int TotalEstimatedWorkItems { get; }
+
+        public bool HasEstimateDisclaimer => UsesAiPreprocessing || HasExpandedOutputs;
     }
 }

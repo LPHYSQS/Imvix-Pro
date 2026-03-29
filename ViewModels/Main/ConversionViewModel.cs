@@ -37,9 +37,13 @@ namespace ImvixPro.ViewModels
 
         public ObservableCollection<string> ActiveWarnings { get; } = [];
 
+        public ObservableCollection<string> ConversionPlanHighlights { get; } = [];
+
         public ObservableCollection<RecentConversionItem> RecentConversions { get; } = [];
 
         public bool HasActiveWarnings => ActiveWarnings.Count > 0;
+
+        public bool HasConversionPlanHighlights => ConversionPlanHighlights.Count > 0;
 
         public bool HasRecentConversions => RecentConversions.Count > 0;
 
@@ -49,9 +53,12 @@ namespace ImvixPro.ViewModels
 
         public bool HasSizeEstimate => !string.IsNullOrWhiteSpace(OriginalSizeSummaryText) || !string.IsNullOrWhiteSpace(EstimatedSizeSummaryText);
 
+        public bool HasEstimateDisclaimer => !string.IsNullOrWhiteSpace(EstimateDisclaimerText);
+
         public bool HasFailureLog => !string.IsNullOrWhiteSpace(LastFailureLogPath);
 
         public string FormatRecommendationTitleText => T("FormatRecommendationTitle");
+        public string TaskAnalysisTitleText => T("TaskAnalysisTitle");
         public string EstimatedSizeTitleText => T("EstimatedSizeTitle");
         public string WarningsTitleText => T("WarningsTitle");
         public string HistoryTitleText => T("HistoryTitle");
@@ -75,6 +82,9 @@ namespace ImvixPro.ViewModels
 
         [ObservableProperty]
         private string estimatedSizeSummaryText = string.Empty;
+
+        [ObservableProperty]
+        private string estimateDisclaimerText = string.Empty;
 
         [ObservableProperty]
         private bool isConversionPaused;
@@ -270,12 +280,13 @@ namespace ImvixPro.ViewModels
         private async Task<List<string>> BuildPreflightWarningsAsync()
         {
             var warnings = new List<string>();
+            var snapshot = Images.ToList();
             var options = BuildCurrentConversionOptions();
-            var plan = _conversionPlanningService.BuildPlan(Images.ToList(), options);
+            var plan = _conversionPlanningService.BuildPlan(snapshot, options);
 
             if (SelectedOutputFormat == OutputImageFormat.Jpeg)
             {
-                var hasTransparency = await Task.Run(() => _imageAnalysisService.ContainsTransparency(Images.ToList()));
+                var hasTransparency = await Task.Run(() => _imageAnalysisService.ContainsTransparency(snapshot));
                 if (hasTransparency)
                 {
                     warnings.Add(T("WarningTransparencyLoss"));
@@ -287,7 +298,7 @@ namespace ImvixPro.ViewModels
                 warnings.Add(T("WarningHighCompression"));
             }
 
-            var gifPdfFrameCount = GetLargeGifPdfFrameCount(Images.ToList());
+            var gifPdfFrameCount = GetLargeGifPdfFrameCount(snapshot);
             if (gifPdfFrameCount > 0)
             {
                 warnings.Add(string.Format(
@@ -310,7 +321,7 @@ namespace ImvixPro.ViewModels
                 warnings.Add(AiEnhancementModelFallbackWarningText);
             }
 
-            var lockedPdfCount = Images.Count(image => image.NeedsPdfUnlock);
+            var lockedPdfCount = snapshot.Count(image => image.NeedsPdfUnlock);
             if (lockedPdfCount > 0)
             {
                 warnings.Add(string.Format(
@@ -324,6 +335,10 @@ namespace ImvixPro.ViewModels
 
         private void RefreshConversionInsights()
         {
+            var snapshot = Images.ToList();
+            var options = BuildCurrentConversionOptions();
+            var plan = _conversionPlanningService.BuildPlan(snapshot, options);
+
             if (SelectedImage is null || SelectedImage.IsPdfDocument)
             {
                 FormatRecommendationText = string.Empty;
@@ -337,7 +352,9 @@ namespace ImvixPro.ViewModels
                 FormatRecommendationReasonText = T(GetRecommendationReasonKey(analysis.ContentKind));
             }
 
-            var estimate = _imageAnalysisService.Estimate(Images.ToList(), BuildCurrentConversionOptions());
+            RefreshConversionPlanInsights(plan, options);
+
+            var estimate = _imageAnalysisService.Estimate(snapshot, options);
             if (!estimate.IsAvailable)
             {
                 OriginalSizeSummaryText = string.Empty;
@@ -352,6 +369,124 @@ namespace ImvixPro.ViewModels
             RefreshActiveWarnings();
             OnPropertyChanged(nameof(HasFormatRecommendation));
             OnPropertyChanged(nameof(HasSizeEstimate));
+        }
+
+        private void RefreshConversionPlanInsights(ConversionPlan plan, ConversionOptions options)
+        {
+            ConversionPlanHighlights.Clear();
+
+            if (plan.TotalInputCount <= 0)
+            {
+                EstimateDisclaimerText = string.Empty;
+                return;
+            }
+
+            ConversionPlanHighlights.Add(BuildPipelineSummaryText(plan, options));
+
+            if (plan.IsAiRequested)
+            {
+                ConversionPlanHighlights.Add(BuildAiSummaryText(plan));
+            }
+
+            if (plan.GifFrameExpansionInputCount > 0)
+            {
+                ConversionPlanHighlights.Add(string.Format(
+                    CultureInfo.CurrentCulture,
+                    T("TaskAnalysisGifExpansionTemplate"),
+                    plan.GifFrameExpansionInputCount));
+            }
+
+            if (plan.PdfPageExpansionInputCount > 0)
+            {
+                ConversionPlanHighlights.Add(string.Format(
+                    CultureInfo.CurrentCulture,
+                    T("TaskAnalysisPdfExpansionTemplate"),
+                    plan.PdfPageExpansionInputCount));
+            }
+
+            ConversionPlanHighlights.Add(plan.TotalEstimatedWorkItems == plan.TotalEstimatedOutputItems
+                ? string.Format(
+                    CultureInfo.CurrentCulture,
+                    T("TaskAnalysisWorkloadTemplate"),
+                    plan.TotalEstimatedWorkItems)
+                : string.Format(
+                    CultureInfo.CurrentCulture,
+                    T("TaskAnalysisWorkloadWithStagesTemplate"),
+                    plan.TotalEstimatedOutputItems,
+                    plan.TotalEstimatedWorkItems));
+
+            EstimateDisclaimerText = BuildEstimateDisclaimerText(plan);
+        }
+
+        private string BuildPipelineSummaryText(ConversionPlan plan, ConversionOptions options)
+        {
+            var outputFormat = FormatOutputFormat(options.OutputFormat);
+
+            if (plan.UsesAiPreprocessing)
+            {
+                return string.Format(
+                    CultureInfo.CurrentCulture,
+                    T("TaskAnalysisPipelineAiTemplate"),
+                    outputFormat);
+            }
+
+            if (plan.IsAiRequested)
+            {
+                return string.Format(
+                    CultureInfo.CurrentCulture,
+                    T("TaskAnalysisPipelineAiBypassedTemplate"),
+                    outputFormat);
+            }
+
+            return string.Format(
+                CultureInfo.CurrentCulture,
+                T("TaskAnalysisPipelineStandardTemplate"),
+                outputFormat);
+        }
+
+        private string BuildAiSummaryText(ConversionPlan plan)
+        {
+            if (plan.AiEligibleInputCount <= 0)
+            {
+                return T("TaskAnalysisAiNoneEligibleTemplate");
+            }
+
+            if (plan.AiBypassedInputCount <= 0)
+            {
+                return string.Format(
+                    CultureInfo.CurrentCulture,
+                    T("TaskAnalysisAiAllEligibleTemplate"),
+                    plan.TotalInputCount);
+            }
+
+            return string.Format(
+                CultureInfo.CurrentCulture,
+                T("TaskAnalysisAiMixedTemplate"),
+                plan.AiEligibleInputCount,
+                plan.TotalInputCount,
+                plan.AiBypassedInputCount);
+        }
+
+        private string BuildEstimateDisclaimerText(ConversionPlan plan)
+        {
+            if (!plan.HasEstimateDisclaimer)
+            {
+                return string.Empty;
+            }
+
+            List<string> lines = [];
+
+            if (plan.UsesAiPreprocessing)
+            {
+                lines.Add(T("EstimateDisclaimerAiScale"));
+            }
+
+            if (plan.HasExpandedOutputs)
+            {
+                lines.Add(T("EstimateDisclaimerExpandedOutputs"));
+            }
+
+            return string.Join(Environment.NewLine, lines);
         }
 
         private void RefreshActiveWarnings()
@@ -553,6 +688,7 @@ namespace ImvixPro.ViewModels
         private void RefreshLocalizedPropertiesV3()
         {
             OnPropertyChanged(nameof(FormatRecommendationTitleText));
+            OnPropertyChanged(nameof(TaskAnalysisTitleText));
             OnPropertyChanged(nameof(EstimatedSizeTitleText));
             OnPropertyChanged(nameof(WarningsTitleText));
             OnPropertyChanged(nameof(HistoryTitleText));
@@ -650,9 +786,19 @@ namespace ImvixPro.ViewModels
             OnPropertyChanged(nameof(HasFailureLog));
         }
 
+        partial void OnEstimateDisclaimerTextChanged(string value)
+        {
+            OnPropertyChanged(nameof(HasEstimateDisclaimer));
+        }
+
         private void OnActiveWarningsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
         {
             OnPropertyChanged(nameof(HasActiveWarnings));
+        }
+
+        private void OnConversionPlanHighlightsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+        {
+            OnPropertyChanged(nameof(HasConversionPlanHighlights));
         }
 
         private void OnRecentConversionsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
