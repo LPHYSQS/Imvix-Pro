@@ -7,6 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Imvix Pro.csproj" />
+    <ProjectReference Include="..\..\..\Imvix Pro.csproj" />
   </ItemGroup>
 </Project>

@@ -15,7 +15,20 @@ public sealed class RuntimeAssetTests
 
         Assert.True(File.Exists(Path.Combine(root, "RuntimeAssets", "AI", "Enhancement", "engine", "realesrgan-ncnn-vulkan.exe")));
         Assert.True(File.Exists(Path.Combine(root, "RuntimeAssets", "AI", "Enhancement", "engine", "vcomp140.dll")));
-        Assert.True(File.Exists(Path.Combine(root, "RuntimeAssets", "Ocr", "tessdata", "eng.traineddata")));
+        Assert.True(File.Exists(Path.Combine(root, "RuntimeAssets", "Ocr", "Paddle", "v5", "ch_PP-OCRv5_mobile_det.onnx")));
+        Assert.True(File.Exists(Path.Combine(root, "RuntimeAssets", "Ocr", "Paddle", "v5", "ch_ppocr_mobile_v2.0_cls_infer.onnx")));
+        Assert.True(File.Exists(Path.Combine(root, "RuntimeAssets", "Ocr", "Paddle", "v5", "ch_PP-OCRv5_rec_mobile_infer.onnx")));
+        Assert.True(File.Exists(Path.Combine(root, "RuntimeAssets", "Ocr", "Paddle", "v5", "ppocrv5_dict.txt")));
+        Assert.True(File.Exists(Path.Combine(root, "RuntimeAssets", "Ocr", "Paddle", "v5", "en_PP-OCRv5_rec_mobile_infer.onnx")));
+        Assert.True(File.Exists(Path.Combine(root, "RuntimeAssets", "Ocr", "Paddle", "v5", "ppocrv5_en_dict.txt")));
+        Assert.True(File.Exists(Path.Combine(root, "RuntimeAssets", "Ocr", "Paddle", "v5", "latin_PP-OCRv5_rec_mobile_infer.onnx")));
+        Assert.True(File.Exists(Path.Combine(root, "RuntimeAssets", "Ocr", "Paddle", "v5", "ppocrv5_latin_dict.txt")));
+        Assert.True(File.Exists(Path.Combine(root, "RuntimeAssets", "Ocr", "Paddle", "v5", "korean_PP-OCRv5_rec_mobile_infer.onnx")));
+        Assert.True(File.Exists(Path.Combine(root, "RuntimeAssets", "Ocr", "Paddle", "v5", "ppocrv5_korean_dict.txt")));
+        Assert.True(File.Exists(Path.Combine(root, "RuntimeAssets", "Ocr", "Paddle", "v5", "eslav_PP-OCRv5_rec_mobile_infer.onnx")));
+        Assert.True(File.Exists(Path.Combine(root, "RuntimeAssets", "Ocr", "Paddle", "v5", "ppocrv5_eslav_dict.txt")));
+        Assert.True(File.Exists(Path.Combine(root, "RuntimeAssets", "Ocr", "Paddle", "v5", "arabic_PP-OCRv5_rec_mobile_infer.onnx")));
+        Assert.True(File.Exists(Path.Combine(root, "RuntimeAssets", "Ocr", "Paddle", "v5", "ppocrv5_arabic_dict.txt")));
         Assert.True(File.Exists(Path.Combine(root, "RuntimeAssets", "Qr", "configs", "decoder.json")));
         Assert.True(File.Exists(Path.Combine(root, "RuntimeAssets", "Barcode", "configs", "decoder.json")));
         Assert.True(File.Exists(Path.Combine(root, "RuntimeAssets", "AI", "Matting", "models", "MODNet", "model.onnx")));

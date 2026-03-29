@@ -10,17 +10,21 @@ $ErrorActionPreference = "Stop"
 
 $projectPath = Join-Path $PSScriptRoot "..\\Imvix Pro.csproj"
 $nugetConfigPath = Join-Path $PSScriptRoot "..\\NuGet.Config"
-$requiredTessdata = @(
-    "chi_sim.traineddata",
-    "chi_tra.traineddata",
-    "eng.traineddata",
-    "jpn.traineddata",
-    "kor.traineddata",
-    "deu.traineddata",
-    "fra.traineddata",
-    "ita.traineddata",
-    "rus.traineddata",
-    "ara.traineddata"
+$requiredOcrAssets = @(
+    "ch_PP-OCRv5_mobile_det.onnx",
+    "ch_ppocr_mobile_v2.0_cls_infer.onnx",
+    "ch_PP-OCRv5_rec_mobile_infer.onnx",
+    "ppocrv5_dict.txt",
+    "en_PP-OCRv5_rec_mobile_infer.onnx",
+    "ppocrv5_en_dict.txt",
+    "latin_PP-OCRv5_rec_mobile_infer.onnx",
+    "ppocrv5_latin_dict.txt",
+    "korean_PP-OCRv5_rec_mobile_infer.onnx",
+    "ppocrv5_korean_dict.txt",
+    "eslav_PP-OCRv5_rec_mobile_infer.onnx",
+    "ppocrv5_eslav_dict.txt",
+    "arabic_PP-OCRv5_rec_mobile_infer.onnx",
+    "ppocrv5_arabic_dict.txt"
 )
 $requiredAiModels = @(
     "realesrgan-x4plus",
@@ -83,22 +87,20 @@ foreach ($rid in $runtimes) {
     $aiMattingDir = Join-Path $runtimeDir "ai\\matting\\models"
     $requiredPaths = @(
         (Join-Path $publishDir "Imvix Pro.exe"),
-        (Join-Path $publishDir "Tesseract.dll"),
+        (Join-Path $publishDir "RapidOcrNet.dll"),
         (Join-Path $publishDir "zxing.dll"),
         (Join-Path $runtimeDir "qr\\zxing.dll"),
         (Join-Path $runtimeDir "qr\\configs\\decoder.json"),
         (Join-Path $runtimeDir "barcode\\zxing.dll"),
         (Join-Path $runtimeDir "barcode\\configs\\decoder.json"),
-        (Join-Path $nativeDir "tesseract50.dll"),
-        (Join-Path $nativeDir "leptonica-1.82.0.dll"),
         (Join-Path $aiEngineDir "realesrgan-ncnn-vulkan.exe"),
         (Join-Path $aiEngineDir "vcomp140.dll"),
         (Join-Path $aiMattingDir "MODNet\\model.onnx"),
         (Join-Path $aiMattingDir "U2Net\\model.onnx")
     )
 
-    foreach ($file in $requiredTessdata) {
-        $requiredPaths += Join-Path $runtimeDir "ocr\\tessdata\\$file"
+    foreach ($file in $requiredOcrAssets) {
+        $requiredPaths += Join-Path $runtimeDir "ocr\\paddle\\v5\\$file"
     }
 
     foreach ($model in $requiredAiModels) {

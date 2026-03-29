@@ -1,17 +1,13 @@
+using RapidOcrNet;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.Drawing.Imaging;
+using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Runtime.Versioning;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Tesseract;
-using DrawingImageFormat = System.Drawing.Imaging.ImageFormat;
 
 namespace ImvixPro.Services
 {
@@ -49,147 +45,294 @@ namespace ImvixPro.Services
 
     public sealed class PreviewOcrService
     {
-        private const float ChineseAutoRetryConfidenceThreshold = 0.9f;
-        private const int ChineseUpscaledLongestEdge = 2800;
-        private const float KoreanAutoRetryConfidenceThreshold = 0.9f;
-        private const float KoreanAutoRetryLatinFallbackThreshold = 0.9f;
-        private const int KoreanUpscaledLongestEdge = 2600;
         private static readonly IReadOnlyDictionary<char, char> TraditionalToSimplifiedMap =
             new Dictionary<char, char>
             {
-                ['\u8B58'] = '\u8BC6',
-                ['\u5225'] = '\u522B',
-                ['\u6E2C'] = '\u6D4B',
-                ['\u8A66'] = '\u8BD5',
-                ['\u7C21'] = '\u7B80',
-                ['\u9AD4'] = '\u4F53',
-                ['\u958B'] = '\u5F00',
-                ['\u95DC'] = '\u5173',
-                ['\u767C'] = '\u53D1',
-                ['\u73FE'] = '\u73B0',
-                ['\u5716'] = '\u56FE',
-                ['\u5C64'] = '\u5C42',
-                ['\u9801'] = '\u9875',
-                ['\u7DB2'] = '\u7F51',
-                ['\u9EDE'] = '\u70B9',
-                ['\u9304'] = '\u5F55',
-                ['\u9580'] = '\u95E8',
-                ['\u66F8'] = '\u4E66',
-                ['\u9F8D'] = '\u9F99',
-                ['\u756B'] = '\u753B',
-                ['\u96F2'] = '\u4E91',
-                ['\u81FA'] = '\u53F0',
-                ['\u6A94'] = '\u6863',
-                ['\u8B49'] = '\u8BC1',
-                ['\u78BC'] = '\u7801',
-                ['\u932F'] = '\u9519',
-                ['\u8AA4'] = '\u8BEF',
-                ['\u9810'] = '\u9884',
-                ['\u89BD'] = '\u89C8',
-                ['\u9078'] = '\u9009',
-                ['\u64C7'] = '\u62E9',
-                ['\u8CC7'] = '\u8D44',
-                ['\u8A0A'] = '\u8BAF',
-                ['\u986F'] = '\u663E',
-                ['\u8655'] = '\u5904',
-                ['\u7DDA'] = '\u7EBF',
-                ['\u7DE8'] = '\u7F16',
-                ['\u8F2F'] = '\u8F91',
-                ['\u5FA9'] = '\u590D',
-                ['\u6AA2'] = '\u68C0',
-                ['\u6B0A'] = '\u6743',
-                ['\u8F49'] = '\u8F6C',
-                ['\u63DB'] = '\u6362',
-                ['\u58D3'] = '\u538B',
-                ['\u7E2E'] = '\u7F29',
-                ['\u5831'] = '\u62A5',
-                ['\u5C0E'] = '\u5BFC',
-                ['\u8F38'] = '\u8F93',
-                ['\u96D9'] = '\u53CC',
-                ['\u64CA'] = '\u51FB',
-                ['\u8996'] = '\u89C6',
-                ['\u5C08'] = '\u4E13',
-                ['\u696D'] = '\u4E1A',
-                ['\u6A19'] = '\u6807',
-                ['\u984C'] = '\u9898',
-                ['\u5167'] = '\u5185',
-                ['\u97FF'] = '\u54CD',
-                ['\u61C9'] = '\u5E94',
-                ['\u9375'] = '\u952E',
-                ['\u76E4'] = '\u76D8',
-                ['\u98A8'] = '\u98CE',
-                ['\u7D1A'] = '\u7EA7',
-                ['\u512A'] = '\u4F18',
-                ['\u6B78'] = '\u5F52',
-                ['\u7D93'] = '\u7ECF',
-                ['\u9A57'] = '\u9A8C',
-                ['\u6578'] = '\u6570',
-                ['\u64DA'] = '\u636E',
-                ['\u7E3D'] = '\u603B',
-                ['\u7D50'] = '\u7ED3',
-                ['\u5BE6'] = '\u5B9E',
-                ['\u969B'] = '\u9645',
-                ['\u8A0E'] = '\u8BA8',
-                ['\u8AD6'] = '\u8BBA',
-                ['\u8207'] = '\u4E0E',
-                ['\u70BA'] = '\u4E3A',
-                ['\u6642'] = '\u65F6',
-                ['\u9593'] = '\u95F4',
-                ['\u7D14'] = '\u7EAF',
-                ['\u55CE'] = '\u5417',
-                ['\u9019'] = '\u8FD9',
-                ['\u500B'] = '\u4E2A',
-                ['\u6703'] = '\u4F1A',
-                ['\u8B93'] = '\u8BA9',
-                ['\u5F8C'] = '\u540E'
+                ['识'] = '识',
+                ['識'] = '识',
+                ['別'] = '别',
+                ['测'] = '测',
+                ['測'] = '测',
+                ['试'] = '试',
+                ['試'] = '试',
+                ['简'] = '简',
+                ['簡'] = '简',
+                ['体'] = '体',
+                ['體'] = '体',
+                ['开'] = '开',
+                ['開'] = '开',
+                ['关'] = '关',
+                ['關'] = '关',
+                ['发'] = '发',
+                ['發'] = '发',
+                ['现'] = '现',
+                ['現'] = '现',
+                ['图'] = '图',
+                ['圖'] = '图',
+                ['层'] = '层',
+                ['層'] = '层',
+                ['页'] = '页',
+                ['頁'] = '页',
+                ['网'] = '网',
+                ['網'] = '网',
+                ['点'] = '点',
+                ['點'] = '点',
+                ['录'] = '录',
+                ['錄'] = '录',
+                ['门'] = '门',
+                ['門'] = '门',
+                ['书'] = '书',
+                ['書'] = '书',
+                ['龙'] = '龙',
+                ['龍'] = '龙',
+                ['画'] = '画',
+                ['畫'] = '画',
+                ['云'] = '云',
+                ['雲'] = '云',
+                ['台'] = '台',
+                ['臺'] = '台',
+                ['档'] = '档',
+                ['檔'] = '档',
+                ['证'] = '证',
+                ['證'] = '证',
+                ['码'] = '码',
+                ['碼'] = '码',
+                ['错'] = '错',
+                ['錯'] = '错',
+                ['误'] = '误',
+                ['誤'] = '误',
+                ['预'] = '预',
+                ['預'] = '预',
+                ['览'] = '览',
+                ['覽'] = '览',
+                ['选'] = '选',
+                ['選'] = '选',
+                ['择'] = '择',
+                ['擇'] = '择',
+                ['资'] = '资',
+                ['資'] = '资',
+                ['讯'] = '讯',
+                ['訊'] = '讯',
+                ['显'] = '显',
+                ['顯'] = '显',
+                ['处'] = '处',
+                ['處'] = '处',
+                ['线'] = '线',
+                ['線'] = '线',
+                ['编'] = '编',
+                ['編'] = '编',
+                ['辑'] = '辑',
+                ['輯'] = '辑',
+                ['复'] = '复',
+                ['復'] = '复',
+                ['检'] = '检',
+                ['檢'] = '检',
+                ['权'] = '权',
+                ['權'] = '权',
+                ['转'] = '转',
+                ['轉'] = '转',
+                ['换'] = '换',
+                ['換'] = '换',
+                ['压'] = '压',
+                ['壓'] = '压',
+                ['缩'] = '缩',
+                ['縮'] = '缩',
+                ['报'] = '报',
+                ['報'] = '报',
+                ['导'] = '导',
+                ['導'] = '导',
+                ['输'] = '输',
+                ['輸'] = '输',
+                ['双'] = '双',
+                ['雙'] = '双',
+                ['击'] = '击',
+                ['擊'] = '击',
+                ['视'] = '视',
+                ['視'] = '视',
+                ['专'] = '专',
+                ['專'] = '专',
+                ['业'] = '业',
+                ['業'] = '业',
+                ['标'] = '标',
+                ['標'] = '标',
+                ['题'] = '题',
+                ['題'] = '题',
+                ['内'] = '内',
+                ['內'] = '内',
+                ['响'] = '响',
+                ['響'] = '响',
+                ['应'] = '应',
+                ['應'] = '应',
+                ['键'] = '键',
+                ['鍵'] = '键',
+                ['盘'] = '盘',
+                ['盤'] = '盘',
+                ['风'] = '风',
+                ['風'] = '风',
+                ['级'] = '级',
+                ['級'] = '级',
+                ['优'] = '优',
+                ['優'] = '优',
+                ['归'] = '归',
+                ['歸'] = '归',
+                ['经'] = '经',
+                ['經'] = '经',
+                ['验'] = '验',
+                ['驗'] = '验',
+                ['数'] = '数',
+                ['數'] = '数',
+                ['据'] = '据',
+                ['據'] = '据',
+                ['总'] = '总',
+                ['總'] = '总',
+                ['结'] = '结',
+                ['結'] = '结',
+                ['实'] = '实',
+                ['實'] = '实',
+                ['际'] = '际',
+                ['際'] = '际',
+                ['讨'] = '讨',
+                ['討'] = '讨',
+                ['论'] = '论',
+                ['論'] = '论',
+                ['与'] = '与',
+                ['與'] = '与',
+                ['为'] = '为',
+                ['為'] = '为',
+                ['时'] = '时',
+                ['時'] = '时',
+                ['间'] = '间',
+                ['間'] = '间',
+                ['纯'] = '纯',
+                ['純'] = '纯',
+                ['吗'] = '吗',
+                ['嗎'] = '吗',
+                ['这'] = '这',
+                ['這'] = '这',
+                ['个'] = '个',
+                ['個'] = '个',
+                ['会'] = '会',
+                ['會'] = '会',
+                ['让'] = '让',
+                ['讓'] = '让',
+                ['后'] = '后',
+                ['後'] = '后'
             };
-        private static readonly HashSet<char> TraditionalDistinctChars = TraditionalToSimplifiedMap.Keys.ToHashSet();
+
+        private static readonly HashSet<char> TraditionalDistinctChars = TraditionalToSimplifiedMap
+            .Where(pair => pair.Key != pair.Value)
+            .Select(pair => pair.Key)
+            .ToHashSet();
+
         private static readonly HashSet<char> SimplifiedDistinctChars = TraditionalToSimplifiedMap.Values.ToHashSet();
+
         private static readonly PreviewOcrLanguageProfile[] SupportedLanguageProfiles =
         [
-            new(PreviewOcrLanguageOption.SimplifiedChinese, ["chi_sim", "eng"]),
-            new(PreviewOcrLanguageOption.TraditionalChinese, ["chi_tra", "eng"]),
-            new(PreviewOcrLanguageOption.English, ["eng"]),
-            new(PreviewOcrLanguageOption.Japanese, ["jpn", "eng"]),
-            new(PreviewOcrLanguageOption.Korean, ["kor", "eng"]),
-            new(PreviewOcrLanguageOption.German, ["deu", "eng"]),
-            new(PreviewOcrLanguageOption.French, ["fra", "eng"]),
-            new(PreviewOcrLanguageOption.Italian, ["ita", "eng"]),
-            new(PreviewOcrLanguageOption.Russian, ["rus", "eng"]),
-            new(PreviewOcrLanguageOption.Arabic, ["ara", "eng"])
+            new(PreviewOcrLanguageOption.SimplifiedChinese),
+            new(PreviewOcrLanguageOption.TraditionalChinese),
+            new(PreviewOcrLanguageOption.English),
+            new(PreviewOcrLanguageOption.Japanese),
+            new(PreviewOcrLanguageOption.Korean),
+            new(PreviewOcrLanguageOption.German),
+            new(PreviewOcrLanguageOption.French),
+            new(PreviewOcrLanguageOption.Italian),
+            new(PreviewOcrLanguageOption.Russian),
+            new(PreviewOcrLanguageOption.Arabic)
         ];
 
-        private static readonly string[] AutoLanguageDataCodes =
+        private static readonly RapidOcrOptions DefaultOcrOptions = RapidOcrOptions.Default with
+        {
+            ImgResize = 1600,
+            Padding = 40
+        };
+
+        private static readonly PreviewPaddleOcrProfile ChineseProfile = new(
+            "ppocrv5-ch",
+            "ch_PP-OCRv5_rec_mobile_infer.onnx",
+            "ppocrv5_dict.txt",
+            PreviewOcrAutoFamily.Chinese,
+            DefaultOcrOptions);
+
+        private static readonly PreviewPaddleOcrProfile EnglishProfile = new(
+            "ppocrv5-en",
+            "en_PP-OCRv5_rec_mobile_infer.onnx",
+            "ppocrv5_en_dict.txt",
+            PreviewOcrAutoFamily.English,
+            DefaultOcrOptions);
+
+        private static readonly PreviewPaddleOcrProfile LatinProfile = new(
+            "ppocrv5-latin",
+            "latin_PP-OCRv5_rec_mobile_infer.onnx",
+            "ppocrv5_latin_dict.txt",
+            PreviewOcrAutoFamily.Latin,
+            DefaultOcrOptions);
+
+        private static readonly PreviewPaddleOcrProfile KoreanProfile = new(
+            "ppocrv5-korean",
+            "korean_PP-OCRv5_rec_mobile_infer.onnx",
+            "ppocrv5_korean_dict.txt",
+            PreviewOcrAutoFamily.Korean,
+            DefaultOcrOptions);
+
+        private static readonly PreviewPaddleOcrProfile EastSlavicProfile = new(
+            "ppocrv5-eslav",
+            "eslav_PP-OCRv5_rec_mobile_infer.onnx",
+            "ppocrv5_eslav_dict.txt",
+            PreviewOcrAutoFamily.Cyrillic,
+            DefaultOcrOptions);
+
+        private static readonly PreviewPaddleOcrProfile ArabicProfile = new(
+            "ppocrv5-arabic",
+            "arabic_PP-OCRv5_rec_mobile_infer.onnx",
+            "ppocrv5_arabic_dict.txt",
+            PreviewOcrAutoFamily.Arabic,
+            DefaultOcrOptions);
+
+        private static readonly PreviewPaddleOcrProfile[] AutoProfiles =
         [
-            "chi_sim",
-            "chi_tra",
-            "eng",
-            "jpn",
-            "kor",
-            "deu",
-            "fra",
-            "ita",
-            "rus",
-            "ara"
+            ChineseProfile,
+            EnglishProfile,
+            LatinProfile,
+            KoreanProfile,
+            EastSlavicProfile,
+            ArabicProfile
         ];
 
-        private static readonly string AllSupportedLanguages = string.Join("+", AutoLanguageDataCodes);
-        private static readonly string[] RequiredLanguageFiles =
-            AutoLanguageDataCodes.Select(code => $"{code}.traineddata").ToArray();
-        private static readonly IReadOnlyDictionary<PreviewOcrLanguageOption, string> LanguageSetMap =
-            SupportedLanguageProfiles.ToDictionary(
-                profile => profile.Option,
-                profile => string.Join("+", profile.DataCodes));
+        private static readonly IReadOnlyDictionary<PreviewOcrLanguageOption, PreviewPaddleOcrProfile> LanguageProfileMap =
+            new Dictionary<PreviewOcrLanguageOption, PreviewPaddleOcrProfile>
+            {
+                [PreviewOcrLanguageOption.SimplifiedChinese] = ChineseProfile,
+                [PreviewOcrLanguageOption.TraditionalChinese] = ChineseProfile,
+                [PreviewOcrLanguageOption.English] = EnglishProfile,
+                [PreviewOcrLanguageOption.Japanese] = ChineseProfile,
+                [PreviewOcrLanguageOption.Korean] = KoreanProfile,
+                [PreviewOcrLanguageOption.German] = LatinProfile,
+                [PreviewOcrLanguageOption.French] = LatinProfile,
+                [PreviewOcrLanguageOption.Italian] = LatinProfile,
+                [PreviewOcrLanguageOption.Russian] = EastSlavicProfile,
+                [PreviewOcrLanguageOption.Arabic] = ArabicProfile
+            };
 
-        private static readonly string[] RequiredNativeFiles =
+        private static readonly string[] RequiredOcrFiles =
         [
-            "leptonica-1.82.0.dll",
-            "tesseract50.dll"
+            "ch_PP-OCRv5_mobile_det.onnx",
+            "ch_ppocr_mobile_v2.0_cls_infer.onnx",
+            "ch_PP-OCRv5_rec_mobile_infer.onnx",
+            "ppocrv5_dict.txt",
+            "en_PP-OCRv5_rec_mobile_infer.onnx",
+            "ppocrv5_en_dict.txt",
+            "latin_PP-OCRv5_rec_mobile_infer.onnx",
+            "ppocrv5_latin_dict.txt",
+            "korean_PP-OCRv5_rec_mobile_infer.onnx",
+            "ppocrv5_korean_dict.txt",
+            "eslav_PP-OCRv5_rec_mobile_infer.onnx",
+            "ppocrv5_eslav_dict.txt",
+            "arabic_PP-OCRv5_rec_mobile_infer.onnx",
+            "ppocrv5_arabic_dict.txt"
         ];
 
         private static readonly SemaphoreSlim EngineGate = new(1, 1);
-
-        private static readonly Dictionary<string, TesseractEngine> EngineCache = new(StringComparer.Ordinal);
+        private static readonly Dictionary<string, PreviewPaddleOcrEngineAdapter> EngineCache = new(StringComparer.Ordinal);
         private static readonly Lazy<PreviewOcrRuntimeStatus> RuntimeStatus =
             new(InitializeRuntime, LazyThreadSafetyMode.ExecutionAndPublication);
 
@@ -203,7 +346,7 @@ namespace ImvixPro.Services
 
         static PreviewOcrService()
         {
-            AppDomain.CurrentDomain.ProcessExit += static (_, _) => DisposeSharedEngine();
+            AppDomain.CurrentDomain.ProcessExit += static (_, _) => DisposeSharedEngines();
         }
 
         public static void WarmUpRuntime()
@@ -238,12 +381,11 @@ namespace ImvixPro.Services
 
             return await Task.Run(async () =>
             {
-                await EngineGate.WaitAsync(cancellationToken);
+                await EngineGate.WaitAsync(cancellationToken).ConfigureAwait(false);
                 try
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-
-                    return RecognizeCore(imageBytes, languageOption, runtimeStatus.TessDataPath);
+                    return RecognizeCore(imageBytes, languageOption, runtimeStatus.ModelsDirectory);
                 }
                 catch (OperationCanceledException)
                 {
@@ -258,296 +400,87 @@ namespace ImvixPro.Services
                 {
                     EngineGate.Release();
                 }
-            }, cancellationToken);
+            }, cancellationToken).ConfigureAwait(false);
         }
 
         private static PreviewOcrRecognition RecognizeCore(
             byte[] imageBytes,
             PreviewOcrLanguageOption languageOption,
-            string tessDataPath)
+            string modelsDirectory)
         {
             if (!OperatingSystem.IsWindows())
             {
                 return PreviewOcrRecognition.Error(UnsupportedPlatformErrorCode);
             }
 
-            return languageOption switch
+            if (languageOption == PreviewOcrLanguageOption.Auto)
             {
-                PreviewOcrLanguageOption.SimplifiedChinese => RecognizeBestChineseResult(
-                    imageBytes,
-                    TryCreateChineseUpscaledImageBytes(imageBytes),
-                    PreviewOcrLanguageOption.SimplifiedChinese,
-                    tessDataPath),
-                PreviewOcrLanguageOption.TraditionalChinese => RecognizeBestChineseResult(
-                    imageBytes,
-                    TryCreateChineseUpscaledImageBytes(imageBytes),
-                    PreviewOcrLanguageOption.TraditionalChinese,
-                    tessDataPath),
-                PreviewOcrLanguageOption.Korean => RecognizeBestKoreanResult(imageBytes, tessDataPath),
-                PreviewOcrLanguageOption.Auto => RecognizeAutoWithLanguageRetry(imageBytes, tessDataPath),
-                _ => RecognizeOnce(imageBytes, languageOption, tessDataPath, PageSegMode.Auto)
-            };
-        }
-
-        [SupportedOSPlatform("windows")]
-        private static PreviewOcrRecognition RecognizeAutoWithLanguageRetry(byte[] imageBytes, string tessDataPath)
-        {
-            var primary = RecognizeOnce(imageBytes, PreviewOcrLanguageOption.Auto, tessDataPath, PageSegMode.Auto);
-            var best = primary;
-
-            if (ShouldTryKoreanRetry(primary))
-            {
-                var koreanResult = RecognizeBestKoreanResult(imageBytes, tessDataPath);
-                best = ChooseAutoOrKorean(best, koreanResult);
+                return RecognizeAuto(imageBytes, modelsDirectory);
             }
 
-            if (ShouldTryChineseRetry(best))
+            if (!LanguageProfileMap.TryGetValue(languageOption, out var profile))
             {
-                var chineseVariants = RecognizeBestChineseVariants(imageBytes, tessDataPath);
-                best = ChooseAutoOrChinese(best, chineseVariants.Simplified, chineseVariants.Traditional);
+                return RecognizeAuto(imageBytes, modelsDirectory);
             }
 
-            return best;
+            return NormalizeRecognition(
+                RecognizeWithProfile(imageBytes, profile, modelsDirectory),
+                languageOption);
         }
 
-        [SupportedOSPlatform("windows")]
-        private static ChineseVariantRecognition RecognizeBestChineseVariants(byte[] imageBytes, string tessDataPath)
+        private static PreviewOcrRecognition RecognizeAuto(byte[] imageBytes, string modelsDirectory)
         {
-            var upscaledBytes = TryCreateChineseUpscaledImageBytes(imageBytes);
-            return new ChineseVariantRecognition(
-                RecognizeBestChineseResult(imageBytes, upscaledBytes, PreviewOcrLanguageOption.SimplifiedChinese, tessDataPath),
-                RecognizeBestChineseResult(imageBytes, upscaledBytes, PreviewOcrLanguageOption.TraditionalChinese, tessDataPath));
-        }
-
-        private static PreviewOcrRecognition RecognizeBestChineseResult(
-            byte[] imageBytes,
-            byte[]? upscaledBytes,
-            PreviewOcrLanguageOption languageOption,
-            string tessDataPath)
-        {
-            var attempts = new List<RecognitionAttempt>
-            {
-                new("chinese-original-auto", NormalizeRecognition(
-                    RecognizeOnce(imageBytes, languageOption, tessDataPath, PageSegMode.Auto),
-                    languageOption)),
-                new("chinese-original-sparse", NormalizeRecognition(
-                    RecognizeOnce(imageBytes, languageOption, tessDataPath, PageSegMode.SparseText),
-                    languageOption))
-            };
-
-            if (upscaledBytes is not null)
-            {
-                attempts.Add(new("chinese-upscaled-auto", NormalizeRecognition(
-                    RecognizeOnce(upscaledBytes, languageOption, tessDataPath, PageSegMode.Auto),
-                    languageOption)));
-                attempts.Add(new("chinese-upscaled-sparse", NormalizeRecognition(
-                    RecognizeOnce(upscaledBytes, languageOption, tessDataPath, PageSegMode.SparseText),
-                    languageOption)));
-            }
+            var attempts = AutoProfiles
+                .Select(profile => new RecognitionAttempt(profile, RecognizeWithProfile(imageBytes, profile, modelsDirectory)))
+                .ToArray();
 
             return attempts
-                .OrderByDescending(attempt => ScoreRecognition(attempt.Result, languageOption))
+                .OrderByDescending(attempt => ScoreAutoRecognition(attempt.Profile, attempt.Result))
                 .ThenByDescending(attempt => attempt.Result.MeanConfidence)
                 .First()
                 .Result;
         }
 
-        private static PreviewOcrRecognition NormalizeRecognition(
-            PreviewOcrRecognition recognition,
-            PreviewOcrLanguageOption languageOption)
-        {
-            if (!recognition.HasText || languageOption != PreviewOcrLanguageOption.SimplifiedChinese)
-            {
-                return recognition;
-            }
-
-            var normalizedText = ConvertTraditionalToSimplified(recognition.Text);
-            return normalizedText == recognition.Text
-                ? recognition
-                : recognition with { Text = normalizedText };
-        }
-
-        private static PreviewOcrRecognition ChooseAutoOrChinese(
-            PreviewOcrRecognition primary,
-            PreviewOcrRecognition simplifiedResult,
-            PreviewOcrRecognition traditionalResult)
-        {
-            var simplifiedScore = ScoreRecognition(simplifiedResult, PreviewOcrLanguageOption.SimplifiedChinese);
-            var traditionalScore = ScoreRecognition(traditionalResult, PreviewOcrLanguageOption.TraditionalChinese);
-            var preferredChinese = simplifiedScore >= traditionalScore + 2d
-                ? simplifiedResult
-                : traditionalScore >= simplifiedScore + 2d
-                    ? traditionalResult
-                    : simplifiedResult.MeanConfidence >= traditionalResult.MeanConfidence
-                        ? simplifiedResult
-                        : traditionalResult;
-
-            var preferredLanguage = ReferenceEquals(preferredChinese, traditionalResult)
-                ? PreviewOcrLanguageOption.TraditionalChinese
-                : PreviewOcrLanguageOption.SimplifiedChinese;
-            var primaryScore = ScoreRecognition(primary, PreviewOcrLanguageOption.Auto);
-            var preferredChineseScore = ScoreRecognition(preferredChinese, preferredLanguage);
-            var primaryStats = AnalyzeText(primary.Text);
-            var preferredStats = AnalyzeText(preferredChinese.Text);
-
-            var hasCleanerChineseText =
-                preferredStats.HanCount >= primaryStats.HanCount &&
-                preferredStats.ChineseVariantMixedCount < primaryStats.ChineseVariantMixedCount;
-            var hasVariantCorrection =
-                preferredLanguage == PreviewOcrLanguageOption.SimplifiedChinese &&
-                preferredStats.TraditionalDistinctCount == 0 &&
-                primaryStats.TraditionalDistinctCount > 0;
-
-            if (preferredChineseScore >= primaryScore + 3d || hasCleanerChineseText || hasVariantCorrection)
-            {
-                return preferredChinese;
-            }
-
-            return primary;
-        }
-
-        [SupportedOSPlatform("windows")]
-        private static PreviewOcrRecognition RecognizeBestKoreanResult(byte[] imageBytes, string tessDataPath)
-        {
-            var attempts = new List<RecognitionAttempt>
-            {
-                new("korean-original-auto", RecognizeOnce(imageBytes, PreviewOcrLanguageOption.Korean, tessDataPath, PageSegMode.Auto)),
-                new("korean-original-sparse", RecognizeOnce(imageBytes, PreviewOcrLanguageOption.Korean, tessDataPath, PageSegMode.SparseText))
-            };
-
-            var upscaledBytes = TryCreateKoreanUpscaledImageBytes(imageBytes);
-            if (upscaledBytes is not null)
-            {
-                attempts.Add(new("korean-upscaled-auto", RecognizeOnce(upscaledBytes, PreviewOcrLanguageOption.Korean, tessDataPath, PageSegMode.Auto)));
-                attempts.Add(new("korean-upscaled-sparse", RecognizeOnce(upscaledBytes, PreviewOcrLanguageOption.Korean, tessDataPath, PageSegMode.SparseText)));
-            }
-
-            return attempts
-                .OrderByDescending(attempt => ScoreRecognition(attempt.Result, PreviewOcrLanguageOption.Korean))
-                .ThenByDescending(attempt => attempt.Result.MeanConfidence)
-                .First()
-                .Result;
-        }
-
-        private static PreviewOcrRecognition ChooseAutoOrKorean(
-            PreviewOcrRecognition primary,
-            PreviewOcrRecognition koreanResult)
-        {
-            var primaryStats = AnalyzeText(primary.Text);
-            var koreanStats = AnalyzeText(koreanResult.Text);
-            var primaryScore = ScoreRecognition(primary, PreviewOcrLanguageOption.Auto);
-            var koreanScore = ScoreRecognition(koreanResult, PreviewOcrLanguageOption.Korean);
-
-            var hasMeaningfulHangulImprovement =
-                koreanStats.HangulCount > primaryStats.HangulCount &&
-                koreanResult.MeanConfidence >= primary.MeanConfidence - 0.08f;
-
-            if (koreanScore >= primaryScore + 4d || hasMeaningfulHangulImprovement)
-            {
-                return koreanResult;
-            }
-
-            return primary;
-        }
-
-        private static bool ShouldTryKoreanRetry(PreviewOcrRecognition primary)
-        {
-            if (!primary.HasText)
-            {
-                return true;
-            }
-
-            var stats = AnalyzeText(primary.Text);
-            if (stats.HangulCount > 0)
-            {
-                return true;
-            }
-
-            if (stats.KanaCount > 0 || stats.ArabicCount > 0 || stats.CyrillicCount > 0)
-            {
-                return false;
-            }
-
-            if (primary.MeanConfidence < KoreanAutoRetryConfidenceThreshold)
-            {
-                return true;
-            }
-
-            if (stats.HanCount > 0)
-            {
-                return false;
-            }
-
-            return primary.MeanConfidence < KoreanAutoRetryLatinFallbackThreshold &&
-                   stats.HangulCount == 0 &&
-                   stats.HanCount == 0 &&
-                   stats.KanaCount == 0 &&
-                   stats.ArabicCount == 0 &&
-                   stats.CyrillicCount == 0 &&
-                   stats.LatinCount > 0;
-        }
-
-        private static bool ShouldTryChineseRetry(PreviewOcrRecognition primary)
-        {
-            if (!primary.HasText)
-            {
-                return true;
-            }
-
-            var stats = AnalyzeText(primary.Text);
-            if (stats.HangulCount > 0 || stats.KanaCount > 0 || stats.ArabicCount > 0 || stats.CyrillicCount > 0)
-            {
-                return false;
-            }
-
-            if (stats.HanCount > 0)
-            {
-                return stats.TraditionalDistinctCount > 0 ||
-                       stats.SimplifiedDistinctCount > 0 ||
-                       stats.ChineseVariantMixedCount > 0 ||
-                       primary.MeanConfidence < ChineseAutoRetryConfidenceThreshold ||
-                       stats.LatinCount > 0;
-            }
-
-            return primary.MeanConfidence < ChineseAutoRetryConfidenceThreshold && stats.LatinCount > 0;
-        }
-
-        private static PreviewOcrRecognition RecognizeOnce(
+        private static PreviewOcrRecognition RecognizeWithProfile(
             byte[] imageBytes,
-            PreviewOcrLanguageOption languageOption,
-            string tessDataPath,
-            PageSegMode pageSegMode)
+            PreviewPaddleOcrProfile profile,
+            string modelsDirectory)
         {
-            var engine = EnsureEngine(languageOption, tessDataPath);
-            using var pix = Pix.LoadFromMemory(imageBytes);
-            using var page = engine.Process(pix, pageSegMode);
-
-            var text = NormalizeText(page.GetText());
-            var confidence = page.GetMeanConfidence();
+            var engine = EnsureEngine(profile, modelsDirectory);
+            var rawResult = engine.Recognize(imageBytes);
+            var text = NormalizeText(rawResult.Text);
 
             return string.IsNullOrWhiteSpace(text)
-                ? PreviewOcrRecognition.Empty(confidence)
-                : new PreviewOcrRecognition(text, true, confidence);
+                ? PreviewOcrRecognition.Empty(rawResult.MeanConfidence)
+                : new PreviewOcrRecognition(text, true, rawResult.MeanConfidence);
         }
 
-        private static TesseractEngine EnsureEngine(PreviewOcrLanguageOption languageOption, string tessDataPath)
+        private static PreviewPaddleOcrEngineAdapter EnsureEngine(
+            PreviewPaddleOcrProfile profile,
+            string modelsDirectory)
         {
-            var languageSet = ResolveLanguageSet(languageOption);
-            if (EngineCache.TryGetValue(languageSet, out var cachedEngine))
+            if (EngineCache.TryGetValue(profile.CacheKey, out var cachedEngine))
             {
                 return cachedEngine;
             }
 
-            var engine = new TesseractEngine(tessDataPath, languageSet, EngineMode.Default);
-            engine.DefaultPageSegMode = PageSegMode.Auto;
-            engine.SetVariable("preserve_interword_spaces", "1");
-            engine.SetVariable("user_defined_dpi", 300);
+            var detPath = Path.Combine(modelsDirectory, "ch_PP-OCRv5_mobile_det.onnx");
+            var clsPath = Path.Combine(modelsDirectory, "ch_ppocr_mobile_v2.0_cls_infer.onnx");
+            var recPath = Path.Combine(modelsDirectory, profile.RecognitionModelFile);
+            var keysPath = Path.Combine(modelsDirectory, profile.DictionaryFile);
 
-            EngineCache[languageSet] = engine;
+            var engine = new PreviewPaddleOcrEngineAdapter(
+                detPath,
+                clsPath,
+                recPath,
+                keysPath,
+                profile.Options);
+
+            EngineCache[profile.CacheKey] = engine;
             return engine;
         }
 
-        private static void DisposeSharedEngine()
+        private static void DisposeSharedEngines()
         {
             foreach (var engine in EngineCache.Values)
             {
@@ -557,18 +490,6 @@ namespace ImvixPro.Services
             EngineCache.Clear();
         }
 
-        private static string ResolveLanguageSet(PreviewOcrLanguageOption languageOption)
-        {
-            if (languageOption == PreviewOcrLanguageOption.Auto)
-            {
-                return AllSupportedLanguages;
-            }
-
-            return LanguageSetMap.TryGetValue(languageOption, out var languageSet)
-                ? languageSet
-                : AllSupportedLanguages;
-        }
-
         private static PreviewOcrRuntimeStatus InitializeRuntime()
         {
             if (!OperatingSystem.IsWindows())
@@ -576,7 +497,6 @@ namespace ImvixPro.Services
                 return new PreviewOcrRuntimeStatus(
                     false,
                     AppContext.BaseDirectory,
-                    string.Empty,
                     string.Empty,
                     UnsupportedPlatformErrorCode,
                     "OCR is supported only on Windows.");
@@ -589,161 +509,138 @@ namespace ImvixPro.Services
                     false,
                     string.Empty,
                     string.Empty,
-                    string.Empty,
                     PathErrorCode,
                     "AppContext.BaseDirectory is empty.");
             }
 
-            var tessDataPath = RuntimeAssetLocator.OcrTessDataDirectory;
-            var nativeRuntimePath = Path.Combine(baseDirectory, Environment.Is64BitProcess ? "x64" : "x86");
-
-            if (!Directory.Exists(tessDataPath))
+            var modelsDirectory = RuntimeAssetLocator.OcrPaddleV5Directory;
+            if (!Directory.Exists(modelsDirectory))
             {
                 return new PreviewOcrRuntimeStatus(
                     false,
                     baseDirectory,
-                    tessDataPath,
-                    nativeRuntimePath,
+                    modelsDirectory,
                     PathErrorCode,
-                    $"OCR language data folder was not found: {tessDataPath}");
+                    $"OCR model folder was not found: {modelsDirectory}");
             }
 
-            var missingLanguageFiles = RequiredLanguageFiles
-                .Where(file => !File.Exists(Path.Combine(tessDataPath, file)))
+            var missingFiles = RequiredOcrFiles
+                .Where(file => !File.Exists(Path.Combine(modelsDirectory, file)))
                 .ToArray();
 
-            if (missingLanguageFiles.Length > 0)
+            if (missingFiles.Length > 0)
             {
                 return new PreviewOcrRuntimeStatus(
                     false,
                     baseDirectory,
-                    tessDataPath,
-                    nativeRuntimePath,
+                    modelsDirectory,
                     EngineFilesMissingErrorCode,
-                    $"OCR language data is incomplete. Missing: {string.Join(", ", missingLanguageFiles)}");
+                    $"OCR model files are incomplete. Missing: {string.Join(", ", missingFiles)}");
             }
 
-            if (!Directory.Exists(nativeRuntimePath))
-            {
-                return new PreviewOcrRuntimeStatus(
-                    false,
-                    baseDirectory,
-                    tessDataPath,
-                    nativeRuntimePath,
-                    EngineFilesMissingErrorCode,
-                    $"OCR native runtime folder was not found: {nativeRuntimePath}");
-            }
-
-            var missingNativeFiles = RequiredNativeFiles
-                .Where(file => !File.Exists(Path.Combine(nativeRuntimePath, file)))
-                .ToArray();
-
-            if (missingNativeFiles.Length > 0)
-            {
-                return new PreviewOcrRuntimeStatus(
-                    false,
-                    baseDirectory,
-                    tessDataPath,
-                    nativeRuntimePath,
-                    EngineFilesMissingErrorCode,
-                    $"OCR native runtime is incomplete. Missing: {string.Join(", ", missingNativeFiles)}");
-            }
-
-            try
-            {
-                ConfigureNativeRuntime(baseDirectory, nativeRuntimePath);
-            }
-            catch (Exception ex)
-            {
-                return new PreviewOcrRuntimeStatus(
-                    false,
-                    baseDirectory,
-                    tessDataPath,
-                    nativeRuntimePath,
-                    InitializationFailedErrorCode,
-                    $"Failed to configure OCR native runtime: {ex.Message}");
-            }
-
-            return new PreviewOcrRuntimeStatus(true, baseDirectory, tessDataPath, nativeRuntimePath);
+            return new PreviewOcrRuntimeStatus(true, baseDirectory, modelsDirectory);
         }
 
-        private static void ConfigureNativeRuntime(string baseDirectory, string nativeRuntimePath)
+        private static PreviewOcrRecognition NormalizeRecognition(
+            PreviewOcrRecognition recognition,
+            PreviewOcrLanguageOption languageOption)
         {
-            var currentPath = Environment.GetEnvironmentVariable("PATH") ?? string.Empty;
-            var pathEntries = currentPath
-                .Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-
-            if (!pathEntries.Contains(nativeRuntimePath, StringComparer.OrdinalIgnoreCase))
+            if (!recognition.HasText)
             {
-                var updatedPath = string.IsNullOrWhiteSpace(currentPath)
-                    ? nativeRuntimePath
-                    : string.Join(Path.PathSeparator, new[] { nativeRuntimePath, currentPath });
-
-                Environment.SetEnvironmentVariable("PATH", updatedPath);
+                return recognition;
             }
 
-            InteropDotNet.LibraryLoader.Instance.CustomSearchPath = baseDirectory;
-        }
-
-        [SupportedOSPlatform("windows")]
-        private static byte[]? TryCreateChineseUpscaledImageBytes(byte[] imageBytes)
-        {
-            return TryCreateUpscaledImageBytes(imageBytes, ChineseUpscaledLongestEdge, "Chinese");
-        }
-
-        [SupportedOSPlatform("windows")]
-        private static byte[]? TryCreateKoreanUpscaledImageBytes(byte[] imageBytes)
-        {
-            return TryCreateUpscaledImageBytes(imageBytes, KoreanUpscaledLongestEdge, "Korean");
-        }
-
-        [SupportedOSPlatform("windows")]
-        private static byte[]? TryCreateUpscaledImageBytes(
-            byte[] imageBytes,
-            int targetLongestEdge,
-            string scenario)
-        {
-            try
+            if (languageOption != PreviewOcrLanguageOption.SimplifiedChinese)
             {
-                using var input = new MemoryStream(imageBytes, writable: false);
-                using var sourceImage = Image.FromStream(input, useEmbeddedColorManagement: false, validateImageData: false);
-
-                var longestEdge = Math.Max(sourceImage.Width, sourceImage.Height);
-                if (longestEdge <= 0)
-                {
-                    return null;
-                }
-
-                var scale = Math.Max(1d, targetLongestEdge / (double)longestEdge);
-                if (scale <= 1.05d)
-                {
-                    return null;
-                }
-
-                var targetWidth = Math.Max(1, (int)Math.Round(sourceImage.Width * scale));
-                var targetHeight = Math.Max(1, (int)Math.Round(sourceImage.Height * scale));
-
-                using var bitmap = new Bitmap(targetWidth, targetHeight, PixelFormat.Format24bppRgb);
-                bitmap.SetResolution(300, 300);
-
-                using var graphics = Graphics.FromImage(bitmap);
-                graphics.Clear(Color.White);
-                graphics.CompositingQuality = CompositingQuality.HighQuality;
-                graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
-                graphics.SmoothingMode = SmoothingMode.HighQuality;
-
-                graphics.DrawImage(sourceImage, new Rectangle(0, 0, targetWidth, targetHeight));
-
-                using var output = new MemoryStream();
-                bitmap.Save(output, DrawingImageFormat.Png);
-                return output.ToArray();
+                return recognition;
             }
-            catch (Exception ex)
+
+            var normalizedText = ConvertTraditionalToSimplified(recognition.Text);
+            return normalizedText == recognition.Text
+                ? recognition
+                : recognition with { Text = normalizedText };
+        }
+
+        private static double ScoreAutoRecognition(
+            PreviewPaddleOcrProfile profile,
+            PreviewOcrRecognition result)
+        {
+            if (!result.HasText)
             {
-                Trace.TraceWarning($"Failed to prepare {scenario} OCR upscale variant: {ex.Message}");
-                return null;
+                return double.NegativeInfinity;
             }
+
+            var stats = AnalyzeText(result.Text);
+            var score = result.MeanConfidence * 100d;
+            score += Math.Min(12d, stats.VisibleCharacterCount * 0.35d);
+
+            switch (profile.AutoFamily)
+            {
+                case PreviewOcrAutoFamily.Chinese:
+                    if (stats.KanaCount > 0)
+                    {
+                        score += 22d + (stats.KanaCount * 0.8d);
+                    }
+
+                    if (stats.HanCount > 0)
+                    {
+                        score += 18d + (stats.HanCount * 0.35d);
+                        score -= stats.ChineseVariantMixedCount * 1.5d;
+                    }
+
+                    if (stats.KanaCount == 0 && stats.HanCount == 0 && stats.LatinCount > 0)
+                    {
+                        score += 6d + (stats.LatinCount * 0.12d);
+                    }
+
+                    score -= (stats.HangulCount * 1.6d) + (stats.CyrillicCount * 1.2d) + (stats.ArabicCount * 1.2d);
+                    break;
+
+                case PreviewOcrAutoFamily.English:
+                    score += stats.LatinCount > 0
+                        ? 18d + (stats.LatinCount * 0.3d)
+                        : -28d;
+                    score -= stats.HanCount + stats.KanaCount + (stats.HangulCount * 1.5d) + (stats.CyrillicCount * 1.4d) + (stats.ArabicCount * 1.4d);
+                    score -= stats.LatinDiacriticCount * 0.35d;
+                    if (stats.LatinCount is > 0 and < 4)
+                    {
+                        score -= 6d;
+                    }
+                    break;
+
+                case PreviewOcrAutoFamily.Latin:
+                    score += stats.LatinCount > 0
+                        ? 18d + (stats.LatinCount * 0.32d)
+                        : -28d;
+                    score += stats.LatinDiacriticCount > 0
+                        ? 6d + (stats.LatinDiacriticCount * 0.5d)
+                        : 0d;
+                    score -= stats.HanCount + stats.KanaCount + (stats.HangulCount * 1.5d) + (stats.CyrillicCount * 1.25d) + (stats.ArabicCount * 1.25d);
+                    break;
+
+                case PreviewOcrAutoFamily.Korean:
+                    score += stats.HangulCount > 0
+                        ? 24d + (stats.HangulCount * 0.9d)
+                        : -30d;
+                    score -= (stats.HanCount * 0.5d) + (stats.KanaCount * 1.5d) + (stats.CyrillicCount * 1.2d) + (stats.ArabicCount * 1.2d);
+                    break;
+
+                case PreviewOcrAutoFamily.Cyrillic:
+                    score += stats.CyrillicCount > 0
+                        ? 30d + (stats.CyrillicCount * 1.05d)
+                        : -30d;
+                    score -= stats.HanCount + stats.KanaCount + (stats.HangulCount * 1.5d) + (stats.ArabicCount * 1.25d);
+                    break;
+
+                case PreviewOcrAutoFamily.Arabic:
+                    score += stats.ArabicCount > 0
+                        ? 34d + (stats.ArabicCount * 1.15d)
+                        : -30d;
+                    score -= stats.HanCount + stats.KanaCount + (stats.HangulCount * 1.5d) + (stats.CyrillicCount * 1.25d);
+                    break;
+            }
+
+            return score;
         }
 
         private static string ConvertTraditionalToSimplified(string? text)
@@ -764,69 +661,6 @@ namespace ImvixPro.Services
             return builder.ToString();
         }
 
-        private static double ScoreRecognition(
-            PreviewOcrRecognition result,
-            PreviewOcrLanguageOption expectedLanguage)
-        {
-            if (!result.HasText)
-            {
-                return double.NegativeInfinity;
-            }
-
-            var stats = AnalyzeText(result.Text);
-            var score = result.MeanConfidence * 100d;
-
-            if (expectedLanguage == PreviewOcrLanguageOption.SimplifiedChinese)
-            {
-                score += stats.HanCount > 0
-                    ? 18d + (stats.HanCount * 0.45d)
-                    : -28d;
-                score += stats.SimplifiedDistinctCount * 3d;
-                score -= stats.TraditionalDistinctCount * 4d;
-            }
-            else if (expectedLanguage == PreviewOcrLanguageOption.TraditionalChinese)
-            {
-                score += stats.HanCount > 0
-                    ? 18d + (stats.HanCount * 0.45d)
-                    : -28d;
-                score += stats.TraditionalDistinctCount * 3d;
-                score -= stats.SimplifiedDistinctCount * 4d;
-            }
-            else if (expectedLanguage == PreviewOcrLanguageOption.Korean)
-            {
-                score += stats.HangulCount > 0
-                    ? 22d + (stats.HangulCount * 0.8d)
-                    : -28d;
-
-                if (stats.LatinCount > 0 && stats.HangulCount == 0)
-                {
-                    score -= Math.Min(12d, stats.LatinCount * 0.45d);
-                }
-            }
-            else if (expectedLanguage == PreviewOcrLanguageOption.Auto)
-            {
-                if (stats.HangulCount > 0)
-                {
-                    score += 10d + (stats.HangulCount * 0.5d);
-                }
-
-                if (stats.HanCount > 0)
-                {
-                    score += 8d + (stats.HanCount * 0.25d);
-                    score -= stats.ChineseVariantMixedCount * 2.5d;
-                }
-            }
-
-            if (stats.LatinCount > 0 &&
-                expectedLanguage is PreviewOcrLanguageOption.SimplifiedChinese or PreviewOcrLanguageOption.TraditionalChinese &&
-                stats.HanCount == 0)
-            {
-                score -= Math.Min(12d, stats.LatinCount * 0.45d);
-            }
-
-            return score;
-        }
-
         private static TextScriptStats AnalyzeText(string? text)
         {
             if (string.IsNullOrWhiteSpace(text))
@@ -837,6 +671,11 @@ namespace ImvixPro.Services
             var stats = new TextScriptStats();
             foreach (var ch in text)
             {
+                if (!char.IsWhiteSpace(ch) && !char.IsControl(ch))
+                {
+                    stats.VisibleCharacterCount++;
+                }
+
                 switch (ch)
                 {
                     case >= '\uAC00' and <= '\uD7AF':
@@ -862,12 +701,18 @@ namespace ImvixPro.Services
                         stats.CyrillicCount++;
                         break;
                     case >= '\u0600' and <= '\u06FF':
+                    case >= '\u0750' and <= '\u077F':
+                    case >= '\u08A0' and <= '\u08FF':
                         stats.ArabicCount++;
                         break;
                     default:
-                        if ((ch is >= 'A' and <= 'Z') || (ch is >= 'a' and <= 'z'))
+                        if (IsLatinChar(ch))
                         {
                             stats.LatinCount++;
+                            if (IsLatinDiacriticChar(ch))
+                            {
+                                stats.LatinDiacriticCount++;
+                            }
                         }
 
                         break;
@@ -877,7 +722,22 @@ namespace ImvixPro.Services
             stats.ChineseVariantMixedCount = Math.Min(
                 stats.TraditionalDistinctCount,
                 stats.SimplifiedDistinctCount);
+
             return stats;
+        }
+
+        private static bool IsLatinChar(char ch)
+        {
+            return ch is >= 'A' and <= 'Z'
+                || ch is >= 'a' and <= 'z'
+                || ch is >= '\u00C0' and <= '\u024F'
+                || ch is >= '\u1E00' and <= '\u1EFF';
+        }
+
+        private static bool IsLatinDiacriticChar(char ch)
+        {
+            return ch is >= '\u00C0' and <= '\u024F'
+                || ch is >= '\u1E00' and <= '\u1EFF';
         }
 
         private static string NormalizeText(string? text)
@@ -921,21 +781,22 @@ namespace ImvixPro.Services
         private sealed record PreviewOcrRuntimeStatus(
             bool IsReady,
             string BaseDirectory,
-            string TessDataPath,
-            string NativeRuntimePath,
+            string ModelsDirectory,
             string? ErrorCode = null,
             string? DiagnosticMessage = null);
 
         private sealed record PreviewOcrLanguageProfile(
-            PreviewOcrLanguageOption Option,
-            string[] DataCodes);
+            PreviewOcrLanguageOption Option);
 
-        private sealed record ChineseVariantRecognition(
-            PreviewOcrRecognition Simplified,
-            PreviewOcrRecognition Traditional);
+        private sealed record PreviewPaddleOcrProfile(
+            string CacheKey,
+            string RecognitionModelFile,
+            string DictionaryFile,
+            PreviewOcrAutoFamily AutoFamily,
+            RapidOcrOptions Options);
 
         private sealed record RecognitionAttempt(
-            string Description,
+            PreviewPaddleOcrProfile Profile,
             PreviewOcrRecognition Result);
 
         private sealed class TextScriptStats
@@ -952,11 +813,25 @@ namespace ImvixPro.Services
 
             public int LatinCount { get; set; }
 
+            public int LatinDiacriticCount { get; set; }
+
+            public int VisibleCharacterCount { get; set; }
+
             public int TraditionalDistinctCount { get; set; }
 
             public int SimplifiedDistinctCount { get; set; }
 
             public int ChineseVariantMixedCount { get; set; }
+        }
+
+        private enum PreviewOcrAutoFamily
+        {
+            Chinese,
+            English,
+            Latin,
+            Korean,
+            Cyrillic,
+            Arabic
         }
     }
 }

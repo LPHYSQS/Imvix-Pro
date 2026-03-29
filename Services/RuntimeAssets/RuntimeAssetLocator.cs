@@ -9,7 +9,11 @@ namespace ImvixPro.Services
 
         public static string RuntimeRootDirectory => CombineFromBase(RuntimeRootFolderName);
 
-        public static string OcrTessDataDirectory => CombineFromRuntime("ocr", "tessdata");
+        public static string OcrRootDirectory => CombineFromRuntime("ocr");
+
+        public static string OcrPaddleRootDirectory => CombineFromRuntime("ocr", "paddle");
+
+        public static string OcrPaddleV5Directory => CombineFromRuntime("ocr", "paddle", "v5");
 
         public static string QrConfigFilePath => CombineFromRuntime("qr", "configs", "decoder.json");
 

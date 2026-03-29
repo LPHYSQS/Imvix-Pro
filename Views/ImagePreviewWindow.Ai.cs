@@ -107,9 +107,16 @@ namespace ImvixPro.Views
             var hasOriginalView = sourceBitmap is not null;
             var hasEnhancedView = _aiPreviewBitmap is not null;
             var isSplitView = _isAiCompareActive && _aiPreviewViewMode == AiPreviewViewMode.Split && hasOriginalView && hasEnhancedView;
+            var isBlockedByRecognitionSession = HasActiveRecognitionSession();
 
             AiPreviewButton.IsVisible = shouldShowAiButton;
-            AiPreviewButton.IsEnabled = shouldShowAiButton && !_isAiPreviewBusy && !_isAiSaveBusy && !_isAiMattingBusy && !_isAiMattingCompareActive && !_isAiMattingSaveBusy;
+            AiPreviewButton.IsEnabled = shouldShowAiButton &&
+                                        !_isAiPreviewBusy &&
+                                        !_isAiSaveBusy &&
+                                        !_isAiMattingBusy &&
+                                        !_isAiMattingCompareActive &&
+                                        !_isAiMattingSaveBusy &&
+                                        !isBlockedByRecognitionSession;
 
             AiBusyOverlay.IsVisible = _isAiPreviewBusy || _isAiSaveBusy;
             AiCompareHost.IsVisible = isSplitView;

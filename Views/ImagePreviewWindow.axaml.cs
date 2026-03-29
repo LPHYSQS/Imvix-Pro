@@ -459,6 +459,21 @@ namespace ImvixPro.Views
             RefreshOcrControls();
         }
 
+        private bool HasActiveRecognitionSession()
+        {
+            return _isOcrBusy || _isOcrPanelVisible;
+        }
+
+        private bool IsBlockedByPreviewTools()
+        {
+            return _isAiPreviewBusy ||
+                   _isAiCompareActive ||
+                   _isAiSaveBusy ||
+                   _isAiMattingBusy ||
+                   _isAiMattingCompareActive ||
+                   _isAiMattingSaveBusy;
+        }
+
         private void RefreshPdfPreview(bool preferImmediatePreview)
         {
             CancelPendingPdfPreview();
@@ -1156,7 +1171,7 @@ namespace ImvixPro.Views
             }
 
             RefreshRecognitionContentVisibility();
-            RefreshOcrControls();
+            RefreshPreviewActionStates();
         }
 
         private void SetOcrPlaceholder(string text)
@@ -1168,33 +1183,25 @@ namespace ImvixPro.Views
         private void RefreshOcrControls()
         {
             var hasPreviewBitmap = PreviewImage.Source is Bitmap;
-            var canRunOcr = hasPreviewBitmap &&
-                            !_isOcrBusy &&
-                            !_isAiPreviewBusy &&
-                            !_isAiCompareActive &&
-                            !_isAiSaveBusy &&
-                            !_isAiMattingBusy &&
-                            !_isAiMattingCompareActive &&
-                            !_isAiMattingSaveBusy &&
-                            (!_isGifPlaying || !_isGifInteractive());
+            var isRecognitionSessionActive = HasActiveRecognitionSession();
+            var isBlockedByPreviewTools = IsBlockedByPreviewTools();
+            var canRunTopRecognitionActions = hasPreviewBitmap &&
+                                             !isRecognitionSessionActive &&
+                                             !isBlockedByPreviewTools &&
+                                             (!_isGifPlaying || !_isGifInteractive());
+            var canUseRecognitionPanelActions = !isBlockedByPreviewTools && !_isOcrBusy;
             var hasCopyAllText = !string.IsNullOrWhiteSpace(_copyAllText);
 
-            OcrButton.IsEnabled = canRunOcr;
-            QrButton.IsEnabled = canRunOcr;
-            BarcodeButton.IsEnabled = canRunOcr;
-            OcrRetryButton.IsEnabled = !_isOcrBusy && !_isAiPreviewBusy && !_isAiCompareActive && !_isAiSaveBusy && !_isAiMattingBusy && !_isAiMattingCompareActive && !_isAiMattingSaveBusy && hasPreviewBitmap;
-            CloseOcrButton.IsEnabled = !_isOcrBusy && !_isAiPreviewBusy && !_isAiCompareActive && !_isAiSaveBusy && !_isAiMattingBusy && !_isAiMattingCompareActive && !_isAiMattingSaveBusy;
-            OcrCopyAllButton.IsEnabled = !_isOcrBusy && !_isAiPreviewBusy && !_isAiCompareActive && !_isAiSaveBusy && !_isAiMattingBusy && !_isAiMattingCompareActive && !_isAiMattingSaveBusy && hasCopyAllText;
-            CopySelectionMenuItem.IsEnabled = !_isOcrBusy &&
-                                              !_isAiPreviewBusy &&
-                                              !_isAiCompareActive &&
-                                              !_isAiSaveBusy &&
-                                              !_isAiMattingBusy &&
-                                              !_isAiMattingCompareActive &&
-                                              !_isAiMattingSaveBusy &&
+            OcrButton.IsEnabled = canRunTopRecognitionActions;
+            QrButton.IsEnabled = canRunTopRecognitionActions;
+            BarcodeButton.IsEnabled = canRunTopRecognitionActions;
+            OcrRetryButton.IsEnabled = canUseRecognitionPanelActions && hasPreviewBitmap;
+            CloseOcrButton.IsEnabled = canUseRecognitionPanelActions;
+            OcrCopyAllButton.IsEnabled = canUseRecognitionPanelActions && hasCopyAllText;
+            CopySelectionMenuItem.IsEnabled = canUseRecognitionPanelActions &&
                                               OcrTextBox.IsVisible &&
                                               !string.IsNullOrWhiteSpace(_ocrText);
-            CopyAllMenuItem.IsEnabled = !_isOcrBusy && !_isAiPreviewBusy && !_isAiCompareActive && !_isAiSaveBusy && !_isAiMattingBusy && !_isAiMattingCompareActive && !_isAiMattingSaveBusy && hasCopyAllText;
+            CopyAllMenuItem.IsEnabled = canUseRecognitionPanelActions && hasCopyAllText;
             OpenLinkButton.IsVisible = false;
             OpenLinkButton.IsEnabled = false;
         }
@@ -1213,6 +1220,7 @@ namespace ImvixPro.Views
                     OcrPanel.Width = GetTargetOcrPanelWidth();
                 }
 
+                RefreshPreviewActionStates();
                 return;
             }
 
@@ -1264,6 +1272,7 @@ namespace ImvixPro.Views
             OcrPanel.Opacity = targetOpacity;
             OcrPanel.IsVisible = visible;
             _isOcrPanelVisible = visible;
+            RefreshPreviewActionStates();
         }
 
         private void CancelOcrAnimation()

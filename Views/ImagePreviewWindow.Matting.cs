@@ -83,12 +83,14 @@ namespace ImvixPro.Views
                               hasOriginalView &&
                               hasResultView;
             var isBlockedByOtherPreview = _isAiPreviewBusy || _isAiCompareActive || _isAiSaveBusy;
+            var isBlockedByRecognitionSession = HasActiveRecognitionSession();
 
             AiMattingButton.IsVisible = shouldShowMattingButton;
             AiMattingButton.IsEnabled = shouldShowMattingButton &&
                                         !_isAiMattingBusy &&
                                         !_isAiMattingSaveBusy &&
-                                        !isBlockedByOtherPreview;
+                                        !isBlockedByOtherPreview &&
+                                        !isBlockedByRecognitionSession;
 
             AiMattingBusyOverlay.IsVisible = _isAiMattingBusy || _isAiMattingSaveBusy;
             AiMattingCompareHost.IsVisible = isSplitView;
