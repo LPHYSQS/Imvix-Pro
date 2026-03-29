@@ -27,10 +27,12 @@ namespace ImvixPro.Views
         private readonly ImagePreviewWindowServices _imagePreviewWindowServices;
         private readonly FileDetailWindowServices _fileDetailWindowServices;
         private MainWindowViewModel? _subscribedViewModel;
+        private NotificationState? _subscribedNotificationState;
         private bool _windowPlacementRestored;
         private bool _startupPathsHandled;
         private bool _isExplicitExitRequested;
         private bool _isRunningInstanceWarningVisible;
+        private bool _isCompletionDialogVisible;
         private IReadOnlyList<string> _pendingStartupPaths = [];
         private TrayIcon? _trayIcon;
         private NativeMenuItem? _restoreTrayMenuItem;
@@ -115,17 +117,26 @@ namespace ImvixPro.Views
         {
             if (_subscribedViewModel is not null)
             {
-                _subscribedViewModel.ConversionCompleted -= OnConversionCompleted;
                 _subscribedViewModel.PropertyChanged -= OnViewModelPropertyChanged;
                 _subscribedViewModel.ConfirmDialogAsync = null;
+            }
+
+            if (_subscribedNotificationState is not null)
+            {
+                _subscribedNotificationState.PropertyChanged -= OnNotificationStatePropertyChanged;
             }
 
             _subscribedViewModel = ViewModel;
             if (_subscribedViewModel is not null)
             {
-                _subscribedViewModel.ConversionCompleted += OnConversionCompleted;
                 _subscribedViewModel.PropertyChanged += OnViewModelPropertyChanged;
                 _subscribedViewModel.ConfirmDialogAsync = ShowConfirmationDialogAsync;
+            }
+
+            _subscribedNotificationState = _subscribedViewModel?.NotificationState;
+            if (_subscribedNotificationState is not null)
+            {
+                _subscribedNotificationState.PropertyChanged += OnNotificationStatePropertyChanged;
             }
 
             UpdateTrayIconState();
@@ -134,6 +145,7 @@ namespace ImvixPro.Views
             {
                 ViewModel?.LoadRecentConversionHistory();
                 ApplyStartupPaths();
+                _ = TryShowPendingCompletionDialogAsync();
             }
         }
 
@@ -149,14 +161,28 @@ namespace ImvixPro.Views
             }
         }
 
-        private async void OnConversionCompleted(object? sender, ConversionSummaryFlowResult result)
+        private void OnNotificationStatePropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
-            if (!IsVisible || !result.HasDialogRequest)
+            if (string.IsNullOrWhiteSpace(e.PropertyName) ||
+                e.PropertyName is nameof(NotificationState.PendingDialogRequest) or nameof(NotificationState.HasPendingDialogRequest))
+            {
+                _ = TryShowPendingCompletionDialogAsync();
+            }
+        }
+
+        private async Task TryShowPendingCompletionDialogAsync()
+        {
+            if (_isCompletionDialogVisible || !IsVisible)
             {
                 return;
             }
 
-            var dialogRequest = result.DialogRequest!;
+            var notificationState = _subscribedNotificationState;
+            var dialogRequest = notificationState?.PendingDialogRequest;
+            if (dialogRequest is null)
+            {
+                return;
+            }
 
             var dialog = new ConversionSummaryWindow(
                 dialogRequest.Title,
@@ -166,7 +192,21 @@ namespace ImvixPro.Views
                 FlowDirection = this.FlowDirection
             };
 
-            await dialog.ShowDialog(this);
+            _isCompletionDialogVisible = true;
+            try
+            {
+                await dialog.ShowDialog(this);
+            }
+            finally
+            {
+                notificationState?.ClearPendingDialogRequest(dialogRequest);
+                _isCompletionDialogVisible = false;
+
+                if (notificationState?.HasPendingDialogRequest == true)
+                {
+                    _ = TryShowPendingCompletionDialogAsync();
+                }
+            }
         }
 
         private async Task<bool> ShowConfirmationDialogAsync(string title, string message, string confirmText, string cancelText)
@@ -279,6 +319,7 @@ namespace ImvixPro.Views
             ViewModel?.LoadRecentConversionHistory();
             ApplyStartupPaths();
             UpdateTrayIconState();
+            _ = TryShowPendingCompletionDialogAsync();
         }
 
         private void OnWindowClosing(object? sender, WindowClosingEventArgs e)
@@ -296,10 +337,15 @@ namespace ImvixPro.Views
 
             if (_subscribedViewModel is not null)
             {
-                _subscribedViewModel.ConversionCompleted -= OnConversionCompleted;
                 _subscribedViewModel.PropertyChanged -= OnViewModelPropertyChanged;
                 _subscribedViewModel.ConfirmDialogAsync = null;
                 _subscribedViewModel = null;
+            }
+
+            if (_subscribedNotificationState is not null)
+            {
+                _subscribedNotificationState.PropertyChanged -= OnNotificationStatePropertyChanged;
+                _subscribedNotificationState = null;
             }
         }
 
@@ -333,6 +379,7 @@ namespace ImvixPro.Views
 
             WindowState = WindowState.Normal;
             Activate();
+            _ = TryShowPendingCompletionDialogAsync();
         }
 
         private async Task BringToFrontAsync()

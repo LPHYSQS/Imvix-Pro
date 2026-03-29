@@ -1,5 +1,6 @@
 using ImvixPro.Models;
 using ImvixPro.Services;
+using ImvixPro.ViewModels;
 
 namespace ImvixPro.Tests;
 
@@ -337,6 +338,83 @@ public sealed class ImageConversionTests
             failureCount: 4);
 
         Assert.Equal("sample.png failed: disk full", presenter.BuildWatchStatusText(watchStatus, TranslateTestText));
+    }
+
+    [Fact]
+    public void NotificationState_HoldsPendingDialogUntilTheShownRequestIsConsumed()
+    {
+        var state = new NotificationState();
+        var dialogRequest = new ConversionSummaryDialogRequest("Summary", "Done", "Close");
+        var flow = new ConversionSummaryFlowResult(
+            new CompletionSummaryModel(
+                ConversionTriggerSource.Manual,
+                OutputImageFormat.Png,
+                TotalCount: 1,
+                ProcessedCount: 1,
+                SuccessCount: 1,
+                FailureCount: 0,
+                Duration: TimeSpan.FromSeconds(1),
+                WasCanceled: false,
+                OriginalTotalBytes: 128,
+                EstimatedMinBytes: 128,
+                EstimatedMaxBytes: 128,
+                FailureLogPath: @"C:\logs\manual.log"),
+            new ConversionHistoryEntry
+            {
+                Timestamp = new DateTimeOffset(2026, 3, 30, 15, 0, 0, TimeSpan.Zero),
+                Source = ConversionTriggerSource.Manual,
+                OutputFormat = OutputImageFormat.Png
+            },
+            dialogRequest);
+
+        state.ApplyCompletionFlow(flow);
+
+        Assert.True(state.HasFailureLog);
+        Assert.Equal(@"C:\logs\manual.log", state.LastFailureLogPath);
+        Assert.True(state.HasPendingDialogRequest);
+        Assert.Same(dialogRequest, state.PendingDialogRequest);
+
+        state.ClearPendingDialogRequest(new ConversionSummaryDialogRequest("Summary", "Done", "Close"));
+        Assert.True(state.HasPendingDialogRequest);
+
+        state.ClearPendingDialogRequest(dialogRequest);
+        Assert.False(state.HasPendingDialogRequest);
+    }
+
+    [Fact]
+    public void NotificationState_ResetFailureLog_DoesNotDiscardPendingDialog()
+    {
+        var state = new NotificationState();
+        var dialogRequest = new ConversionSummaryDialogRequest("Summary", "Done", "Close");
+
+        state.ApplyCompletionFlow(new ConversionSummaryFlowResult(
+            new CompletionSummaryModel(
+                ConversionTriggerSource.Manual,
+                OutputImageFormat.Webp,
+                TotalCount: 2,
+                ProcessedCount: 2,
+                SuccessCount: 1,
+                FailureCount: 1,
+                Duration: TimeSpan.FromSeconds(2),
+                WasCanceled: false,
+                OriginalTotalBytes: 512,
+                EstimatedMinBytes: 256,
+                EstimatedMaxBytes: 384,
+                FailureLogPath: @"C:\logs\failure.log"),
+            new ConversionHistoryEntry
+            {
+                Timestamp = new DateTimeOffset(2026, 3, 30, 16, 0, 0, TimeSpan.Zero),
+                Source = ConversionTriggerSource.Manual,
+                OutputFormat = OutputImageFormat.Webp
+            },
+            dialogRequest));
+
+        state.ResetFailureLog();
+
+        Assert.False(state.HasFailureLog);
+        Assert.Equal(string.Empty, state.LastFailureLogPath);
+        Assert.True(state.HasPendingDialogRequest);
+        Assert.Same(dialogRequest, state.PendingDialogRequest);
     }
 
     private static string TranslateTestText(string key)

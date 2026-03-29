@@ -499,7 +499,7 @@
                 </StackPanel>
             </Border>
 
-            <Border IsVisible="{Binding HasFailureLog}"
+            <Border IsVisible="{Binding NotificationState.HasFailureLog}"
                     Background="{DynamicResource SurfaceAltBrush}"
                     BorderBrush="{DynamicResource BorderBrush}"
                     BorderThickness="1"
@@ -507,7 +507,7 @@
                     Padding="10">
                 <StackPanel Spacing="4">
                     <TextBlock Text="{Binding FailureLogLabelText}" FontWeight="SemiBold" />
-                    <TextBlock Text="{Binding LastFailureLogPath}" Classes="secondary" TextWrapping="Wrap" />
+                    <TextBlock Text="{Binding NotificationState.LastFailureLogPath}" Classes="secondary" TextWrapping="Wrap" />
                 </StackPanel>
             </Border>
 
@@ -520,7 +520,7 @@
                     <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
                         <TextBlock Grid.Column="0" Text="{Binding HistoryTitleText}" FontWeight="SemiBold" VerticalAlignment="Center" />
                         <Button Grid.Column="1"
-                                Command="{Binding ClearRecentConversionsCommand}"
+                                Command="{Binding HistoryState.ClearRecentConversionsCommand}"
                                 ToolTip.Tip="{Binding ClearRecentConversionsText}">
                             <StackPanel Classes="icon-label">
                                 <Path Classes="line-icon danger" Data="{StaticResource IconTrashGeometry}" />
@@ -528,8 +528,8 @@
                             </StackPanel>
                         </Button>
                     </Grid>
-                    <TextBlock IsVisible="{Binding IsHistoryEmpty}" Text="{Binding HistoryEmptyText}" Classes="secondary" />
-                    <ItemsControl IsVisible="{Binding HasRecentConversions}" ItemsSource="{Binding RecentConversions}">
+                    <TextBlock IsVisible="{Binding HistoryState.IsEmpty}" Text="{Binding HistoryEmptyText}" Classes="secondary" />
+                    <ItemsControl IsVisible="{Binding HistoryState.HasRecentConversions}" ItemsSource="{Binding HistoryState.RecentConversions}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <Border Background="{DynamicResource SurfaceBrush}"

@@ -1,6 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Avalonia.Threading;
 using ImvixPro.Models;
 using ImvixPro.Services;
 using System;
@@ -25,7 +24,6 @@ namespace ImvixPro.ViewModels
         private readonly SystemIntegrationService _systemIntegrationService;
         private readonly SemaphoreSlim _watchConfigurationGate = new(1, 1);
         private readonly SemaphoreSlim _watchProcessingGate = new(1, 1);
-        private readonly List<ConversionHistoryEntry> _historyCache = [];
 
         private CancellationTokenSource? _manualConversionCancellationSource;
         private CancellationTokenSource? _watchProcessingCancellationSource;
@@ -37,23 +35,15 @@ namespace ImvixPro.ViewModels
 
         public ObservableCollection<string> ConversionPlanHighlights { get; } = [];
 
-        public ObservableCollection<RecentConversionItem> RecentConversions { get; } = [];
-
         public bool HasActiveWarnings => ActiveWarnings.Count > 0;
 
         public bool HasConversionPlanHighlights => ConversionPlanHighlights.Count > 0;
-
-        public bool HasRecentConversions => RecentConversions.Count > 0;
-
-        public bool IsHistoryEmpty => !HasRecentConversions;
 
         public bool HasFormatRecommendation => !string.IsNullOrWhiteSpace(FormatRecommendationText);
 
         public bool HasSizeEstimate => !string.IsNullOrWhiteSpace(OriginalSizeSummaryText) || !string.IsNullOrWhiteSpace(EstimatedSizeSummaryText);
 
         public bool HasEstimateDisclaimer => !string.IsNullOrWhiteSpace(EstimateDisclaimerText);
-
-        public bool HasFailureLog => !string.IsNullOrWhiteSpace(LastFailureLogPath);
 
         public string FormatRecommendationTitleText => T("FormatRecommendationTitle");
         public string TaskAnalysisTitleText => T("TaskAnalysisTitle");
@@ -87,12 +77,9 @@ namespace ImvixPro.ViewModels
         [ObservableProperty]
         private bool isConversionPaused;
 
-        [ObservableProperty]
-        private string lastFailureLogPath = string.Empty;
-
         public void LoadRecentConversionHistory()
         {
-            ReplaceHistory(_conversionHistoryService.Load());
+            HistoryState.Load(T);
         }
 
         private async Task StartManualConversionCoreAsync()
@@ -124,7 +111,7 @@ namespace ImvixPro.ViewModels
             _manualPauseController.Resume();
             IsConversionPaused = false;
             IsConverting = true;
-            LastFailureLogPath = string.Empty;
+            NotificationState.ResetFailureLog();
             FailedConversions.Clear();
             ApplyManualRuntimeStatus(_conversionStatusSummaryService.CreatePendingRuntimeStatus(Images.Count));
 
@@ -170,10 +157,8 @@ namespace ImvixPro.ViewModels
                     includeDialog: true);
 
                 ApplyManualRuntimeStatus(_conversionStatusSummaryService.CreateCompletionRuntimeStatus(completionFlow.Summary));
-                LastFailureLogPath = completionFlow.Summary.FailureLogPath;
-                AppendHistory(completionFlow.HistoryEntry);
-
-                ConversionCompleted?.Invoke(this, completionFlow);
+                NotificationState.ApplyCompletionFlow(completionFlow);
+                HistoryState.Append(completionFlow.HistoryEntry, T);
                 TryOpenOutputFolder(summary.OutputDirectories, summary.SuccessCount > 0);
             }
             catch (OperationCanceledException)
@@ -415,36 +400,6 @@ namespace ImvixPro.ViewModels
             };
         }
 
-        private void ReplaceHistory(IReadOnlyList<ConversionHistoryEntry> entries)
-        {
-            if (Dispatcher.UIThread.CheckAccess())
-            {
-                ReplaceHistoryCore(entries);
-                return;
-            }
-
-            Dispatcher.UIThread.Post(() => ReplaceHistoryCore(entries));
-        }
-
-        private void ReplaceHistoryCore(IReadOnlyList<ConversionHistoryEntry> entries)
-        {
-            _historyCache.Clear();
-            _historyCache.AddRange(entries.OrderByDescending(entry => entry.Timestamp));
-
-            RecentConversions.Clear();
-            foreach (var entry in _historyCache)
-            {
-                RecentConversions.Add(_conversionSummaryCoordinator.CreateHistoryItem(entry, T));
-            }
-        }
-
-        private void AppendHistory(ConversionHistoryEntry entry)
-        {
-            var updated = _conversionHistoryService.Append(entry);
-
-            ReplaceHistory(updated);
-        }
-
         private void RefreshLocalizedPropertiesV3()
         {
             OnPropertyChanged(nameof(FormatRecommendationTitleText));
@@ -483,14 +438,8 @@ namespace ImvixPro.ViewModels
             OnPropertyChanged(nameof(CancelActionText));
             OnPropertyChanged(nameof(WatchMetricsText));
             RefreshConversionInsights();
-            ReplaceHistory(_historyCache);
+            HistoryState.RefreshPresentation(T);
             RefreshWatchStatus();
-        }
-
-        [RelayCommand(CanExecute = nameof(CanClearRecentConversions))]
-        private void ClearRecentConversions()
-        {
-            ReplaceHistory(_conversionHistoryService.Clear());
         }
 
         [RelayCommand(CanExecute = nameof(CanPauseConversion))]
@@ -515,11 +464,6 @@ namespace ImvixPro.ViewModels
             _manualConversionCancellationSource?.Cancel();
         }
 
-        private bool CanClearRecentConversions()
-        {
-            return RecentConversions.Count > 0;
-        }
-
         private bool CanPauseConversion()
         {
             return IsConverting && !IsConversionPaused;
@@ -541,11 +485,6 @@ namespace ImvixPro.ViewModels
             ResumeConversionCommand.NotifyCanExecuteChanged();
         }
 
-        partial void OnLastFailureLogPathChanged(string value)
-        {
-            OnPropertyChanged(nameof(HasFailureLog));
-        }
-
         partial void OnEstimateDisclaimerTextChanged(string value)
         {
             OnPropertyChanged(nameof(HasEstimateDisclaimer));
@@ -559,13 +498,6 @@ namespace ImvixPro.ViewModels
         private void OnConversionPlanHighlightsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
         {
             OnPropertyChanged(nameof(HasConversionPlanHighlights));
-        }
-
-        private void OnRecentConversionsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
-        {
-            OnPropertyChanged(nameof(HasRecentConversions));
-            OnPropertyChanged(nameof(IsHistoryEmpty));
-            ClearRecentConversionsCommand.NotifyCanExecuteChanged();
         }
 
         private static string FormatBytes(long bytes)

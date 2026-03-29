@@ -73,7 +73,9 @@ namespace ImvixPro.ViewModels
         private int _gifPreviewIndex;
         private long _gifPreviewRequestId;
 
-        public event EventHandler<ConversionSummaryFlowResult>? ConversionCompleted;
+        public HistoryState HistoryState { get; }
+
+        public NotificationState NotificationState { get; }
 
         public MainWindowViewModel()
             : this(AppServices.CreateMainWindowViewModelServices())
@@ -104,6 +106,8 @@ namespace ImvixPro.ViewModels
             _pdfRenderService = services.PdfRenderService ?? throw new ArgumentNullException(nameof(services.PdfRenderService));
             _psdRenderService = services.PsdRenderService ?? throw new ArgumentNullException(nameof(services.PsdRenderService));
             _logger = services.Logger ?? throw new ArgumentNullException(nameof(services.Logger));
+            HistoryState = new HistoryState(_conversionHistoryService, _conversionSummaryCoordinator);
+            NotificationState = new NotificationState();
 
             Images.CollectionChanged += OnImagesCollectionChanged;
             FailedConversions.CollectionChanged += OnFailedConversionsCollectionChanged;

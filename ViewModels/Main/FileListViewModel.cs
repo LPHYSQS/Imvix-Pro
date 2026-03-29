@@ -112,7 +112,7 @@ namespace ImvixPro.ViewModels
 
             Images.Clear();
             FailedConversions.Clear();
-            LastFailureLogPath = string.Empty;
+            NotificationState.ResetFailureLog();
             ApplyManualRuntimeStatus(_conversionStatusSummaryService.CreateReadyRuntimeStatus());
             RefreshConversionInsights();
         }

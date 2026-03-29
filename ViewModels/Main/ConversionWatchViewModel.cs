@@ -103,7 +103,6 @@ namespace ImvixPro.ViewModels
         {
             ActiveWarnings.CollectionChanged += OnActiveWarningsCollectionChanged;
             ConversionPlanHighlights.CollectionChanged += OnConversionPlanHighlightsCollectionChanged;
-            RecentConversions.CollectionChanged += OnRecentConversionsCollectionChanged;
             _folderWatchService.FileReady += OnWatchedFileReady;
 
             _maxParallelism = Math.Clamp(Math.Max(1, preferences.MaxParallelism), 1, 4);
@@ -372,7 +371,7 @@ namespace ImvixPro.ViewModels
                     logPath,
                     T,
                     includeDialog: false);
-                AppendHistory(completionFlow.HistoryEntry);
+                HistoryState.Append(completionFlow.HistoryEntry, T);
 
                 ApplyWatchRuntimeStatus(_conversionStatusSummaryService.CreateWatchCompletionStatus(
                     completionFlow.Summary,
