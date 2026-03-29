@@ -191,6 +191,7 @@
     "WarningHighCompression":  "High compression may noticeably reduce image quality.",
     "WarningGifFramesTooManyTemplate":  "This GIF contains {0} frames. Exporting every frame to PDF may take a while.",
     "WarningAiUnsupportedInputsTemplate":  "{0} selected items are not eligible for AI enhancement and will continue through the original conversion flow.",
+    "RuleSummaryAiUnsupportedFallback":  "Inputs that are not eligible for AI will skip AI and continue through the standard conversion flow.",
     "AiModelFallbackToDefaultTemplate":  "The selected AI model \"{0}\" is unavailable, so \"{1}\" will be used automatically.",
     "AiScalePerformanceHint":  "Scaling above 5x may cause performance issues or significantly longer processing time on some devices.",
     "RecommendationFormatsTemplate":  "Recommended formats: {0}",

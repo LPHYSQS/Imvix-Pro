@@ -5,22 +5,28 @@ namespace ImvixPro.Services
 {
     public sealed class WatchProfilePlanningService
     {
+        private readonly ConversionPlanningService _conversionPlanningService;
+
+        public WatchProfilePlanningService(ConversionPlanningService conversionPlanningService)
+        {
+            _conversionPlanningService = conversionPlanningService ?? throw new ArgumentNullException(nameof(conversionPlanningService));
+        }
+
         public WatchProfileSummary BuildSummary(WatchProfile watchProfile)
         {
             ArgumentNullException.ThrowIfNull(watchProfile);
 
             var options = BuildBaseOptions(watchProfile);
+            var ruleSummary = _conversionPlanningService.BuildWatchRuleSummary(options);
 
             return new WatchProfileSummary(
                 options.OutputFormat,
                 watchProfile.OutputDirectory,
-                options.AiEnhancementEnabled,
                 options.AiEnhancementScale,
                 options.ResizeMode,
                 options.GifHandlingMode,
                 options.AllowOverwrite,
-                expandsGifFramesDuringWatch: options.OutputFormat != OutputImageFormat.Gif,
-                expandsPdfPagesDuringWatch: options.OutputFormat != OutputImageFormat.Pdf);
+                ruleSummary);
         }
 
         public ConversionOptions BuildExecutionOptions(WatchProfile watchProfile, ImageItemViewModel item)
@@ -29,25 +35,7 @@ namespace ImvixPro.Services
             ArgumentNullException.ThrowIfNull(item);
 
             var options = BuildBaseOptions(watchProfile);
-
-            if (item.IsAnimatedGif &&
-                item.GifFrameCount > 1 &&
-                options.OutputFormat != OutputImageFormat.Gif)
-            {
-                options.GifHandlingMode = GifHandlingMode.AllFrames;
-                options.GifSpecificFrameIndex = 0;
-                options.GifSpecificFrameSelections.Clear();
-            }
-
-            if (item.IsPdfDocument &&
-                item.PdfPageCount > 1 &&
-                options.OutputFormat != OutputImageFormat.Pdf)
-            {
-                options.PdfImageExportMode = PdfImageExportMode.AllPages;
-                options.PdfPageIndex = 0;
-                options.PdfPageSelections.Clear();
-            }
-
+            _conversionPlanningService.ApplyWatchScenarioRules(options, item);
             return options;
         }
 

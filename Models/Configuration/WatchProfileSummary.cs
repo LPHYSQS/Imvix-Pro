@@ -5,23 +5,19 @@ namespace ImvixPro.Models
         public WatchProfileSummary(
             OutputImageFormat outputFormat,
             string outputDirectory,
-            bool aiEnhancementEnabled,
             int aiEnhancementScale,
             ResizeMode resizeMode,
             GifHandlingMode gifHandlingMode,
             bool allowOverwrite,
-            bool expandsGifFramesDuringWatch,
-            bool expandsPdfPagesDuringWatch)
+            ConversionRuleSummary ruleSummary)
         {
             OutputFormat = outputFormat;
             OutputDirectory = outputDirectory;
-            AiEnhancementEnabled = aiEnhancementEnabled;
             AiEnhancementScale = aiEnhancementScale;
             ResizeMode = resizeMode;
             GifHandlingMode = gifHandlingMode;
             AllowOverwrite = allowOverwrite;
-            ExpandsGifFramesDuringWatch = expandsGifFramesDuringWatch;
-            ExpandsPdfPagesDuringWatch = expandsPdfPagesDuringWatch;
+            RuleSummary = ruleSummary ?? throw new System.ArgumentNullException(nameof(ruleSummary));
         }
 
         public OutputImageFormat OutputFormat { get; }
@@ -30,7 +26,9 @@ namespace ImvixPro.Models
 
         public bool HasOutputDirectory => !string.IsNullOrWhiteSpace(OutputDirectory);
 
-        public bool AiEnhancementEnabled { get; }
+        public ConversionRuleSummary RuleSummary { get; }
+
+        public bool AiEnhancementEnabled => RuleSummary.Ai.IsEnabled;
 
         public int AiEnhancementScale { get; }
 
@@ -44,8 +42,8 @@ namespace ImvixPro.Models
 
         public bool AllowOverwrite { get; }
 
-        public bool ExpandsGifFramesDuringWatch { get; }
+        public bool ExpandsGifFramesDuringWatch => RuleSummary.Expansion.ExpandsGifFrames;
 
-        public bool ExpandsPdfPagesDuringWatch { get; }
+        public bool ExpandsPdfPagesDuringWatch => RuleSummary.Expansion.ExpandsPdfPages;
     }
 }

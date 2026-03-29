@@ -511,6 +511,11 @@ namespace ImvixPro.ViewModels
             if (summary.AiEnhancementEnabled)
             {
                 parts.Add($"{AiEnhancementTabText}: {summary.AiEnhancementScale}x");
+
+                if (BuildAiRuleText(summary.RuleSummary) is { } aiRuleSummary)
+                {
+                    parts.Add(aiRuleSummary);
+                }
             }
 
             if (summary.UsesResize)
@@ -518,18 +523,18 @@ namespace ImvixPro.ViewModels
                 parts.Add($"{ResizeModeText}: {T($"ResizeMode_{summary.ResizeMode}")}");
             }
 
-            if (summary.ExpandsGifFramesDuringWatch)
+            if (BuildGifExpansionSummaryText(summary.RuleSummary) is { } gifExpansionSummary)
             {
-                parts.Add(T("WatchProfileSummaryGifAutoExpand"));
+                parts.Add(gifExpansionSummary);
             }
             else if (summary.UsesConfiguredGifHandling)
             {
                 parts.Add($"{GifHandlingText}: {T($"GifHandlingMode_{summary.GifHandlingMode}")}");
             }
 
-            if (summary.ExpandsPdfPagesDuringWatch)
+            if (BuildPdfExpansionSummaryText(summary.RuleSummary) is { } pdfExpansionSummary)
             {
-                parts.Add(T("WatchProfileSummaryPdfAutoExpand"));
+                parts.Add(pdfExpansionSummary);
             }
 
             if (summary.AllowOverwrite)

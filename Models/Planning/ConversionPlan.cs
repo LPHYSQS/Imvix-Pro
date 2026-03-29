@@ -3,57 +3,45 @@ namespace ImvixPro.Models
     public sealed class ConversionPlan
     {
         public ConversionPlan(
-            bool isAiRequested,
-            bool usesAiPreprocessing,
-            int totalInputCount,
-            int aiEligibleInputCount,
-            int gifFrameExpansionInputCount,
-            int pdfPageExpansionInputCount,
-            int forcedBackgroundFillInputCount,
+            ConversionRuleSummary ruleSummary,
             int totalEstimatedOutputItems,
             int totalEstimatedWorkItems)
         {
-            IsAiRequested = isAiRequested;
-            UsesAiPreprocessing = usesAiPreprocessing;
-            TotalInputCount = totalInputCount;
-            AiEligibleInputCount = aiEligibleInputCount;
-            GifFrameExpansionInputCount = gifFrameExpansionInputCount;
-            PdfPageExpansionInputCount = pdfPageExpansionInputCount;
-            ForcedBackgroundFillInputCount = forcedBackgroundFillInputCount;
+            RuleSummary = ruleSummary ?? throw new System.ArgumentNullException(nameof(ruleSummary));
             TotalEstimatedOutputItems = totalEstimatedOutputItems;
             TotalEstimatedWorkItems = totalEstimatedWorkItems;
         }
 
-        public bool IsAiRequested { get; }
+        public ConversionRuleSummary RuleSummary { get; }
 
-        public bool UsesAiPreprocessing { get; }
+        public bool IsAiRequested => RuleSummary.Ai.IsEnabled;
 
-        public int TotalInputCount { get; }
+        public bool UsesAiPreprocessing => RuleSummary.Ai.UsesAiPreprocessing;
 
-        public int AiEligibleInputCount { get; }
+        public int TotalInputCount => RuleSummary.Ai.TotalInputCount.GetValueOrDefault();
 
-        public int AiBypassedInputCount => IsAiRequested
-            ? System.Math.Max(0, TotalInputCount - AiEligibleInputCount)
-            : 0;
+        public int AiEligibleInputCount => RuleSummary.Ai.EligibleInputCount.GetValueOrDefault();
 
-        public int GifFrameExpansionInputCount { get; }
+        public int AiBypassedInputCount => RuleSummary.Ai.BypassedInputCount.GetValueOrDefault();
 
-        public int PdfPageExpansionInputCount { get; }
+        public int GifFrameExpansionInputCount => RuleSummary.Expansion.GifFrameExpansionInputCount.GetValueOrDefault();
 
-        public bool ExpandsGifFrames => GifFrameExpansionInputCount > 0;
+        public int PdfPageExpansionInputCount => RuleSummary.Expansion.PdfPageExpansionInputCount.GetValueOrDefault();
 
-        public bool ExpandsPdfPages => PdfPageExpansionInputCount > 0;
+        public bool ExpandsGifFrames => RuleSummary.Expansion.ExpandsGifFrames;
 
-        public bool HasExpandedOutputs => ExpandsGifFrames || ExpandsPdfPages;
+        public bool ExpandsPdfPages => RuleSummary.Expansion.ExpandsPdfPages;
 
-        public int ForcedBackgroundFillInputCount { get; }
+        public bool HasExpandedOutputs => RuleSummary.Expansion.HasExpandedOutputs;
 
-        public bool HasForcedBackgroundFillInputs => ForcedBackgroundFillInputCount > 0;
+        public int ForcedBackgroundFillInputCount => RuleSummary.ForcedBackgroundFillInputCount.GetValueOrDefault();
+
+        public bool HasForcedBackgroundFillInputs => RuleSummary.HasForcedBackgroundFillInputs;
 
         public int TotalEstimatedOutputItems { get; }
 
         public int TotalEstimatedWorkItems { get; }
 
-        public bool HasEstimateDisclaimer => UsesAiPreprocessing || HasExpandedOutputs;
+        public bool HasEstimateDisclaimer => RuleSummary.Ai.UsesAiPreprocessing || RuleSummary.Expansion.HasExpandedOutputs;
     }
 }

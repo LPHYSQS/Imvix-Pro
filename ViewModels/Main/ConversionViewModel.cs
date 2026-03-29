@@ -263,9 +263,9 @@ namespace ImvixPro.ViewModels
             var options = BuildCurrentConversionOptions();
             var plan = await Task.Run(() => _conversionPlanningService.BuildPlan(snapshot, options));
 
-            if (plan.HasForcedBackgroundFillInputs)
+            if (BuildForcedBackgroundFillText(plan.RuleSummary) is { } backgroundFillWarning)
             {
-                warnings.Add(BuildForcedBackgroundFillText(plan));
+                warnings.Add(backgroundFillWarning);
             }
 
             if (IsHighCompressionSelection())
@@ -282,13 +282,9 @@ namespace ImvixPro.ViewModels
                     gifPdfFrameCount));
             }
 
-            var unsupportedAiInputCount = plan.AiBypassedInputCount;
-            if (unsupportedAiInputCount > 0)
+            if (BuildAiUnsupportedWarningText(plan.RuleSummary) is { } aiUnsupportedWarning)
             {
-                warnings.Add(string.Format(
-                    CultureInfo.CurrentCulture,
-                    T("WarningAiUnsupportedInputsTemplate"),
-                    unsupportedAiInputCount));
+                warnings.Add(aiUnsupportedWarning);
             }
 
             if (AiEnhancementEnabled && !string.IsNullOrWhiteSpace(AiEnhancementModelFallbackWarningText))
@@ -356,32 +352,26 @@ namespace ImvixPro.ViewModels
                 return;
             }
 
-            ConversionPlanHighlights.Add(BuildPipelineSummaryText(plan, options));
+            ConversionPlanHighlights.Add(BuildPipelineSummaryText(plan.RuleSummary, options));
 
-            if (plan.HasForcedBackgroundFillInputs)
+            if (BuildForcedBackgroundFillText(plan.RuleSummary) is { } backgroundFillSummary)
             {
-                ConversionPlanHighlights.Add(BuildForcedBackgroundFillText(plan));
+                ConversionPlanHighlights.Add(backgroundFillSummary);
             }
 
-            if (plan.IsAiRequested)
+            if (BuildAiRuleText(plan.RuleSummary) is { } aiRuleSummary)
             {
-                ConversionPlanHighlights.Add(BuildAiSummaryText(plan));
+                ConversionPlanHighlights.Add(aiRuleSummary);
             }
 
-            if (plan.GifFrameExpansionInputCount > 0)
+            if (BuildGifExpansionSummaryText(plan.RuleSummary) is { } gifExpansionSummary)
             {
-                ConversionPlanHighlights.Add(string.Format(
-                    CultureInfo.CurrentCulture,
-                    T("TaskAnalysisGifExpansionTemplate"),
-                    plan.GifFrameExpansionInputCount));
+                ConversionPlanHighlights.Add(gifExpansionSummary);
             }
 
-            if (plan.PdfPageExpansionInputCount > 0)
+            if (BuildPdfExpansionSummaryText(plan.RuleSummary) is { } pdfExpansionSummary)
             {
-                ConversionPlanHighlights.Add(string.Format(
-                    CultureInfo.CurrentCulture,
-                    T("TaskAnalysisPdfExpansionTemplate"),
-                    plan.PdfPageExpansionInputCount));
+                ConversionPlanHighlights.Add(pdfExpansionSummary);
             }
 
             ConversionPlanHighlights.Add(plan.TotalEstimatedWorkItems == plan.TotalEstimatedOutputItems
@@ -398,63 +388,6 @@ namespace ImvixPro.ViewModels
             EstimateDisclaimerText = BuildEstimateDisclaimerText(plan);
         }
 
-        private string BuildForcedBackgroundFillText(ConversionPlan plan)
-        {
-            return string.Format(
-                CultureInfo.CurrentCulture,
-                T("BackgroundFillPlanTemplate"),
-                plan.ForcedBackgroundFillInputCount);
-        }
-
-        private string BuildPipelineSummaryText(ConversionPlan plan, ConversionOptions options)
-        {
-            var outputFormat = FormatOutputFormat(options.OutputFormat);
-
-            if (plan.UsesAiPreprocessing)
-            {
-                return string.Format(
-                    CultureInfo.CurrentCulture,
-                    T("TaskAnalysisPipelineAiTemplate"),
-                    outputFormat);
-            }
-
-            if (plan.IsAiRequested)
-            {
-                return string.Format(
-                    CultureInfo.CurrentCulture,
-                    T("TaskAnalysisPipelineAiBypassedTemplate"),
-                    outputFormat);
-            }
-
-            return string.Format(
-                CultureInfo.CurrentCulture,
-                T("TaskAnalysisPipelineStandardTemplate"),
-                outputFormat);
-        }
-
-        private string BuildAiSummaryText(ConversionPlan plan)
-        {
-            if (plan.AiEligibleInputCount <= 0)
-            {
-                return T("TaskAnalysisAiNoneEligibleTemplate");
-            }
-
-            if (plan.AiBypassedInputCount <= 0)
-            {
-                return string.Format(
-                    CultureInfo.CurrentCulture,
-                    T("TaskAnalysisAiAllEligibleTemplate"),
-                    plan.TotalInputCount);
-            }
-
-            return string.Format(
-                CultureInfo.CurrentCulture,
-                T("TaskAnalysisAiMixedTemplate"),
-                plan.AiEligibleInputCount,
-                plan.TotalInputCount,
-                plan.AiBypassedInputCount);
-        }
-
         private string BuildEstimateDisclaimerText(ConversionPlan plan)
         {
             if (!plan.HasEstimateDisclaimer)
@@ -464,12 +397,12 @@ namespace ImvixPro.ViewModels
 
             List<string> lines = [];
 
-            if (plan.UsesAiPreprocessing)
+            if (plan.RuleSummary.Ai.UsesAiPreprocessing)
             {
                 lines.Add(T("EstimateDisclaimerAiScale"));
             }
 
-            if (plan.HasExpandedOutputs)
+            if (plan.RuleSummary.Expansion.HasExpandedOutputs)
             {
                 lines.Add(T("EstimateDisclaimerExpandedOutputs"));
             }
@@ -485,9 +418,10 @@ namespace ImvixPro.ViewModels
                 ? null
                 : _conversionPlanningService.BuildPlan([SelectedImage], options);
 
-            if (selectedPlan?.HasForcedBackgroundFillInputs == true)
+            if (selectedPlan is not null &&
+                BuildForcedBackgroundFillText(selectedPlan.RuleSummary) is { } selectedBackgroundFillWarning)
             {
-                ActiveWarnings.Add(BuildForcedBackgroundFillText(selectedPlan));
+                ActiveWarnings.Add(selectedBackgroundFillWarning);
             }
 
             if (IsHighCompressionSelection())

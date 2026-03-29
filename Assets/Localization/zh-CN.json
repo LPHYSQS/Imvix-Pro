@@ -191,6 +191,7 @@
     "WarningHighCompression":  "当前压缩强度较高，可能会明显降低图片画质。",
     "WarningGifFramesTooManyTemplate":  "该 GIF 共 {0} 帧，逐帧导出为 PDF 可能需要较长时间。",
     "WarningAiUnsupportedInputsTemplate":  "{0} 个已选项目不适合 AI 增强，将继续走原有转换流程。",
+    "RuleSummaryAiUnsupportedFallback":  "不适合 AI 增强的输入会自动跳过 AI，并继续走常规转换流程。",
     "AiModelFallbackToDefaultTemplate":  "当前所选 AI 模型“{0}”不可用，已自动回退为“{1}”。",
     "AiScalePerformanceHint":  "超过 5x 的放大倍率可能导致部分设备性能下降或处理时间显著增加。",
     "RecommendationFormatsTemplate":  "推荐格式：{0}",

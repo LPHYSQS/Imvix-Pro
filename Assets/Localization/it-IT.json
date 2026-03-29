@@ -191,6 +191,7 @@
     "WarningHighCompression":  "L\u0027alta compressione può ridurre sensibilmente la qualità dell\u0027immagine.",
     "WarningGifFramesTooManyTemplate":  "Questa GIF contiene {0} fotogrammi. L\u0027esportazione di tutti i fotogrammi in PDF potrebbe richiedere tempo.",
     "WarningAiUnsupportedInputsTemplate":  "{0} elementi selezionati non sono idonei al miglioramento AI e continueranno nel flusso di conversione originale.",
+    "RuleSummaryAiUnsupportedFallback":  "Gli input non idonei all\u0027AI salteranno automaticamente l\u0027AI e continueranno nel flusso di conversione standard.",
     "AiModelFallbackToDefaultTemplate":  "Il modello AI selezionato \"{0}\" non è disponibile, quindi verrà usato automaticamente \"{1}\".",
     "AiScalePerformanceHint":  "Un ingrandimento oltre 5x può causare problemi di prestazioni o tempi di elaborazione sensibilmente più lunghi su alcuni dispositivi.",
     "RecommendationFormatsTemplate":  "Formati consigliati: {0}",
