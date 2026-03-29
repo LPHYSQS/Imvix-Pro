@@ -333,7 +333,8 @@ namespace ImvixPro.Views
             _aiPreviewViewMode = AiPreviewViewMode.Split;
             _aiPreviewDiagnostics = null;
             _aiPreviewEnhancedPixelSize = default;
-            AiCompareAfterClipHost.Clip = null;
+            ClearPendingPreviewCompareUpdates();
+            ResetAiCompareOverlayVisuals();
             AiCompareBeforeImage.Source = null;
             AiCompareAfterImage.Source = null;
 
@@ -414,6 +415,7 @@ namespace ImvixPro.Views
             }
 
             HideAiMattingComparison();
+            RefreshPreviewCompareRefreshRate();
             _isAiCompareActive = true;
             _aiPreviewViewMode = AiPreviewViewMode.Split;
             _aiCompareSplitRatio = 0.5d;
@@ -425,7 +427,8 @@ namespace ImvixPro.Views
             _isAiCompareActive = false;
             _isAiCompareDragging = false;
             _aiPreviewViewMode = AiPreviewViewMode.Split;
-            AiCompareAfterClipHost.Clip = null;
+            ClearPendingPreviewCompareUpdates();
+            ResetAiCompareOverlayVisuals();
             RefreshPreviewActionStates();
         }
 
@@ -736,7 +739,7 @@ namespace ImvixPro.Views
 
             _isAiCompareDragging = true;
             e.Pointer.Capture(AiCompareInputLayer);
-            UpdateAiCompareSplitFromPoint(e.GetPosition(AiCompareInputLayer));
+            QueueAiCompareFrameUpdate(e.GetPosition(AiCompareInputLayer));
             e.Handled = true;
         }
 
@@ -747,7 +750,7 @@ namespace ImvixPro.Views
                 return;
             }
 
-            UpdateAiCompareSplitFromPoint(e.GetPosition(AiCompareInputLayer));
+            QueueAiCompareFrameUpdate(e.GetPosition(AiCompareInputLayer));
             e.Handled = true;
         }
 
@@ -759,6 +762,7 @@ namespace ImvixPro.Views
             }
 
             _isAiCompareDragging = false;
+            QueueAiCompareFrameUpdate(e.GetPosition(AiCompareInputLayer));
             e.Pointer.Capture(null);
             e.Handled = true;
         }
@@ -768,29 +772,32 @@ namespace ImvixPro.Views
             _isAiCompareDragging = false;
         }
 
-        private void UpdateAiCompareSplitFromPoint(Point point)
+        private bool ApplyAiCompareSplitFromPoint(Point point)
         {
             var contentRect = GetAiCompareContentRect();
             if (contentRect.Width <= 0 || contentRect.Height <= 0)
             {
-                return;
+                return false;
             }
 
             var clampedX = Math.Clamp(point.X, contentRect.X, contentRect.Right);
             _aiCompareSplitRatio = (clampedX - contentRect.X) / contentRect.Width;
             UpdateAiCompareLayout();
+            return true;
         }
 
         private void UpdateAiCompareLayout()
         {
             if (!_isAiCompareActive || _aiPreviewViewMode != AiPreviewViewMode.Split || _aiPreviewBitmap is null)
             {
+                ResetAiCompareOverlayVisuals();
                 return;
             }
 
             var contentRect = GetAiCompareContentRect();
             if (contentRect.Width <= 0 || contentRect.Height <= 0)
             {
+                ResetAiCompareOverlayVisuals();
                 return;
             }
 
@@ -812,10 +819,10 @@ namespace ImvixPro.Views
                 contentRect.Height));
 
             AiCompareSplitterLine.Height = contentRect.Height;
-            Canvas.SetLeft(AiCompareSplitterLine, splitX - (lineWidth / 2d));
-            Canvas.SetTop(AiCompareSplitterLine, contentRect.Y);
-            Canvas.SetLeft(AiCompareThumb, splitX - (thumbWidth / 2d));
-            Canvas.SetTop(AiCompareThumb, contentRect.Center.Y - (thumbHeight / 2d));
+            _aiCompareSplitterTransform.X = splitX - (lineWidth / 2d);
+            _aiCompareSplitterTransform.Y = contentRect.Y;
+            _aiCompareThumbTransform.X = splitX - (thumbWidth / 2d);
+            _aiCompareThumbTransform.Y = contentRect.Center.Y - (thumbHeight / 2d);
         }
 
         private Rect GetAiCompareContentRect()

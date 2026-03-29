@@ -18,6 +18,7 @@ namespace ImvixPro.Services
         private static readonly Lazy<AiImageEnhancementService> AiImageEnhancementServiceFactory = new(static () => new AiImageEnhancementService());
         private static readonly Lazy<AiMattingService> AiMattingServiceFactory = new(static () => new AiMattingService(LoggerFactory.Value));
         private static readonly Lazy<AiPreviewComparisonService> AiPreviewComparisonServiceFactory = new(static () => new AiPreviewComparisonService());
+        private static readonly Lazy<DisplayRefreshRateService> DisplayRefreshRateServiceFactory = new(static () => new DisplayRefreshRateService());
         private static readonly Lazy<PreviewOcrService> PreviewOcrServiceFactory = new(static () => new PreviewOcrService());
         private static readonly Lazy<ConversionPipelineService> ConversionPipelineServiceFactory = new(static () => new ConversionPipelineService(ImageConversionServiceFactory.Value, AiImageEnhancementServiceFactory.Value, LoggerFactory.Value));
         private static readonly Lazy<ConversionHistoryService> ConversionHistoryServiceFactory = new(static () => new ConversionHistoryService());
@@ -46,6 +47,8 @@ namespace ImvixPro.Services
         public static AiMattingService AiMattingService => AiMattingServiceFactory.Value;
 
         public static AiPreviewComparisonService AiPreviewComparisonService => AiPreviewComparisonServiceFactory.Value;
+
+        public static DisplayRefreshRateService DisplayRefreshRateService => DisplayRefreshRateServiceFactory.Value;
 
         public static PreviewOcrService PreviewOcrService => PreviewOcrServiceFactory.Value;
 
@@ -100,6 +103,7 @@ namespace ImvixPro.Services
                 AiImageEnhancementService,
                 AiMattingService,
                 AiPreviewComparisonService,
+                DisplayRefreshRateService,
                 ImageConversionService,
                 Logger);
         }

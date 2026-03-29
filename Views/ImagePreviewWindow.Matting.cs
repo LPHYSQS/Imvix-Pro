@@ -180,7 +180,8 @@ namespace ImvixPro.Views
             _isAiMattingCompareDragging = false;
             _aiMattingCompareSplitRatio = 0.5d;
             _aiMattingPreviewViewMode = AiMattingPreviewViewMode.Split;
-            AiMattingCompareAfterClipHost.Clip = null;
+            ClearPendingPreviewCompareUpdates();
+            ResetAiMattingOverlayVisuals();
             AiMattingCompareBeforeImage.Source = null;
             AiMattingCompareAfterImage.Source = null;
 
@@ -388,6 +389,7 @@ namespace ImvixPro.Views
                 return;
             }
 
+            RefreshPreviewCompareRefreshRate();
             _isAiMattingCompareActive = true;
             _aiMattingPreviewViewMode = AiMattingPreviewViewMode.Split;
             _aiMattingCompareSplitRatio = 0.5d;
@@ -399,7 +401,8 @@ namespace ImvixPro.Views
             _isAiMattingCompareActive = false;
             _isAiMattingCompareDragging = false;
             _aiMattingPreviewViewMode = AiMattingPreviewViewMode.Split;
-            AiMattingCompareAfterClipHost.Clip = null;
+            ClearPendingPreviewCompareUpdates();
+            ResetAiMattingOverlayVisuals();
             RefreshPreviewActionStates();
         }
 
@@ -583,7 +586,7 @@ namespace ImvixPro.Views
 
             _isAiMattingCompareDragging = true;
             e.Pointer.Capture(AiMattingCompareInputLayer);
-            UpdateAiMattingCompareSplitFromPoint(e.GetPosition(AiMattingCompareInputLayer));
+            QueueAiMattingCompareFrameUpdate(e.GetPosition(AiMattingCompareInputLayer));
             e.Handled = true;
         }
 
@@ -594,7 +597,7 @@ namespace ImvixPro.Views
                 return;
             }
 
-            UpdateAiMattingCompareSplitFromPoint(e.GetPosition(AiMattingCompareInputLayer));
+            QueueAiMattingCompareFrameUpdate(e.GetPosition(AiMattingCompareInputLayer));
             e.Handled = true;
         }
 
@@ -606,6 +609,7 @@ namespace ImvixPro.Views
             }
 
             _isAiMattingCompareDragging = false;
+            QueueAiMattingCompareFrameUpdate(e.GetPosition(AiMattingCompareInputLayer));
             e.Pointer.Capture(null);
             e.Handled = true;
         }
@@ -615,29 +619,32 @@ namespace ImvixPro.Views
             _isAiMattingCompareDragging = false;
         }
 
-        private void UpdateAiMattingCompareSplitFromPoint(Point point)
+        private bool ApplyAiMattingCompareSplitFromPoint(Point point)
         {
             var contentRect = GetAiMattingCompareContentRect();
             if (contentRect.Width <= 0 || contentRect.Height <= 0)
             {
-                return;
+                return false;
             }
 
             var clampedX = Math.Clamp(point.X, contentRect.X, contentRect.Right);
             _aiMattingCompareSplitRatio = (clampedX - contentRect.X) / contentRect.Width;
             UpdateAiMattingCompareLayout();
+            return true;
         }
 
         private void UpdateAiMattingCompareLayout()
         {
             if (!_isAiMattingCompareActive || _aiMattingPreviewViewMode != AiMattingPreviewViewMode.Split || _aiMattingPreviewBitmap is null)
             {
+                ResetAiMattingOverlayVisuals();
                 return;
             }
 
             var contentRect = GetAiMattingCompareContentRect();
             if (contentRect.Width <= 0 || contentRect.Height <= 0)
             {
+                ResetAiMattingOverlayVisuals();
                 return;
             }
 
@@ -659,10 +666,10 @@ namespace ImvixPro.Views
                 contentRect.Height));
 
             AiMattingCompareSplitterLine.Height = contentRect.Height;
-            Canvas.SetLeft(AiMattingCompareSplitterLine, splitX - (lineWidth / 2d));
-            Canvas.SetTop(AiMattingCompareSplitterLine, contentRect.Y);
-            Canvas.SetLeft(AiMattingCompareThumb, splitX - (thumbWidth / 2d));
-            Canvas.SetTop(AiMattingCompareThumb, contentRect.Center.Y - (thumbHeight / 2d));
+            _aiMattingCompareSplitterTransform.X = splitX - (lineWidth / 2d);
+            _aiMattingCompareSplitterTransform.Y = contentRect.Y;
+            _aiMattingCompareThumbTransform.X = splitX - (thumbWidth / 2d);
+            _aiMattingCompareThumbTransform.Y = contentRect.Center.Y - (thumbHeight / 2d);
         }
 
         private Rect GetAiMattingCompareContentRect()

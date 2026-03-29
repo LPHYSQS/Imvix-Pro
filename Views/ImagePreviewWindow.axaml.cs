@@ -2,7 +2,9 @@
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Interactivity;
+using Avalonia.Media;
 using Avalonia.Media.Imaging;
+using Avalonia.Platform;
 using Avalonia.Threading;
 using ImvixPro.AI.Matting.Inference;
 using ImvixPro.Models;
@@ -29,11 +31,14 @@ namespace ImvixPro.Views
         private const double OcrPanelMinWidth = 340d;
         private const double OcrPanelMaxWidth = 460d;
         private const int OcrAnimationDurationMilliseconds = 220;
+        private const double DefaultPreviewCompareRefreshRate = 60d;
+        private const double PreviewCompareFrameToleranceMilliseconds = 0.75d;
 
         private readonly PdfRenderService _pdfRenderService;
         private readonly PreviewOcrService _previewOcrService;
         private readonly LocalizationService _localizationService;
         private readonly AiMattingService _aiMattingService;
+        private readonly DisplayRefreshRateService _displayRefreshRateService;
         private readonly ImageConversionService _imageConversionService;
         private readonly AppLogger _logger;
         private readonly DispatcherTimer _gifPreviewTimer = new();
@@ -41,6 +46,11 @@ namespace ImvixPro.Views
         {
             Interval = TimeSpan.FromSeconds(1.6)
         };
+        private readonly Stopwatch _previewCompareFrameStopwatch = Stopwatch.StartNew();
+        private readonly TranslateTransform _aiCompareSplitterTransform = new();
+        private readonly TranslateTransform _aiCompareThumbTransform = new();
+        private readonly TranslateTransform _aiMattingCompareSplitterTransform = new();
+        private readonly TranslateTransform _aiMattingCompareThumbTransform = new();
 
         private Bitmap? _previewBitmap;
         private ImageConversionService.GifPreviewHandle? _gifPreviewHandle;
@@ -62,6 +72,14 @@ namespace ImvixPro.Views
         private string? _staticPreviewFilePath;
         private CancellationTokenSource? _staticPreviewCts;
         private long _staticPreviewRequestId;
+        private bool _isPreviewCompareFrameRequested;
+        private bool _isAiComparePointPending;
+        private Point _pendingAiComparePoint;
+        private bool _isAiMattingComparePointPending;
+        private Point _pendingAiMattingComparePoint;
+        private double _previewCompareRefreshRate = DefaultPreviewCompareRefreshRate;
+        private TimeSpan _previewCompareFrameInterval = TimeSpan.FromSeconds(1d / DefaultPreviewCompareRefreshRate);
+        private TimeSpan _lastPreviewCompareCommitTime = TimeSpan.MinValue;
 
         private CancellationTokenSource? _ocrCts;
         private CancellationTokenSource? _ocrAnimationCts;
@@ -85,12 +103,14 @@ namespace ImvixPro.Views
             _aiImageEnhancementService = services.AiImageEnhancementService ?? throw new ArgumentNullException(nameof(services.AiImageEnhancementService));
             _aiMattingService = services.AiMattingService ?? throw new ArgumentNullException(nameof(services.AiMattingService));
             _aiPreviewComparisonService = services.AiPreviewComparisonService ?? throw new ArgumentNullException(nameof(services.AiPreviewComparisonService));
+            _displayRefreshRateService = services.DisplayRefreshRateService ?? throw new ArgumentNullException(nameof(services.DisplayRefreshRateService));
             _imageConversionService = services.ImageConversionService ?? throw new ArgumentNullException(nameof(services.ImageConversionService));
             _logger = services.Logger ?? throw new ArgumentNullException(nameof(services.Logger));
             InitializeComponent();
             _gifPreviewTimer.Tick += OnGifPreviewTick;
             _toastTimer.Tick += OnToastTimerTick;
             SizeChanged += OnWindowSizeChanged;
+            InitializePreviewCompareInteractionPipeline();
         }
 
         public ImagePreviewWindow(
@@ -185,17 +205,203 @@ namespace ImvixPro.Views
             base.OnClosed(e);
 
             _isClosed = true;
+            Opened -= OnPreviewWindowOpened;
+            PositionChanged -= OnPreviewWindowPositionChanged;
+            if (Screens is not null)
+            {
+                Screens.Changed -= OnPreviewWindowScreensChanged;
+            }
+
             CancelPendingPdfPreview();
             CancelPendingStaticPreview();
             CancelPendingOcr();
             CancelOcrAnimation();
             CleanupAiPreview();
             CleanupAiMattingPreview();
+            ClearPendingPreviewCompareUpdates();
             _toastTimer.Stop();
 
             _previewBitmap?.Dispose();
             _previewBitmap = null;
             StopGifPreview(resetPlaybackState: true);
+        }
+
+        private void InitializePreviewCompareInteractionPipeline()
+        {
+            AiCompareSplitterLine.RenderTransform = _aiCompareSplitterTransform;
+            AiCompareThumb.RenderTransform = _aiCompareThumbTransform;
+            Canvas.SetLeft(AiCompareSplitterLine, 0d);
+            Canvas.SetTop(AiCompareSplitterLine, 0d);
+            Canvas.SetLeft(AiCompareThumb, 0d);
+            Canvas.SetTop(AiCompareThumb, 0d);
+            ResetAiCompareOverlayVisuals();
+
+            AiMattingCompareSplitterLine.RenderTransform = _aiMattingCompareSplitterTransform;
+            AiMattingCompareThumb.RenderTransform = _aiMattingCompareThumbTransform;
+            Canvas.SetLeft(AiMattingCompareSplitterLine, 0d);
+            Canvas.SetTop(AiMattingCompareSplitterLine, 0d);
+            Canvas.SetLeft(AiMattingCompareThumb, 0d);
+            Canvas.SetTop(AiMattingCompareThumb, 0d);
+            ResetAiMattingOverlayVisuals();
+
+            Opened += OnPreviewWindowOpened;
+            PositionChanged += OnPreviewWindowPositionChanged;
+        }
+
+        private void OnPreviewWindowOpened(object? sender, EventArgs e)
+        {
+            if (Screens is not null)
+            {
+                Screens.Changed -= OnPreviewWindowScreensChanged;
+                Screens.Changed += OnPreviewWindowScreensChanged;
+            }
+
+            RefreshPreviewCompareRefreshRate();
+        }
+
+        private void OnPreviewWindowPositionChanged(object? sender, PixelPointEventArgs e)
+        {
+            RefreshPreviewCompareRefreshRate();
+        }
+
+        private void OnPreviewWindowScreensChanged(object? sender, EventArgs e)
+        {
+            RefreshPreviewCompareRefreshRate();
+        }
+
+        private void RefreshPreviewCompareRefreshRate()
+        {
+            var refreshRate = _displayRefreshRateService.GetRefreshRate(ResolveCurrentPreviewScreen());
+            _previewCompareRefreshRate = refreshRate;
+            _previewCompareFrameInterval = TimeSpan.FromSeconds(1d / refreshRate);
+        }
+
+        private Screen? ResolveCurrentPreviewScreen()
+        {
+            var screens = Screens;
+            if (screens is null)
+            {
+                return null;
+            }
+
+            try
+            {
+                return screens.ScreenFromWindow(this)
+                    ?? screens.ScreenFromVisual(this)
+                    ?? screens.Primary;
+            }
+            catch (ObjectDisposedException)
+            {
+                return screens.Primary;
+            }
+        }
+
+        private void QueueAiCompareFrameUpdate(Point point)
+        {
+            _pendingAiComparePoint = point;
+            _isAiComparePointPending = true;
+            RequestPreviewCompareAnimationFrame();
+        }
+
+        private void QueueAiMattingCompareFrameUpdate(Point point)
+        {
+            _pendingAiMattingComparePoint = point;
+            _isAiMattingComparePointPending = true;
+            RequestPreviewCompareAnimationFrame();
+        }
+
+        private void RequestPreviewCompareAnimationFrame()
+        {
+            if (_isClosed || _isPreviewCompareFrameRequested)
+            {
+                return;
+            }
+
+            _isPreviewCompareFrameRequested = true;
+            RequestAnimationFrame(OnPreviewCompareAnimationFrame);
+        }
+
+        private void OnPreviewCompareAnimationFrame(TimeSpan _)
+        {
+            _isPreviewCompareFrameRequested = false;
+
+            if (_isClosed || !HasPendingPreviewCompareUpdates())
+            {
+                return;
+            }
+
+            if (!ShouldCommitPreviewCompareFrame())
+            {
+                RequestPreviewCompareAnimationFrame();
+                return;
+            }
+
+            ApplyPendingPreviewCompareUpdates();
+        }
+
+        private bool HasPendingPreviewCompareUpdates()
+        {
+            return _isAiComparePointPending || _isAiMattingComparePointPending;
+        }
+
+        private bool ShouldCommitPreviewCompareFrame()
+        {
+            if (_lastPreviewCompareCommitTime == TimeSpan.MinValue)
+            {
+                return true;
+            }
+
+            var elapsed = _previewCompareFrameStopwatch.Elapsed - _lastPreviewCompareCommitTime;
+            return elapsed + TimeSpan.FromMilliseconds(PreviewCompareFrameToleranceMilliseconds) >= _previewCompareFrameInterval;
+        }
+
+        private void ApplyPendingPreviewCompareUpdates()
+        {
+            var applied = false;
+
+            if (_isAiComparePointPending)
+            {
+                _isAiComparePointPending = false;
+                applied = ApplyAiCompareSplitFromPoint(_pendingAiComparePoint) || applied;
+            }
+
+            if (_isAiMattingComparePointPending)
+            {
+                _isAiMattingComparePointPending = false;
+                applied = ApplyAiMattingCompareSplitFromPoint(_pendingAiMattingComparePoint) || applied;
+            }
+
+            if (applied)
+            {
+                _lastPreviewCompareCommitTime = _previewCompareFrameStopwatch.Elapsed;
+            }
+        }
+
+        private void ClearPendingPreviewCompareUpdates()
+        {
+            _isPreviewCompareFrameRequested = false;
+            _isAiComparePointPending = false;
+            _isAiMattingComparePointPending = false;
+        }
+
+        private void ResetAiCompareOverlayVisuals()
+        {
+            AiCompareAfterClipHost.Clip = null;
+            AiCompareSplitterLine.Height = 0d;
+            _aiCompareSplitterTransform.X = 0d;
+            _aiCompareSplitterTransform.Y = 0d;
+            _aiCompareThumbTransform.X = 0d;
+            _aiCompareThumbTransform.Y = 0d;
+        }
+
+        private void ResetAiMattingOverlayVisuals()
+        {
+            AiMattingCompareAfterClipHost.Clip = null;
+            AiMattingCompareSplitterLine.Height = 0d;
+            _aiMattingCompareSplitterTransform.X = 0d;
+            _aiMattingCompareSplitterTransform.Y = 0d;
+            _aiMattingCompareThumbTransform.X = 0d;
+            _aiMattingCompareThumbTransform.Y = 0d;
         }
 
         private string T(string key)

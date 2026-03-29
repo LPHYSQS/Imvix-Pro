@@ -12,6 +12,7 @@ namespace ImvixPro.Views
         AiImageEnhancementService AiImageEnhancementService,
         AiMattingService AiMattingService,
         AiPreviewComparisonService AiPreviewComparisonService,
+        DisplayRefreshRateService DisplayRefreshRateService,
         ImageConversionService ImageConversionService,
         AppLogger Logger);
 }
