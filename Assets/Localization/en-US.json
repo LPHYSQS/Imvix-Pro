@@ -159,6 +159,7 @@
     "TaskAnalysisPdfExpansionTemplate":  "{0} PDF input(s) will expand through all-page or split-page rules.",
     "TaskAnalysisWorkloadTemplate":  "Estimated processing work items: {0}.",
     "TaskAnalysisWorkloadWithStagesTemplate":  "Estimated output items: {0}; total processing work items: {1}.",
+    "BackgroundFillPlanTemplate":  "The selected output format does not support transparency, so {0} input(s) will export with background fill.",
     "EstimatedSizeTitle":  "Estimated Output Size",
     "EstimateDisclaimerAiScale":  "Size estimates do not include resolution changes introduced by AI enhancement.",
     "EstimateDisclaimerExpandedOutputs":  "Size estimates are still aggregated statically and do not fully include output growth from multi-page PDFs or multi-frame GIF expansion.",

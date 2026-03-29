@@ -9,6 +9,7 @@ namespace ImvixPro.Models
             int aiEligibleInputCount,
             int gifFrameExpansionInputCount,
             int pdfPageExpansionInputCount,
+            int forcedBackgroundFillInputCount,
             int totalEstimatedOutputItems,
             int totalEstimatedWorkItems)
         {
@@ -18,6 +19,7 @@ namespace ImvixPro.Models
             AiEligibleInputCount = aiEligibleInputCount;
             GifFrameExpansionInputCount = gifFrameExpansionInputCount;
             PdfPageExpansionInputCount = pdfPageExpansionInputCount;
+            ForcedBackgroundFillInputCount = forcedBackgroundFillInputCount;
             TotalEstimatedOutputItems = totalEstimatedOutputItems;
             TotalEstimatedWorkItems = totalEstimatedWorkItems;
         }
@@ -43,6 +45,10 @@ namespace ImvixPro.Models
         public bool ExpandsPdfPages => PdfPageExpansionInputCount > 0;
 
         public bool HasExpandedOutputs => ExpandsGifFrames || ExpandsPdfPages;
+
+        public int ForcedBackgroundFillInputCount { get; }
+
+        public bool HasForcedBackgroundFillInputs => ForcedBackgroundFillInputCount > 0;
 
         public int TotalEstimatedOutputItems { get; }
 

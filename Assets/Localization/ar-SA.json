@@ -159,6 +159,7 @@
     "TaskAnalysisPdfExpansionTemplate":  "سيتم توسيع {0} من ملفات PDF وفق قواعد كل الصفحات أو تقسيم الصفحات.",
     "TaskAnalysisWorkloadTemplate":  "عدد عناصر المعالجة المتوقع: {0}.",
     "TaskAnalysisWorkloadWithStagesTemplate":  "عدد عناصر الإخراج المتوقع: {0}، وإجمالي عناصر المعالجة: {1}.",
+    "BackgroundFillPlanTemplate":  "تنسيق الإخراج المحدد لا يدعم الشفافية، لذلك سيتم تصدير {0} من العناصر مع تعبئة خلفية.",
     "EstimatedSizeTitle":  "حجم الإخراج المتوقع",
     "EstimateDisclaimerAiScale":  "لا يتضمن تقدير الحجم تغير الدقة الناتج عن التحسين بالذكاء الاصطناعي.",
     "EstimateDisclaimerExpandedOutputs":  "ما يزال تقدير الحجم تجميعاً ثابتاً، ولا يعكس بالكامل زيادة الإخراج الناتجة عن ملفات PDF متعددة الصفحات أو ملفات GIF متعددة الإطارات.",

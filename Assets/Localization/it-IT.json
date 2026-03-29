@@ -159,6 +159,7 @@
     "TaskAnalysisPdfExpansionTemplate":  "{0} PDF verranno espansi secondo le regole tutte le pagine o pagina singola separata.",
     "TaskAnalysisWorkloadTemplate":  "Elementi di lavoro stimati: {0}.",
     "TaskAnalysisWorkloadWithStagesTemplate":  "Elementi di output stimati: {0}; elementi totali di lavoro: {1}.",
+    "BackgroundFillPlanTemplate":  "Il formato di output selezionato non supporta la trasparenza, quindi {0} input verranno esportati con riempimento di sfondo.",
     "EstimatedSizeTitle":  "Dimensione output stimata",
     "EstimateDisclaimerAiScale":  "La stima della dimensione non include le variazioni di risoluzione introdotte dal miglioramento AI.",
     "EstimateDisclaimerExpandedOutputs":  "La stima della dimensione resta ancora aggregata in modo statico e non include completamente l'aumento di output dovuto a PDF multipagina o GIF multi-frame.",

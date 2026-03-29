@@ -159,6 +159,7 @@
     "TaskAnalysisPdfExpansionTemplate":  "{0} 件の PDF は全ページまたはページ分割ルールで展開されます。",
     "TaskAnalysisWorkloadTemplate":  "推定処理ワーク項目数: {0}。",
     "TaskAnalysisWorkloadWithStagesTemplate":  "推定出力項目数: {0}、総処理ワーク項目数: {1}。",
+    "BackgroundFillPlanTemplate":  "現在の出力形式は透明をサポートしていないため、{0} 件の入力は背景塗りつぶし付きで書き出されます。",
     "EstimatedSizeTitle":  "推定出力サイズ",
     "EstimateDisclaimerAiScale":  "サイズ推定には AI 高画質化後の解像度変化は含まれていません。",
     "EstimateDisclaimerExpandedOutputs":  "サイズ推定は静的集計のままであり、複数ページ PDF / 複数フレーム GIF 展開後の出力量は完全には反映されていません。",

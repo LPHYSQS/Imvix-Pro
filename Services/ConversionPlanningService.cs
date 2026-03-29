@@ -7,6 +7,13 @@ namespace ImvixPro.Services
 {
     public sealed class ConversionPlanningService
     {
+        private readonly ImageAnalysisService _imageAnalysisService;
+
+        public ConversionPlanningService(ImageAnalysisService imageAnalysisService)
+        {
+            _imageAnalysisService = imageAnalysisService ?? throw new ArgumentNullException(nameof(imageAnalysisService));
+        }
+
         public ConversionPlan BuildPlan(IReadOnlyList<ImageItemViewModel> images, ConversionOptions options)
         {
             ArgumentNullException.ThrowIfNull(images);
@@ -25,6 +32,11 @@ namespace ImvixPro.Services
                 image.IsPdfDocument &&
                 ImageConversionService.EstimateWorkItemCount(image, options) > 1);
 
+            var forcedBackgroundFillInputCount =
+                ImageConversionService.OutputFormatSupportsTransparency(options.OutputFormat)
+                    ? 0
+                    : images.Count(RequiresForcedBackgroundFill);
+
             var conversionWorkItems = images.Sum(image => ImageConversionService.EstimateWorkItemCount(image, options));
 
             return new ConversionPlan(
@@ -34,8 +46,15 @@ namespace ImvixPro.Services
                 aiEligibleCount,
                 gifFrameExpansionInputCount,
                 pdfPageExpansionInputCount,
+                forcedBackgroundFillInputCount,
                 conversionWorkItems,
                 conversionWorkItems + aiEligibleCount);
+        }
+
+        private bool RequiresForcedBackgroundFill(ImageItemViewModel image)
+        {
+            return !image.IsPdfDocument &&
+                   _imageAnalysisService.HasTransparency(image);
         }
     }
 }

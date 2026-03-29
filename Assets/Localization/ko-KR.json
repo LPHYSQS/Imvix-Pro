@@ -159,6 +159,7 @@
     "TaskAnalysisPdfExpansionTemplate":  "{0}개의 PDF가 전체 페이지 또는 페이지 분할 규칙으로 펼쳐집니다.",
     "TaskAnalysisWorkloadTemplate":  "예상 처리 작업 수: {0}.",
     "TaskAnalysisWorkloadWithStagesTemplate":  "예상 출력 항목 수: {0}, 총 처리 작업 수: {1}.",
+    "BackgroundFillPlanTemplate":  "현재 선택한 출력 형식은 투명을 지원하지 않으므로 입력 {0}개가 배경 채우기와 함께 내보내집니다.",
     "EstimatedSizeTitle":  "예상 출력 크기",
     "EstimateDisclaimerAiScale":  "크기 예측에는 AI 향상 후 해상도 변화가 반영되지 않습니다.",
     "EstimateDisclaimerExpandedOutputs":  "크기 예측은 아직 정적 합산 기준이며, 다중 페이지 PDF / 다중 프레임 GIF 전개 후의 실제 출력량을 완전히 반영하지 않습니다.",

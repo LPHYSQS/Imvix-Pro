@@ -282,15 +282,11 @@ namespace ImvixPro.ViewModels
             var warnings = new List<string>();
             var snapshot = Images.ToList();
             var options = BuildCurrentConversionOptions();
-            var plan = _conversionPlanningService.BuildPlan(snapshot, options);
+            var plan = await Task.Run(() => _conversionPlanningService.BuildPlan(snapshot, options));
 
-            if (SelectedOutputFormat == OutputImageFormat.Jpeg)
+            if (plan.HasForcedBackgroundFillInputs)
             {
-                var hasTransparency = await Task.Run(() => _imageAnalysisService.ContainsTransparency(snapshot));
-                if (hasTransparency)
-                {
-                    warnings.Add(T("WarningTransparencyLoss"));
-                }
+                warnings.Add(BuildForcedBackgroundFillText(plan));
             }
 
             if (IsHighCompressionSelection())
@@ -383,6 +379,11 @@ namespace ImvixPro.ViewModels
 
             ConversionPlanHighlights.Add(BuildPipelineSummaryText(plan, options));
 
+            if (plan.HasForcedBackgroundFillInputs)
+            {
+                ConversionPlanHighlights.Add(BuildForcedBackgroundFillText(plan));
+            }
+
             if (plan.IsAiRequested)
             {
                 ConversionPlanHighlights.Add(BuildAiSummaryText(plan));
@@ -416,6 +417,14 @@ namespace ImvixPro.ViewModels
                     plan.TotalEstimatedWorkItems));
 
             EstimateDisclaimerText = BuildEstimateDisclaimerText(plan);
+        }
+
+        private string BuildForcedBackgroundFillText(ConversionPlan plan)
+        {
+            return string.Format(
+                CultureInfo.CurrentCulture,
+                T("BackgroundFillPlanTemplate"),
+                plan.ForcedBackgroundFillInputCount);
         }
 
         private string BuildPipelineSummaryText(ConversionPlan plan, ConversionOptions options)
@@ -492,12 +501,14 @@ namespace ImvixPro.ViewModels
         private void RefreshActiveWarnings()
         {
             ActiveWarnings.Clear();
+            var options = BuildCurrentConversionOptions();
+            var selectedPlan = SelectedImage is null
+                ? null
+                : _conversionPlanningService.BuildPlan([SelectedImage], options);
 
-            if (SelectedImage is not null &&
-                SelectedOutputFormat == OutputImageFormat.Jpeg &&
-                _imageAnalysisService.HasTransparency(SelectedImage))
+            if (selectedPlan?.HasForcedBackgroundFillInputs == true)
             {
-                ActiveWarnings.Add(T("WarningTransparencyLoss"));
+                ActiveWarnings.Add(BuildForcedBackgroundFillText(selectedPlan));
             }
 
             if (IsHighCompressionSelection())

@@ -159,6 +159,7 @@
     "TaskAnalysisPdfExpansionTemplate":  "{0} PDF-Datei(en) werden per Alle-Seiten- oder Seitenaufteilungsregel erweitert.",
     "TaskAnalysisWorkloadTemplate":  "Geschätzte Verarbeitungsschritte: {0}.",
     "TaskAnalysisWorkloadWithStagesTemplate":  "Geschätzte Ausgabeelemente: {0}; gesamte Verarbeitungsschritte: {1}.",
+    "BackgroundFillPlanTemplate":  "Das ausgewählte Ausgabeformat unterstützt keine Transparenz, daher werden {0} Eingabe(n) mit Hintergrundfüllung exportiert.",
     "EstimatedSizeTitle":  "Geschätzte Ausgabegröße",
     "EstimateDisclaimerAiScale":  "Die Größenabschätzung berücksichtigt keine Auflösungsänderungen durch die KI-Verbesserung.",
     "EstimateDisclaimerExpandedOutputs":  "Die Größenabschätzung bleibt eine statische Gesamtschätzung und berücksichtigt das Ausgabewachstum durch mehrseitige PDFs oder mehrframe GIFs noch nicht vollständig.",

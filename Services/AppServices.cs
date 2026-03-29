@@ -15,7 +15,7 @@ namespace ImvixPro.Services
         private static readonly Lazy<LocalizationService> LocalizationServiceFactory = new(static () => new LocalizationService());
         private static readonly Lazy<ImageConversionService> ImageConversionServiceFactory = new(static () => new ImageConversionService());
         private static readonly Lazy<ImageAnalysisService> ImageAnalysisServiceFactory = new(static () => new ImageAnalysisService());
-        private static readonly Lazy<ConversionPlanningService> ConversionPlanningServiceFactory = new(static () => new ConversionPlanningService());
+        private static readonly Lazy<ConversionPlanningService> ConversionPlanningServiceFactory = new(static () => new ConversionPlanningService(ImageAnalysisServiceFactory.Value));
         private static readonly Lazy<AiImageEnhancementService> AiImageEnhancementServiceFactory = new(static () => new AiImageEnhancementService());
         private static readonly Lazy<AiMattingService> AiMattingServiceFactory = new(static () => new AiMattingService(LoggerFactory.Value));
         private static readonly Lazy<AiPreviewComparisonService> AiPreviewComparisonServiceFactory = new(static () => new AiPreviewComparisonService());

@@ -159,6 +159,7 @@
     "TaskAnalysisPdfExpansionTemplate":  "{0} 個 PDF 會依全部頁面或拆頁規則展開。",
     "TaskAnalysisWorkloadTemplate":  "預計處理工作項：{0}。",
     "TaskAnalysisWorkloadWithStagesTemplate":  "預計輸出項：{0}，總處理工作項：{1}。",
+    "BackgroundFillPlanTemplate":  "目前輸出格式不支援透明，{0} 個輸入會在匯出時改為背景填充。",
     "EstimatedSizeTitle":  "檔案大小預估",
     "EstimateDisclaimerAiScale":  "體積預估未計入 AI 增強後的解析度變化。",
     "EstimateDisclaimerExpandedOutputs":  "體積預估仍以靜態彙總方式估算，未完整納入多頁 PDF / 多影格 GIF 展開後的輸出體量。",

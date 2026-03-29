@@ -159,6 +159,7 @@
     "TaskAnalysisPdfExpansionTemplate":  "{0} PDF seront développés selon les règles toutes pages ou page par page.",
     "TaskAnalysisWorkloadTemplate":  "Éléments de traitement estimés : {0}.",
     "TaskAnalysisWorkloadWithStagesTemplate":  "Éléments de sortie estimés : {0} ; éléments totaux de traitement : {1}.",
+    "BackgroundFillPlanTemplate":  "Le format de sortie sélectionné ne prend pas en charge la transparence ; {0} entrée(s) seront exportées avec un remplissage d'arrière-plan.",
     "EstimatedSizeTitle":  "Taille de sortie estimée",
     "EstimateDisclaimerAiScale":  "L'estimation de taille n'inclut pas les changements de résolution introduits par l'amélioration IA.",
     "EstimateDisclaimerExpandedOutputs":  "L'estimation de taille reste une agrégation statique et n'inclut pas encore complètement l'augmentation de sortie liée aux PDF multipages ou aux GIF multi-images.",
