@@ -33,6 +33,8 @@ namespace ImvixPro.ViewModels
 
         public string AiEnhancementToggleText => T("AiEnhancementToggle");
 
+        public string AiPanelToggleHintText => T("AiPanelToggleHint");
+
         public string AiEnhancementToggleHintText => T("AiEnhancementToggleHint");
 
         public string AiEnhancementTabText => T("AiEnhancementTab");
@@ -71,7 +73,7 @@ namespace ImvixPro.ViewModels
             ? T("AiModelSelectedRestriction_NonCommercial")
             : string.Empty;
 
-        public bool IsAiEnhancementPanelVisible => AiEnhancementEnabled;
+        public bool IsAiEnhancementPanelVisible => AiPanelEnabled;
 
         public bool HasAiEnhancementModelFallbackWarning => !string.IsNullOrWhiteSpace(AiEnhancementModelFallbackWarningText);
 
@@ -106,6 +108,9 @@ namespace ImvixPro.ViewModels
         public string SelectedAiMattingModelDescriptionText => SelectedAiMattingModelOption?.Description ?? string.Empty;
 
         public bool IsAiMattingBackgroundColorVisible => SelectedAiMattingBackgroundMode == AiMattingBackgroundMode.SolidColor;
+
+        [ObservableProperty]
+        private bool aiPanelEnabled;
 
         [ObservableProperty]
         private bool aiEnhancementEnabled;
@@ -172,6 +177,9 @@ namespace ImvixPro.ViewModels
 
         private void InitializeAiFeatures(AppSettings settings)
         {
+            AiPanelEnabled = settings.HasAiPanelVisibilityPreference
+                ? settings.AiPanelEnabled
+                : settings.AiEnhancementEnabled;
             AiEnhancementEnabled = settings.AiEnhancementEnabled;
             AiEnhancementScale = AiEnhancementModelCatalog.NormalizeRequestedOutputScale(settings.DefaultAiEnhancementScale);
             SelectedAiEnhancementModel = settings.DefaultAiEnhancementModel;
@@ -192,6 +200,7 @@ namespace ImvixPro.ViewModels
         [RelayCommand]
         private void OpenAiEnhancementPanel()
         {
+            AiPanelEnabled = true;
             RightPanelTabIndex = 2;
         }
 
@@ -284,6 +293,7 @@ namespace ImvixPro.ViewModels
         private void RefreshLocalizedPropertiesAi()
         {
             OnPropertyChanged(nameof(AiEnhancementToggleText));
+            OnPropertyChanged(nameof(AiPanelToggleHintText));
             OnPropertyChanged(nameof(AiEnhancementToggleHintText));
             OnPropertyChanged(nameof(AiEnhancementTabText));
             OnPropertyChanged(nameof(AiEnhancementPanelTitleText));
@@ -326,7 +336,7 @@ namespace ImvixPro.ViewModels
             RefreshAiOptionCollections();
         }
 
-        partial void OnAiEnhancementEnabledChanged(bool value)
+        partial void OnAiPanelEnabledChanged(bool value)
         {
             if (_isLoadingSettings)
             {
@@ -334,12 +344,22 @@ namespace ImvixPro.ViewModels
             }
 
             OnPropertyChanged(nameof(IsAiEnhancementPanelVisible));
-            OnPropertyChanged(nameof(ShowAiConversionFeedback));
             if (!value && RightPanelTabIndex == 2)
             {
                 RightPanelTabIndex = 0;
             }
 
+            PersistSettings();
+        }
+
+        partial void OnAiEnhancementEnabledChanged(bool value)
+        {
+            if (_isLoadingSettings)
+            {
+                return;
+            }
+
+            OnPropertyChanged(nameof(ShowAiConversionFeedback));
             RefreshAiModelAvailabilityWarning();
             OnPropertyChanged(nameof(HasAiEnhancementPerformanceHint));
             PersistSettings();

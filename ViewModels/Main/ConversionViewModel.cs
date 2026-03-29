@@ -227,6 +227,7 @@ namespace ImvixPro.ViewModels
                 IconBackgroundColor = EffectiveIconBackgroundColor,
                 GifHandlingMode = SelectedGifHandlingMode,
                 GifSpecificFrameIndex = SelectedGifSpecificFrameIndex,
+                AiPanelEnabled = AiPanelEnabled,
                 AiEnhancementEnabled = AiEnhancementEnabled,
                 AiEnhancementScale = AiEnhancementScale,
                 AiEnhancementModel = SelectedAiEnhancementModel,

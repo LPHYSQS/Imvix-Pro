@@ -72,10 +72,10 @@
                                Text="{Binding AiEnhancementToggleText}"
                                VerticalAlignment="Center" />
                     <ToggleSwitch Grid.Column="2"
-                                  IsChecked="{Binding AiEnhancementEnabled}"
+                                  IsChecked="{Binding AiPanelEnabled}"
                                   OnContent="{Binding YesText}"
                                   OffContent="{Binding NoText}"
-                                  ToolTip.Tip="{Binding AiEnhancementToggleHintText}"
+                                  ToolTip.Tip="{Binding AiPanelToggleHintText}"
                                   VerticalAlignment="Center"
                                   Margin="0,-2,0,0" />
                 </Grid>

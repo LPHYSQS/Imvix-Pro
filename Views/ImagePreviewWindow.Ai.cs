@@ -99,7 +99,7 @@ namespace ImvixPro.Views
 
         private void RefreshAiPreviewUi()
         {
-            var shouldShowAiButton = (_sourceAiPreviewEligible && IsAiPreviewEnabledFromCurrentOptions() && !_isAiCompareActive) || _isAiPreviewBusy;
+            var shouldShowAiButton = (_sourceAiPreviewEligible && IsAiPanelEnabledFromCurrentOptions() && !_isAiCompareActive) || _isAiPreviewBusy;
             var sourceBitmap = ResolveAiCompareSourceBitmap();
             var hasOriginalView = sourceBitmap is not null;
             var hasEnhancedView = _aiPreviewBitmap is not null;
@@ -220,10 +220,10 @@ namespace ImvixPro.Views
             PreviewImage.Source = _previewBitmap;
         }
 
-        private bool IsAiPreviewEnabledFromCurrentOptions()
+        private bool IsAiPanelEnabledFromCurrentOptions()
         {
             var options = _previewOptionsProvider?.Invoke();
-            return options?.AiEnhancementEnabled == true;
+            return options?.AiPanelEnabled == true;
         }
 
         private ConversionOptions BuildAiEnhancementOptions()
@@ -468,7 +468,7 @@ namespace ImvixPro.Views
             }
 
             var options = BuildAiEnhancementOptions();
-            if (!_sourceAiPreviewEligible || !options.AiEnhancementEnabled)
+            if (!_sourceAiPreviewEligible || !IsAiPanelEnabledFromCurrentOptions())
             {
                 RefreshAiPreviewUi();
                 return;

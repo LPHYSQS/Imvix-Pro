@@ -66,6 +66,10 @@ namespace ImvixPro.Models
 
         public int DefaultGifSpecificFrameIndex { get; set; }
 
+        public bool AiPanelEnabled { get; set; }
+
+        public bool HasAiPanelVisibilityPreference { get; set; }
+
         public bool AiEnhancementEnabled { get; set; }
 
         public int DefaultAiEnhancementScale { get; set; } = 2;

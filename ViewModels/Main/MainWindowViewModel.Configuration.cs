@@ -41,6 +41,8 @@ namespace ImvixPro.ViewModels
                 DefaultRenameNumberDigits = RenameNumberDigits,
                 DefaultGifHandlingMode = SelectedGifHandlingMode,
                 DefaultGifSpecificFrameIndex = SelectedGifSpecificFrameIndex,
+                AiPanelEnabled = AiPanelEnabled,
+                HasAiPanelVisibilityPreference = true,
                 AiEnhancementEnabled = AiEnhancementEnabled,
                 DefaultAiEnhancementScale = AiEnhancementScale,
                 DefaultAiEnhancementModel = SelectedAiEnhancementModel,

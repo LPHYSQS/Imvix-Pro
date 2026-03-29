@@ -74,7 +74,7 @@ namespace ImvixPro.Views
 
         private void RefreshAiMattingUi()
         {
-            var shouldShowMattingButton = (_sourceAiPreviewEligible && IsAiPreviewEnabledFromCurrentOptions() && !_isAiMattingCompareActive) || _isAiMattingBusy;
+            var shouldShowMattingButton = (_sourceAiPreviewEligible && IsAiPanelEnabledFromCurrentOptions() && !_isAiMattingCompareActive) || _isAiMattingBusy;
             var sourceBitmap = ResolveAiMattingCompareSourceBitmap();
             var hasOriginalView = sourceBitmap is not null;
             var hasResultView = _aiMattingPreviewBitmap is not null;
@@ -246,7 +246,7 @@ namespace ImvixPro.Views
             }
 
             var options = BuildAiEnhancementOptions();
-            if (!options.AiEnhancementEnabled)
+            if (!IsAiPanelEnabledFromCurrentOptions())
             {
                 RefreshPreviewActionStates();
                 return;
