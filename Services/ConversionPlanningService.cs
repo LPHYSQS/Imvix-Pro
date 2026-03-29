@@ -7,6 +7,7 @@ namespace ImvixPro.Services
 {
     public sealed class ConversionPlanningService
     {
+        private const int GifPdfLargeFrameWarningThreshold = 500;
         private readonly ImageAnalysisService _imageAnalysisService;
 
         public ConversionPlanningService(ImageAnalysisService imageAnalysisService)
@@ -20,11 +21,13 @@ namespace ImvixPro.Services
             ArgumentNullException.ThrowIfNull(options);
 
             var ruleSummary = BuildRuleSummary(images, options);
+            var diagnostics = BuildDiagnosticsSummary(images, options, ruleSummary);
             var conversionWorkItems = images.Sum(image => ImageConversionService.EstimateWorkItemCount(image, options));
             var aiEligibleCount = ruleSummary.Ai.EligibleInputCount.GetValueOrDefault();
 
             return new ConversionPlan(
                 ruleSummary,
+                diagnostics,
                 conversionWorkItems,
                 conversionWorkItems + aiEligibleCount);
         }
@@ -110,6 +113,51 @@ namespace ImvixPro.Services
         {
             return !image.IsPdfDocument &&
                    _imageAnalysisService.HasTransparency(image);
+        }
+
+        private static bool HasHighCompressionRisk(ConversionOptions options)
+        {
+            return options.OutputFormat is OutputImageFormat.Jpeg or OutputImageFormat.Webp &&
+                   (options.CompressionMode == CompressionMode.HighCompression ||
+                    (options.CompressionMode == CompressionMode.Custom && options.Quality <= 45));
+        }
+
+        private static int GetLargeGifPdfFrameCount(IReadOnlyList<ImageItemViewModel> images, ConversionOptions options)
+        {
+            if (options.OutputFormat != OutputImageFormat.Pdf ||
+                options.GifHandlingMode != GifHandlingMode.AllFrames)
+            {
+                return 0;
+            }
+
+            return images
+                .Where(image => image.IsAnimatedGif && image.GifFrameCount > GifPdfLargeFrameWarningThreshold)
+                .Select(image => image.GifFrameCount)
+                .DefaultIfEmpty(0)
+                .Max();
+        }
+
+        private static int CountLockedPdfInputs(IReadOnlyList<ImageItemViewModel> images)
+        {
+            return images.Count(image => image.NeedsPdfUnlock);
+        }
+
+        private static ConversionDiagnosticsSummary BuildDiagnosticsSummary(
+            IReadOnlyList<ImageItemViewModel> images,
+            ConversionOptions options,
+            ConversionRuleSummary ruleSummary)
+        {
+            ArgumentNullException.ThrowIfNull(images);
+            ArgumentNullException.ThrowIfNull(options);
+            ArgumentNullException.ThrowIfNull(ruleSummary);
+
+            return new ConversionDiagnosticsSummary(
+                HasHighCompressionRisk(options),
+                GetLargeGifPdfFrameCount(images, options),
+                CountLockedPdfInputs(images),
+                new EstimateDisclaimerSummary(
+                    ruleSummary.Ai.UsesAiPreprocessing,
+                    ruleSummary.Expansion.HasExpandedOutputs));
         }
     }
 }

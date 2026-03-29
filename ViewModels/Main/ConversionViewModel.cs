@@ -17,7 +17,6 @@ namespace ImvixPro.ViewModels
 {
     public partial class MainWindowViewModel
     {
-        private const int GifPdfLargeFrameWarningThreshold = 500;
         private readonly ImageAnalysisService _imageAnalysisService;
         private readonly ConversionPipelineService _conversionPipelineService;
         private readonly ConversionHistoryService _conversionHistoryService;
@@ -258,50 +257,13 @@ namespace ImvixPro.ViewModels
 
         private async Task<List<string>> BuildPreflightWarningsAsync()
         {
-            var warnings = new List<string>();
             var snapshot = Images.ToList();
             var options = BuildCurrentConversionOptions();
             var plan = await Task.Run(() => _conversionPlanningService.BuildPlan(snapshot, options));
-
-            if (BuildForcedBackgroundFillText(plan.RuleSummary) is { } backgroundFillWarning)
-            {
-                warnings.Add(backgroundFillWarning);
-            }
-
-            if (IsHighCompressionSelection())
-            {
-                warnings.Add(T("WarningHighCompression"));
-            }
-
-            var gifPdfFrameCount = GetLargeGifPdfFrameCount(snapshot);
-            if (gifPdfFrameCount > 0)
-            {
-                warnings.Add(string.Format(
-                    CultureInfo.CurrentCulture,
-                    T("WarningGifFramesTooManyTemplate"),
-                    gifPdfFrameCount));
-            }
-
-            if (BuildAiUnsupportedWarningText(plan.RuleSummary) is { } aiUnsupportedWarning)
-            {
-                warnings.Add(aiUnsupportedWarning);
-            }
-
-            if (AiEnhancementEnabled && !string.IsNullOrWhiteSpace(AiEnhancementModelFallbackWarningText))
-            {
-                warnings.Add(AiEnhancementModelFallbackWarningText);
-            }
-
-            var lockedPdfCount = snapshot.Count(image => image.NeedsPdfUnlock);
-            if (lockedPdfCount > 0)
-            {
-                warnings.Add(string.Format(
-                    CultureInfo.CurrentCulture,
-                    T("WarningPdfLockedSkipTemplate"),
-                    lockedPdfCount));
-            }
-
-            return warnings.Distinct(StringComparer.Ordinal).ToList();
+            return EnumeratePlanWarningTexts(plan)
+                .Concat(EnumerateRuntimeWarningTexts(includePerformanceHint: false))
+                .Distinct(StringComparer.Ordinal)
+                .ToList();
         }
 
         private void RefreshConversionInsights()
@@ -337,7 +299,7 @@ namespace ImvixPro.ViewModels
                 EstimatedSizeSummaryText = string.Format(CultureInfo.CurrentCulture, T("EstimatedSizeTemplate"), FormatBytesRange(estimate.EstimatedMinBytes, estimate.EstimatedMaxBytes));
             }
 
-            RefreshActiveWarnings();
+            RefreshActiveWarnings(plan, options);
             OnPropertyChanged(nameof(HasFormatRecommendation));
             OnPropertyChanged(nameof(HasSizeEstimate));
         }
@@ -385,86 +347,22 @@ namespace ImvixPro.ViewModels
                     plan.TotalEstimatedOutputItems,
                     plan.TotalEstimatedWorkItems));
 
-            EstimateDisclaimerText = BuildEstimateDisclaimerText(plan);
+            EstimateDisclaimerText = BuildEstimateDisclaimerText(plan.Diagnostics);
         }
 
-        private string BuildEstimateDisclaimerText(ConversionPlan plan)
+        private void RefreshActiveWarnings(ConversionPlan currentPlan, ConversionOptions options)
         {
-            if (!plan.HasEstimateDisclaimer)
-            {
-                return string.Empty;
-            }
+            ArgumentNullException.ThrowIfNull(currentPlan);
+            ArgumentNullException.ThrowIfNull(options);
 
-            List<string> lines = [];
-
-            if (plan.RuleSummary.Ai.UsesAiPreprocessing)
-            {
-                lines.Add(T("EstimateDisclaimerAiScale"));
-            }
-
-            if (plan.RuleSummary.Expansion.HasExpandedOutputs)
-            {
-                lines.Add(T("EstimateDisclaimerExpandedOutputs"));
-            }
-
-            return string.Join(Environment.NewLine, lines);
-        }
-
-        private void RefreshActiveWarnings()
-        {
-            ActiveWarnings.Clear();
-            var options = BuildCurrentConversionOptions();
-            var selectedPlan = SelectedImage is null
-                ? null
+            var warningPlan = SelectedImage is null
+                ? currentPlan
                 : _conversionPlanningService.BuildPlan([SelectedImage], options);
 
-            if (selectedPlan is not null &&
-                BuildForcedBackgroundFillText(selectedPlan.RuleSummary) is { } selectedBackgroundFillWarning)
-            {
-                ActiveWarnings.Add(selectedBackgroundFillWarning);
-            }
-
-            if (IsHighCompressionSelection())
-            {
-                ActiveWarnings.Add(T("WarningHighCompression"));
-            }
-
-            var gifPdfFrameCount = GetLargeGifPdfFrameCount(SelectedImage is null
-                ? []
-                : [SelectedImage]);
-            if (gifPdfFrameCount > 0)
-            {
-                ActiveWarnings.Add(string.Format(
-                    CultureInfo.CurrentCulture,
-                    T("WarningGifFramesTooManyTemplate"),
-                    gifPdfFrameCount));
-            }
-
-            if (AiEnhancementEnabled && !string.IsNullOrWhiteSpace(AiEnhancementModelFallbackWarningText))
-            {
-                ActiveWarnings.Add(AiEnhancementModelFallbackWarningText);
-            }
-
-            if (HasAiEnhancementPerformanceHint)
-            {
-                ActiveWarnings.Add(AiEnhancementPerformanceHintText);
-            }
-
-        }
-
-        private int GetLargeGifPdfFrameCount(IReadOnlyList<ImageItemViewModel> images)
-        {
-            if (SelectedOutputFormat != OutputImageFormat.Pdf ||
-                SelectedGifHandlingMode != GifHandlingMode.AllFrames)
-            {
-                return 0;
-            }
-
-            return images
-                .Where(image => image.IsAnimatedGif && image.GifFrameCount > GifPdfLargeFrameWarningThreshold)
-                .Select(image => image.GifFrameCount)
-                .DefaultIfEmpty(0)
-                .Max();
+            ReplaceTextCollection(
+                ActiveWarnings,
+                EnumeratePlanWarningTexts(warningPlan)
+                    .Concat(EnumerateRuntimeWarningTexts(includePerformanceHint: true)));
         }
 
         private bool ShouldShowGifPdfFrameProgress(ConversionProgress progress, ConversionOptions options)
@@ -491,13 +389,6 @@ namespace ImvixPro.ViewModels
                 progress.FileName,
                 frameNumber,
                 progress.CurrentFileTotalCount);
-        }
-
-        private bool IsHighCompressionSelection()
-        {
-            return SelectedOutputFormat is OutputImageFormat.Jpeg or OutputImageFormat.Webp &&
-                   (SelectedCompressionMode == CompressionMode.HighCompression ||
-                    (SelectedCompressionMode == CompressionMode.Custom && Quality <= 45));
         }
 
         private string BuildRecommendationFormatsText(ImageAnalysisResult analysis)
