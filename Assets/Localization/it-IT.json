@@ -458,7 +458,7 @@
     "PdfUnlockFailedTemplate":  "Impossibile sbloccare il PDF: {0}",
     "PdfPreviewLockedTitle":  "PDF bloccato",
     "PdfPreviewLockedDescription":  "Sblocca questo PDF per visualizzare il contenuto reale e continuare l'elaborazione.",
-    "PdfLockedActionHint":  "Questo PDF è ancora bloccato, quindi conversione, miglioramento e analisi sono disattivati.",
+    "PdfLockedActionHint":  "Questo PDF è ancora bloccato, quindi la conversione e l'analisi sono disabilitate.",
     "WarningPdfLockedSkipTemplate":  "Rilevati {0} PDF bloccati. Se continui, verranno saltati automaticamente.",
     "PdfLockedSkipReason":  "Il PDF è bloccato ed è stato saltato",
     "AiMattingPanelTitle":  "Ritaglio AI",

@@ -458,7 +458,7 @@
     "PdfUnlockFailedTemplate":  "PDF解锁失败：{0}",
     "PdfPreviewLockedTitle":  "PDF已锁定",
     "PdfPreviewLockedDescription":  "请输入密码解锁后，才能查看真实内容并继续处理。",
-    "PdfLockedActionHint":  "当前PDF仍处于锁定状态，转换、增强与解析已禁用。",
+    "PdfLockedActionHint":  "当前PDF仍处于锁定状态，转换与解析已禁用。",
     "WarningPdfLockedSkipTemplate":  "检测到 {0} 个未解锁PDF，开始后将自动跳过。",
     "PdfLockedSkipReason":  "PDF未解锁，已自动跳过",
     "AiMattingPanelTitle":  "AI抠图",

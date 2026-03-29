@@ -82,21 +82,19 @@
                                         Spacing="6"
                                         VerticalAlignment="Center"
                                         IsVisible="{Binding $parent[Window].DataContext.IsLeftToRightLayout}">
-                                <Button Classes="icon-only pdf-lock-button"
+                                <Button Classes="icon-only"
                                         IsVisible="{Binding ShouldShowPdfUnlockButton}"
                                         Click="OnPdfUnlockClick"
                                         ToolTip.Tip="{Binding PdfLockTooltipText}">
-                                    <Grid Width="16"
-                                          Height="16"
-                                          HorizontalAlignment="Center"
-                                          VerticalAlignment="Center">
-                                        <Path Classes="line-icon danger"
-                                              Width="16"
-                                              Height="16"
-                                              HorizontalAlignment="Center"
-                                              VerticalAlignment="Center"
+                                    <Viewbox Width="18"
+                                             Height="18"
+                                             Margin="0"
+                                             Stretch="Uniform"
+                                             HorizontalAlignment="Center"
+                                             VerticalAlignment="Center">
+                                        <Path Classes="pdf-lock-solid-icon"
                                               Data="{StaticResource IconLockClosedGeometry}" />
-                                    </Grid>
+                                    </Viewbox>
                                 </Button>
                                 <Button Classes="icon-only"
                                         Click="OnShowFileDetailClick"
@@ -126,21 +124,19 @@
                                         ToolTip.Tip="{Binding $parent[Window].DataContext.DetailText}">
                                     <Path Classes="line-icon" Data="{StaticResource IconInfoGeometry}" />
                                 </Button>
-                                <Button Classes="icon-only pdf-lock-button"
+                                <Button Classes="icon-only"
                                         IsVisible="{Binding ShouldShowPdfUnlockButton}"
                                         Click="OnPdfUnlockClick"
                                         ToolTip.Tip="{Binding PdfLockTooltipText}">
-                                    <Grid Width="16"
-                                          Height="16"
-                                          HorizontalAlignment="Center"
-                                          VerticalAlignment="Center">
-                                        <Path Classes="line-icon danger"
-                                              Width="16"
-                                              Height="16"
-                                              HorizontalAlignment="Center"
-                                              VerticalAlignment="Center"
+                                    <Viewbox Width="18"
+                                             Height="18"
+                                             Margin="0"
+                                             Stretch="Uniform"
+                                             HorizontalAlignment="Center"
+                                             VerticalAlignment="Center">
+                                        <Path Classes="pdf-lock-solid-icon"
                                               Data="{StaticResource IconLockClosedGeometry}" />
-                                    </Grid>
+                                    </Viewbox>
                                 </Button>
                             </StackPanel>
                         </Grid>

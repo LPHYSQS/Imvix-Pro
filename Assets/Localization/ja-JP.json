@@ -458,7 +458,7 @@
     "PdfUnlockFailedTemplate":  "PDFの解除に失敗しました: {0}",
     "PdfPreviewLockedTitle":  "PDFはロックされています",
     "PdfPreviewLockedDescription":  "パスワードで解除すると、実際の内容を表示して処理を続行できます",
-    "PdfLockedActionHint":  "このPDFはまだロックされているため、変換、AI強化、解析は無効です",
+    "PdfLockedActionHint":  "このPDFはまだロックされているため、変換と解析は無効です",
     "WarningPdfLockedSkipTemplate":  "ロックされたPDFが {0} 件見つかりました。このまま続行するとスキップされます",
     "PdfLockedSkipReason":  "PDFは未解除のため、自動的にスキップされました",
     "AiMattingPanelTitle":  "AI切り抜き",

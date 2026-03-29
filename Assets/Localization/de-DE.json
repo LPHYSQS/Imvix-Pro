@@ -458,7 +458,7 @@
     "PdfUnlockFailedTemplate":  "PDF konnte nicht entsperrt werden: {0}",
     "PdfPreviewLockedTitle":  "PDF gesperrt",
     "PdfPreviewLockedDescription":  "Entsperren Sie diese PDF, um den echten Inhalt anzuzeigen und weiterzuverarbeiten.",
-    "PdfLockedActionHint":  "Diese PDF ist noch gesperrt. Konvertierung, Verbesserung und Analyse sind deaktiviert.",
+    "PdfLockedActionHint":  "Diese PDF ist noch gesperrt. Konvertierung und Analyse sind deaktiviert.",
     "WarningPdfLockedSkipTemplate":  "{0} gesperrte PDF-Dateien erkannt. Sie werden beim Fortfahren übersprungen.",
     "PdfLockedSkipReason":  "PDF ist gesperrt und wurde übersprungen",
     "AiMattingPanelTitle":  "AI-Freistellung",

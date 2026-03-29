@@ -458,7 +458,7 @@
     "PdfUnlockFailedTemplate":  "تعذر فتح قفل ملف PDF: {0}",
     "PdfPreviewLockedTitle":  "ملف PDF مقفل",
     "PdfPreviewLockedDescription":  "افتح قفل ملف PDF هذا لعرض المحتوى الحقيقي ومتابعة المعالجة",
-    "PdfLockedActionHint":  "لا يزال ملف PDF هذا مقفلاً، لذلك تم تعطيل التحويل والتحسين والتحليل",
+    "PdfLockedActionHint":  "لا يزال ملف PDF هذا مقفلاً، لذلك تم تعطيل التحويل والتحليل",
     "WarningPdfLockedSkipTemplate":  "تم اكتشاف {0} من ملفات PDF المقفلة. سيتم تخطيها إذا تابعت",
     "PdfLockedSkipReason":  "ملف PDF مقفل وتم تخطيه",
     "AiMattingPanelTitle":  "إزالة الخلفية بالذكاء الاصطناعي",

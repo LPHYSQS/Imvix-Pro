@@ -79,72 +79,118 @@ namespace ImvixPro.Services.PdfModule
             {
                 using var surface = SKSurface.Create(new SKImageInfo(220, 300));
                 var canvas = surface.Canvas;
-                canvas.Clear(new SKColor(240, 244, 249));
+                canvas.Clear(new SKColor(242, 246, 251));
 
                 using var shadowPaint = new SKPaint
                 {
-                    Color = new SKColor(188, 198, 212, 90),
+                    Color = new SKColor(61, 92, 131, 28),
                     IsAntialias = true
                 };
-                canvas.DrawRoundRect(new SKRoundRect(new SKRect(22, 26, 198, 270), 20, 20), shadowPaint);
+                canvas.DrawRoundRect(new SKRoundRect(new SKRect(30, 28, 190, 278), 24, 24), shadowPaint);
 
                 using var pagePaint = new SKPaint
                 {
                     Color = SKColors.White,
                     IsAntialias = true
                 };
-                canvas.DrawRoundRect(new SKRoundRect(new SKRect(18, 18, 194, 262), 18, 18), pagePaint);
+                canvas.DrawRoundRect(new SKRoundRect(new SKRect(24, 22, 184, 272), 22, 22), pagePaint);
 
-                using var accentPaint = new SKPaint
+                using var pageBorderPaint = new SKPaint
                 {
-                    Color = new SKColor(217, 72, 47),
+                    Color = new SKColor(214, 225, 237),
+                    IsAntialias = true,
+                    Style = SKPaintStyle.Stroke,
+                    StrokeWidth = 2
+                };
+                canvas.DrawRoundRect(new SKRoundRect(new SKRect(24, 22, 184, 272), 22, 22), pageBorderPaint);
+
+                using var titleBadgePaint = new SKPaint
+                {
+                    Color = new SKColor(232, 239, 248),
                     IsAntialias = true
                 };
-                canvas.DrawRoundRect(new SKRoundRect(new SKRect(18, 18, 194, 70), 18, 18), accentPaint);
+                canvas.DrawRoundRect(new SKRoundRect(new SKRect(50, 36, 158, 74), 18, 18), titleBadgePaint);
 
                 using var textPaint = new SKPaint
                 {
-                    Color = SKColors.White,
+                    Color = new SKColor(69, 92, 124),
                     IsAntialias = true,
-                    TextSize = 32,
+                    TextSize = 24,
                     FakeBoldText = true,
                     TextAlign = SKTextAlign.Center
                 };
-                canvas.DrawText("PDF", 106, 53, textPaint);
+                canvas.DrawText("PDF", 104, 62, textPaint);
 
-                using var bodyPaint = new SKPaint
+                using var cardPaint = new SKPaint
                 {
-                    Color = new SKColor(232, 237, 244),
+                    Color = new SKColor(244, 248, 252),
                     IsAntialias = true
                 };
-                canvas.DrawRoundRect(new SKRoundRect(new SKRect(46, 102, 166, 224), 30, 30), bodyPaint);
+                canvas.DrawRoundRect(new SKRoundRect(new SKRect(54, 98, 154, 228), 28, 28), cardPaint);
+
+                using var cardBorderPaint = new SKPaint
+                {
+                    Color = new SKColor(215, 224, 236),
+                    IsAntialias = true,
+                    Style = SKPaintStyle.Stroke,
+                    StrokeWidth = 2
+                };
+                canvas.DrawRoundRect(new SKRoundRect(new SKRect(54, 98, 154, 228), 28, 28), cardBorderPaint);
+
+                using var badgePaint = new SKPaint
+                {
+                    Color = new SKColor(248, 251, 255),
+                    IsAntialias = true
+                };
+                canvas.DrawRoundRect(new SKRoundRect(new SKRect(82, 116, 126, 160), 16, 16), badgePaint);
+
+                using var badgeBorderPaint = new SKPaint
+                {
+                    Color = new SKColor(202, 218, 233),
+                    IsAntialias = true,
+                    Style = SKPaintStyle.Stroke,
+                    StrokeWidth = 2
+                };
+                canvas.DrawRoundRect(new SKRoundRect(new SKRect(82, 116, 126, 160), 16, 16), badgeBorderPaint);
 
                 using var lockPaint = new SKPaint
                 {
-                    Color = new SKColor(71, 85, 105),
+                    Color = new SKColor(76, 102, 139),
                     IsAntialias = true,
                     Style = SKPaintStyle.Stroke,
-                    StrokeWidth = 12,
+                    StrokeWidth = 6,
                     StrokeCap = SKStrokeCap.Round
                 };
-                canvas.DrawArc(new SKRect(68, 112, 144, 188), 180, -180, false, lockPaint);
+                canvas.DrawArc(new SKRect(90, 122, 118, 148), 180, -180, false, lockPaint);
 
                 using var lockBodyPaint = new SKPaint
                 {
-                    Color = new SKColor(71, 85, 105),
+                    Color = new SKColor(76, 102, 139),
                     IsAntialias = true,
                     Style = SKPaintStyle.Fill
                 };
-                canvas.DrawRoundRect(new SKRoundRect(new SKRect(58, 154, 154, 224), 18, 18), lockBodyPaint);
+                canvas.DrawRoundRect(new SKRoundRect(new SKRect(89, 136, 119, 156), 8, 8), lockBodyPaint);
 
                 using var keyholePaint = new SKPaint
                 {
-                    Color = new SKColor(240, 244, 249),
+                    Color = new SKColor(242, 246, 251),
                     IsAntialias = true,
                     Style = SKPaintStyle.Fill
                 };
-                canvas.DrawCircle(106, 184, 10, keyholePaint);
-                canvas.DrawRoundRect(new SKRoundRect(new SKRect(100, 184, 112, 206), 6, 6), keyholePaint);
+                canvas.DrawCircle(104, 144, 3.6f, keyholePaint);
+                canvas.DrawRoundRect(new SKRoundRect(new SKRect(101, 144, 107, 151), 3, 3), keyholePaint);
+
+                using var linePaint = new SKPaint
+                {
+                    Color = new SKColor(205, 216, 229),
+                    IsAntialias = true,
+                    Style = SKPaintStyle.Stroke,
+                    StrokeWidth = 8,
+                    StrokeCap = SKStrokeCap.Round
+                };
+                canvas.DrawLine(80, 182, 128, 182, linePaint);
+                canvas.DrawLine(72, 198, 136, 198, linePaint);
+                canvas.DrawLine(82, 214, 126, 214, linePaint);
 
                 using var image = surface.Snapshot();
                 using var data = image.Encode(SKEncodedImageFormat.Png, 100);

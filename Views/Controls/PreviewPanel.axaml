@@ -45,37 +45,36 @@
                                 Background="{DynamicResource PdfLockOverlayBrush}"
                                 CornerRadius="8"
                                 Padding="18">
-                            <StackPanel HorizontalAlignment="Center"
-                                        VerticalAlignment="Center"
-                                        Spacing="10"
-                                        MaxWidth="280">
-                                <Border Classes="icon-badge"
-                                        Width="40"
-                                        Height="40"
-                                        Padding="0"
-                                        HorizontalAlignment="Center"
-                                        Background="{DynamicResource DangerBackgroundBrush}"
-                                        BorderBrush="{DynamicResource DangerBorderBrush}">
-                                    <Grid Width="18"
-                                          Height="18"
-                                          HorizontalAlignment="Center"
-                                          VerticalAlignment="Center">
-                                        <Path Classes="line-icon danger"
-                                              Width="18"
-                                              Height="18"
-                                              HorizontalAlignment="Center"
-                                              VerticalAlignment="Center"
-                                              Data="{StaticResource IconLockClosedGeometry}" />
-                                    </Grid>
-                                </Border>
-                                <TextBlock Text="{Binding PdfLockedPreviewTitleText}"
-                                           FontWeight="SemiBold"
-                                           TextAlignment="Center" />
-                                <TextBlock Text="{Binding PdfLockedPreviewDescriptionText}"
-                                           Classes="secondary"
-                                           TextAlignment="Center"
-                                           TextWrapping="Wrap" />
-                            </StackPanel>
+                            <Border Classes="pdf-lock-panel"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    MaxWidth="304">
+                                <StackPanel HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"
+                                            Spacing="12">
+                                    <Border Classes="icon-badge pdf-lock-badge"
+                                            HorizontalAlignment="Center">
+                                        <Viewbox Width="20"
+                                                 Height="20"
+                                                 Margin="0"
+                                                 Stretch="Uniform"
+                                                 HorizontalAlignment="Center"
+                                                 VerticalAlignment="Center">
+                                            <Path Classes="pdf-lock-solid-icon preview"
+                                                  Data="{StaticResource IconLockClosedGeometry}" />
+                                        </Viewbox>
+                                    </Border>
+                                    <TextBlock Text="{Binding PdfLockedPreviewTitleText}"
+                                               FontWeight="SemiBold"
+                                               FontSize="16"
+                                               TextAlignment="Center" />
+                                    <TextBlock Text="{Binding PdfLockedPreviewDescriptionText}"
+                                               Classes="secondary"
+                                               MaxWidth="248"
+                                               TextAlignment="Center"
+                                               TextWrapping="Wrap" />
+                                </StackPanel>
+                            </Border>
                         </Border>
                     </Grid>
 

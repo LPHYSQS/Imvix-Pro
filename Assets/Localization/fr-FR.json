@@ -458,7 +458,7 @@
     "PdfUnlockFailedTemplate":  "Échec du déverrouillage du PDF : {0}",
     "PdfPreviewLockedTitle":  "PDF verrouillé",
     "PdfPreviewLockedDescription":  "Déverrouillez ce PDF pour afficher son contenu réel et poursuivre le traitement.",
-    "PdfLockedActionHint":  "Ce PDF est encore verrouillé, donc la conversion, l'amélioration et l'analyse sont désactivées.",
+    "PdfLockedActionHint":  "Ce PDF est encore verrouillé, donc la conversion et l'analyse sont désactivées.",
     "WarningPdfLockedSkipTemplate":  "{0} PDF verrouillés détectés. Ils seront ignorés si vous continuez.",
     "PdfLockedSkipReason":  "Le PDF est verrouillé et a été ignoré",
     "AiMattingPanelTitle":  "Détourage IA",

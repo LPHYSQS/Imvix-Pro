@@ -24,7 +24,14 @@
                     <SolidColorBrush x:Key="DangerBackgroundBrush" Color="#FFF1F1" />
                     <SolidColorBrush x:Key="DangerBorderBrush" Color="#E4A8A8" />
                     <SolidColorBrush x:Key="DangerTextBrush" Color="#8D1D1D" />
-                    <SolidColorBrush x:Key="PdfLockOverlayBrush" Color="#DDECF3FB" />
+                    <SolidColorBrush x:Key="PdfLockBadgeBackgroundBrush" Color="#F8FBFF" />
+                    <SolidColorBrush x:Key="PdfLockBadgeBorderBrush" Color="#CADAE9" />
+                    <SolidColorBrush x:Key="PdfLockBadgeHoverBrush" Color="#EEF5FD" />
+                    <SolidColorBrush x:Key="PdfLockBadgePressedBrush" Color="#E4EEF9" />
+                    <SolidColorBrush x:Key="PdfLockBadgeIconBrush" Color="#2E5E92" />
+                    <SolidColorBrush x:Key="PdfLockOverlayBrush" Color="#DCEBF5FE" />
+                    <SolidColorBrush x:Key="PdfLockPanelBackgroundBrush" Color="#F3F8FD" />
+                    <SolidColorBrush x:Key="PdfLockPanelBorderBrush" Color="#C9D8E9" />
                 </ResourceDictionary>
 
                 <ResourceDictionary x:Key="Dark">
@@ -41,7 +48,14 @@
                     <SolidColorBrush x:Key="DangerBackgroundBrush" Color="#3A1F24" />
                     <SolidColorBrush x:Key="DangerBorderBrush" Color="#8A4A53" />
                     <SolidColorBrush x:Key="DangerTextBrush" Color="#FFBFC5" />
-                    <SolidColorBrush x:Key="PdfLockOverlayBrush" Color="#D9202A36" />
+                    <SolidColorBrush x:Key="PdfLockBadgeBackgroundBrush" Color="#1F2A3C" />
+                    <SolidColorBrush x:Key="PdfLockBadgeBorderBrush" Color="#3E5878" />
+                    <SolidColorBrush x:Key="PdfLockBadgeHoverBrush" Color="#243247" />
+                    <SolidColorBrush x:Key="PdfLockBadgePressedBrush" Color="#2A3A52" />
+                    <SolidColorBrush x:Key="PdfLockBadgeIconBrush" Color="#A4C7F8" />
+                    <SolidColorBrush x:Key="PdfLockOverlayBrush" Color="#D61A2431" />
+                    <SolidColorBrush x:Key="PdfLockPanelBackgroundBrush" Color="#26354A" />
+                    <SolidColorBrush x:Key="PdfLockPanelBorderBrush" Color="#425C7D" />
                 </ResourceDictionary>
             </ResourceDictionary.ThemeDictionaries>
 
@@ -64,7 +78,7 @@
             <StreamGeometry x:Key="IconPresetGeometry">M 7 4.5 H 17 C 18.1 4.5 19 5.4 19 6.5 V 20 L 12 16.5 L 5 20 V 6.5 C 5 5.4 5.9 4.5 7 4.5 Z</StreamGeometry>
             <StreamGeometry x:Key="IconSaveGeometry">M 6.5 4.5 H 17 L 19 6.5 V 19.5 C 19 20.3 18.3 21 17.5 21 H 6.5 C 5.7 21 5 20.3 5 19.5 V 6 C 5 5.2 5.7 4.5 6.5 4.5 Z M 8 4.5 V 9 H 16 V 4.5 M 9 21 V 15 H 15 V 21</StreamGeometry>
             <StreamGeometry x:Key="IconCheckGeometry">M 6.5 12.5 L 10.2 16.2 L 17.5 8.9</StreamGeometry>
-            <StreamGeometry x:Key="IconLockClosedGeometry">M 12 3.8 C 9.7 3.8 7.8 5.7 7.8 8 V 10.4 H 7.6 C 6.5 10.4 5.6 11.3 5.6 12.4 V 18.4 C 5.6 19.5 6.5 20.4 7.6 20.4 H 16.4 C 17.5 20.4 18.4 19.5 18.4 18.4 V 12.4 C 18.4 11.3 17.5 10.4 16.4 10.4 H 16.2 V 8 C 16.2 5.7 14.3 3.8 12 3.8 Z M 9.6 8 C 9.6 6.7 10.7 5.6 12 5.6 C 13.3 5.6 14.4 6.7 14.4 8 V 10.4 H 9.6 Z M 12 13.5 V 16.3</StreamGeometry>
+            <StreamGeometry x:Key="IconLockClosedGeometry">M753.845117 371.674021l-17.46272 0 0-83.669608c0-59.275012-22.62837-115.203812-63.715137-157.482731-42.170448-43.394323-99.369172-67.291592-161.058163-67.291592-126.040624 0-224.772276 98.731652-224.772276 224.7733l0 83.669608-16.680914 0c-62.788022 0-113.688295 50.900274-113.688295 113.688295L156.467611 842.961784c0 62.788022 50.900274 113.688295 113.688295 113.688295l483.690234 0c62.788022 0 113.688295-50.900274 113.688295-113.688295L867.534436 485.362316C867.532389 422.574295 816.633139 371.674021 753.845117 371.674021zM328.176344 288.005436c0-102.858646 80.573083-183.432753 183.431729-183.432753 50.423413 0 97.093339 19.447934 131.410935 54.762231 33.547047 34.519188 52.021817 80.214926 52.021817 128.670521l0 83.669608L328.176344 371.675044 328.176344 288.005436zM826.191842 842.961784c0 39.956014-32.390711 72.346725-72.346725 72.346725L270.154883 915.308509c-39.956014 0-72.346725-32.390711-72.346725-72.346725L197.808158 485.362316c0-39.956014 32.390711-72.346725 72.346725-72.346725l483.690234 0c39.956014 0 72.346725 32.390711 72.346725 72.346725L826.191842 842.961784zM509.932921 580.446905c-11.416004 0-20.670785 9.254781-20.670785 20.670785l0 109.554138c0 11.414981 9.254781 20.670785 20.670785 20.670785 11.416004 0 20.670785-9.254781 20.670785-20.670785L530.603707 601.116667C530.602683 589.701686 521.348925 580.446905 509.932921 580.446905z</StreamGeometry>
             <StreamGeometry x:Key="IconLockOpenGeometry">M 12.4 4 C 14.8 4 16.7 6 16.7 8.4 V 9.2 M 8.3 10.5 H 16.5 C 17.4 10.5 18.1 11.2 18.1 12.1 V 18.4 C 18.1 19.3 17.4 20 16.5 20 H 8.3 C 7.4 20 6.7 19.3 6.7 18.4 V 12.1 C 6.7 11.2 7.4 10.5 8.3 10.5 Z M 16.7 9.2 H 11.1 C 10.4 9.2 9.8 8.6 9.8 7.9 V 7.6 C 9.8 6.9 10.4 6.3 11.1 6.3 M 12.4 13.8 V 16.8</StreamGeometry>
             <StreamGeometry x:Key="IconVectorGeometry">M 6 6 H 10 V 10 H 6 Z M 14 14 H 18 V 18 H 14 Z M 8 10 L 10 12 L 14 12 M 12 8 V 12 M 10 6 H 14 L 16 8 V 12</StreamGeometry>
             <StreamGeometry x:Key="IconWatchGeometry">M 3 7.5 H 8 L 10 5.5 H 19 C 20.1 5.5 21 6.4 21 7.5 V 11.5 M 3 9.5 H 15 M 16.5 13 C 18.4 13 20 14.6 20 16.5 C 20 18.4 18.4 20 16.5 20 C 14.6 20 13 18.4 13 16.5 C 13 14.6 14.6 13 16.5 13 Z M 16.5 14.8 V 16.7 L 17.8 17.8</StreamGeometry>
@@ -112,12 +126,6 @@
             <Setter Property="BorderThickness" Value="1" />
         </Style>
 
-        <Style Selector="Button.icon-only.pdf-lock-button">
-            <Setter Property="Background" Value="{DynamicResource DangerBackgroundBrush}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource DangerBorderBrush}" />
-            <Setter Property="BorderThickness" Value="1" />
-        </Style>
-
         <Style Selector="Button TextBlock">
             <Setter Property="Foreground" Value="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" />
         </Style>
@@ -136,6 +144,24 @@
             <Setter Property="Background" Value="{DynamicResource SurfaceSubtleBrush}" />
             <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
             <Setter Property="BorderThickness" Value="1" />
+        </Style>
+
+        <Style Selector="Border.icon-badge.pdf-lock-badge">
+            <Setter Property="Width" Value="44" />
+            <Setter Property="Height" Value="44" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="CornerRadius" Value="14" />
+            <Setter Property="Background" Value="{DynamicResource PdfLockBadgeBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PdfLockBadgeBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+
+        <Style Selector="Border.pdf-lock-panel">
+            <Setter Property="Background" Value="{DynamicResource PdfLockPanelBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PdfLockPanelBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="16" />
+            <Setter Property="Padding" Value="18" />
         </Style>
 
         <Style Selector="Path.line-icon">
@@ -158,6 +184,15 @@
 
         <Style Selector="Path.line-icon.danger">
             <Setter Property="Stroke" Value="{DynamicResource DangerTextBrush}" />
+        </Style>
+
+        <Style Selector="Path.pdf-lock-solid-icon">
+            <Setter Property="Stretch" Value="Uniform" />
+            <Setter Property="Fill" Value="{DynamicResource PdfLockBadgeIconBrush}" />
+        </Style>
+
+        <Style Selector="Path.pdf-lock-solid-icon.preview">
+            <Setter Property="Fill" Value="{DynamicResource PdfLockBadgeIconBrush}" />
         </Style>
     </Application.Styles>
 </Application>

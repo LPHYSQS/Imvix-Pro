@@ -458,7 +458,7 @@
     "PdfUnlockFailedTemplate":  "Failed to unlock the PDF: {0}",
     "PdfPreviewLockedTitle":  "PDF Locked",
     "PdfPreviewLockedDescription":  "Unlock this PDF to view the real content and continue processing.",
-    "PdfLockedActionHint":  "This PDF is still locked, so conversion, enhancement, and analysis are disabled.",
+    "PdfLockedActionHint":  "This PDF is still locked, so conversion and analysis are disabled.",
     "WarningPdfLockedSkipTemplate":  "Detected {0} locked PDF files. They will be skipped if you continue.",
     "PdfLockedSkipReason":  "PDF is locked and was skipped",
     "AiMattingPanelTitle":  "AI Matting",

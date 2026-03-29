@@ -458,7 +458,7 @@
     "PdfUnlockFailedTemplate":  "Не удалось разблокировать PDF: {0}",
     "PdfPreviewLockedTitle":  "PDF заблокирован",
     "PdfPreviewLockedDescription":  "Разблокируйте PDF, чтобы увидеть содержимое и продолжить обработку.",
-    "PdfLockedActionHint":  "Этот PDF все еще заблокирован, поэтому конвертация, улучшение и анализ недоступны.",
+    "PdfLockedActionHint":  "Этот PDF все еще заблокирован, поэтому конвертация и анализ недоступны.",
     "WarningPdfLockedSkipTemplate":  "Обнаружено {0} заблокированных PDF. При продолжении они будут пропущены.",
     "PdfLockedSkipReason":  "PDF заблокирован и был пропущен",
     "AiMattingPanelTitle":  "AI-вырезание",

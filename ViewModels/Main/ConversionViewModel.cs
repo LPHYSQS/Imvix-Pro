@@ -398,10 +398,6 @@ namespace ImvixPro.ViewModels
                 ActiveWarnings.Add(AiEnhancementPerformanceHintText);
             }
 
-            if (SelectedImage?.NeedsPdfUnlock == true)
-            {
-                ActiveWarnings.Add(PdfLockedActionHintText);
-            }
         }
 
         private int GetLargeGifPdfFrameCount(IReadOnlyList<ImageItemViewModel> images)
