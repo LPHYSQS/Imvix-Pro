@@ -174,6 +174,8 @@
     "WatchIncludeSubfolders":  "监听时包含子文件夹",
     "WatchHint":  "开启后，放入输入目录的新图片会按照当前转换参数自动输出到监听目录。",
     "WatchHintSavedProfile":  "监听模式会按照已保存的监听配置运行；当你希望监听任务使用最新当前参数时，请再次保存。",
+    "WatchProfileSummaryGifAutoExpand":  "监听到的 GIF 会在导出前自动按全部帧展开。",
+    "WatchProfileSummaryPdfAutoExpand":  "监听到的 PDF 会在导出图片时自动按全部页展开。",
     "SaveCurrentWatchProfile":  "保存当前参数为监听配置",
     "SelectWatchInputFolderDialogTitle":  "选择监听输入目录",
     "SelectWatchOutputFolderDialogTitle":  "选择监听输出目录",

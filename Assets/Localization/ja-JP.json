@@ -174,6 +174,8 @@
     "WatchIncludeSubfolders":  "監視時にサブフォルダーを含める",
     "WatchHint":  "有効化すると、入力フォルダーに追加された新しい画像を現在の設定で自動変換します。",
     "WatchHintSavedProfile":  "監視モードは保存済みの監視プロファイルで実行されます。最新の現在設定を反映したい場合は再度保存してください。",
+    "WatchProfileSummaryGifAutoExpand":  "監視した GIF は書き出し前に自動で全フレーム展開されます。",
+    "WatchProfileSummaryPdfAutoExpand":  "監視した PDF は画像として書き出す際に自動で全ページ展開されます。",
     "SaveCurrentWatchProfile":  "現在の設定を監視プロファイルとして保存",
     "SelectWatchInputFolderDialogTitle":  "監視入力フォルダーを選択",
     "SelectWatchOutputFolderDialogTitle":  "監視出力フォルダーを選択",

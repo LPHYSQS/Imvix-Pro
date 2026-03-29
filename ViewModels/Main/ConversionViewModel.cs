@@ -256,27 +256,6 @@ namespace ImvixPro.ViewModels
             };
         }
 
-        private static void ApplyWatchContentAwareOptions(ImageItemViewModel item, ConversionOptions options)
-        {
-            if (item.IsAnimatedGif &&
-                item.GifFrameCount > 1 &&
-                options.OutputFormat != OutputImageFormat.Gif)
-            {
-                options.GifHandlingMode = GifHandlingMode.AllFrames;
-                options.GifSpecificFrameIndex = 0;
-                options.GifSpecificFrameSelections.Clear();
-            }
-
-            if (item.IsPdfDocument &&
-                item.PdfPageCount > 1 &&
-                options.OutputFormat != OutputImageFormat.Pdf)
-            {
-                options.PdfImageExportMode = PdfImageExportMode.AllPages;
-                options.PdfPageIndex = 0;
-                options.PdfPageSelections.Clear();
-            }
-        }
-
         private async Task<List<string>> BuildPreflightWarningsAsync()
         {
             var warnings = new List<string>();

@@ -50,6 +50,7 @@ namespace ImvixPro.ViewModels
         private readonly LocalizationService _localizationService;
         private readonly ImageConversionService _imageConversionService;
         private readonly ConversionPlanningService _conversionPlanningService;
+        private readonly WatchProfilePlanningService _watchProfilePlanningService;
         private readonly PdfSecurityService _pdfSecurityService;
         private readonly AppLogger _logger;
         private ConversionJobDefinition? _watchJobDefinitionSnapshot;
@@ -83,6 +84,7 @@ namespace ImvixPro.ViewModels
             _imageConversionService = services.ImageConversionService ?? throw new ArgumentNullException(nameof(services.ImageConversionService));
             _imageAnalysisService = services.ImageAnalysisService ?? throw new ArgumentNullException(nameof(services.ImageAnalysisService));
             _conversionPlanningService = services.ConversionPlanningService ?? throw new ArgumentNullException(nameof(services.ConversionPlanningService));
+            _watchProfilePlanningService = services.WatchProfilePlanningService ?? throw new ArgumentNullException(nameof(services.WatchProfilePlanningService));
             _conversionPipelineService = services.ConversionPipelineService ?? throw new ArgumentNullException(nameof(services.ConversionPipelineService));
             _conversionHistoryService = services.ConversionHistoryService ?? throw new ArgumentNullException(nameof(services.ConversionHistoryService));
             _conversionLogService = services.ConversionLogService ?? throw new ArgumentNullException(nameof(services.ConversionLogService));

@@ -16,6 +16,7 @@ namespace ImvixPro.Services
         private static readonly Lazy<ImageConversionService> ImageConversionServiceFactory = new(static () => new ImageConversionService());
         private static readonly Lazy<ImageAnalysisService> ImageAnalysisServiceFactory = new(static () => new ImageAnalysisService());
         private static readonly Lazy<ConversionPlanningService> ConversionPlanningServiceFactory = new(static () => new ConversionPlanningService(ImageAnalysisServiceFactory.Value));
+        private static readonly Lazy<WatchProfilePlanningService> WatchProfilePlanningServiceFactory = new(static () => new WatchProfilePlanningService());
         private static readonly Lazy<AiImageEnhancementService> AiImageEnhancementServiceFactory = new(static () => new AiImageEnhancementService());
         private static readonly Lazy<AiMattingService> AiMattingServiceFactory = new(static () => new AiMattingService(LoggerFactory.Value));
         private static readonly Lazy<AiPreviewComparisonService> AiPreviewComparisonServiceFactory = new(static () => new AiPreviewComparisonService());
@@ -44,6 +45,8 @@ namespace ImvixPro.Services
         public static ImageAnalysisService ImageAnalysisService => ImageAnalysisServiceFactory.Value;
 
         public static ConversionPlanningService ConversionPlanningService => ConversionPlanningServiceFactory.Value;
+
+        public static WatchProfilePlanningService WatchProfilePlanningService => WatchProfilePlanningServiceFactory.Value;
 
         public static AiImageEnhancementService AiImageEnhancementService => AiImageEnhancementServiceFactory.Value;
 
@@ -85,6 +88,7 @@ namespace ImvixPro.Services
                 ImageConversionService,
                 ImageAnalysisService,
                 ConversionPlanningService,
+                WatchProfilePlanningService,
                 ConversionPipelineService,
                 ConversionHistoryService,
                 ConversionLogService,

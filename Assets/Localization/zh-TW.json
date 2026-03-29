@@ -174,6 +174,8 @@
     "WatchIncludeSubfolders":  "監聽時包含子資料夾",
     "WatchHint":  "啟用後，放入輸入資料夾的新圖片會依目前轉換參數自動輸出到指定資料夾。",
     "WatchHintSavedProfile":  "監聽模式會依已儲存的監聽設定執行；若要讓監聽任務使用最新目前參數，請再次儲存。",
+    "WatchProfileSummaryGifAutoExpand":  "監聽到的 GIF 會在匯出前自動按全部影格展開。",
+    "WatchProfileSummaryPdfAutoExpand":  "監聽到的 PDF 會在匯出圖片時自動按全部頁面展開。",
     "SaveCurrentWatchProfile":  "將目前參數儲存為監聽設定",
     "SelectWatchInputFolderDialogTitle":  "選擇監聽輸入資料夾",
     "SelectWatchOutputFolderDialogTitle":  "選擇監聽輸出資料夾",

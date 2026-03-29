@@ -306,8 +306,7 @@ namespace ImvixPro.ViewModels
 
                 var snapshot = new System.Collections.Generic.List<ImageItemViewModel> { item };
                 var watchProfile = BuildConfiguredWatchProfile();
-                var options = watchProfile.JobDefinition.ToConversionOptions();
-                ApplyWatchContentAwareOptions(item, options);
+                var options = _watchProfilePlanningService.BuildExecutionOptions(watchProfile, item);
                 var estimate = _imageAnalysisService.Estimate(snapshot, options);
                 var progress = new Progress<ConversionProgress>(p =>
                 {
@@ -497,35 +496,43 @@ namespace ImvixPro.ViewModels
 
         private string BuildWatchProfileSummaryText()
         {
-            var watchProfile = BuildConfiguredWatchProfile();
-            if (string.IsNullOrWhiteSpace(watchProfile.OutputDirectory))
+            var summary = _watchProfilePlanningService.BuildSummary(BuildConfiguredWatchProfile());
+            if (!summary.HasOutputDirectory)
             {
                 return string.Empty;
             }
 
-            var options = watchProfile.JobDefinition.ToConversionOptions();
             var parts = new System.Collections.Generic.List<string>
             {
-                $"{OutputFormatText}: {FormatOutputFormat(options.OutputFormat)}",
-                $"{WatchOutputFolderText}: {watchProfile.OutputDirectory}"
+                $"{OutputFormatText}: {FormatOutputFormat(summary.OutputFormat)}",
+                $"{WatchOutputFolderText}: {summary.OutputDirectory}"
             };
 
-            if (options.AiEnhancementEnabled)
+            if (summary.AiEnhancementEnabled)
             {
-                parts.Add($"{AiEnhancementTabText}: {options.AiEnhancementScale}x");
+                parts.Add($"{AiEnhancementTabText}: {summary.AiEnhancementScale}x");
             }
 
-            if (options.ResizeMode != ResizeMode.None)
+            if (summary.UsesResize)
             {
-                parts.Add($"{ResizeModeText}: {T($"ResizeMode_{options.ResizeMode}")}");
+                parts.Add($"{ResizeModeText}: {T($"ResizeMode_{summary.ResizeMode}")}");
             }
 
-            if (options.GifHandlingMode != GifHandlingMode.FirstFrame)
+            if (summary.ExpandsGifFramesDuringWatch)
             {
-                parts.Add($"{GifHandlingText}: {T($"GifHandlingMode_{options.GifHandlingMode}")}");
+                parts.Add(T("WatchProfileSummaryGifAutoExpand"));
+            }
+            else if (summary.UsesConfiguredGifHandling)
+            {
+                parts.Add($"{GifHandlingText}: {T($"GifHandlingMode_{summary.GifHandlingMode}")}");
             }
 
-            if (options.AllowOverwrite)
+            if (summary.ExpandsPdfPagesDuringWatch)
+            {
+                parts.Add(T("WatchProfileSummaryPdfAutoExpand"));
+            }
+
+            if (summary.AllowOverwrite)
             {
                 parts.Add(AllowOverwriteText);
             }
