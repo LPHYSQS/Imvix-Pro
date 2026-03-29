@@ -170,6 +170,7 @@ public sealed class ImageConversionTests
     public void CompletionSummaryModel_ReusesSharedCountsAcrossDialogAndHistory()
     {
         var summaryService = new ConversionStatusSummaryService();
+        var presenter = new ConversionTextPresenter();
         var completion = summaryService.CreateCompletionSummary(
             new ConversionSummary(
                 totalCount: 9,
@@ -193,5 +194,110 @@ public sealed class ImageConversionTests
         Assert.True(completion.WasCanceled);
         Assert.Equal(2, completion.RemainingCount);
         Assert.True(completion.HasFailureLog);
+
+        var dialogText = presenter.BuildCompletionSummaryText(completion, TranslateTestText);
+        var historySummary = presenter.BuildHistorySummaryText(completion, TranslateTestText);
+        var historyDetail = presenter.BuildHistoryDetailText(completion, TranslateTestText);
+
+        Assert.Contains("Total: 9", dialogText);
+        Assert.Contains("Processed: 7", dialogText);
+        Assert.Contains("Canceled: Yes", dialogText);
+        Assert.Equal("Manual · WEBP · Processed 7/9 before cancellation", historySummary);
+        Assert.Equal("Input 2.0 KB · Estimate 1.0 KB - 1.5 KB · Duration 00:18.00", historyDetail);
+    }
+
+    [Fact]
+    public void WatchRuntimeStatusSummary_FormatsProcessingThroughSharedPresenter()
+    {
+        var summaryService = new ConversionStatusSummaryService();
+        var presenter = new ConversionTextPresenter();
+        var runtime = summaryService.CreateProgressRuntimeStatus(
+            new ConversionProgress(
+                processedCount: 12,
+                totalCount: 24,
+                processedFileCount: 0,
+                totalFileCount: 1,
+                fileName: "animated.gif",
+                currentFileProcessedCount: 12,
+                currentFileTotalCount: 48,
+                isFileCompleted: false,
+                succeeded: false,
+                error: null,
+                stage: ConversionStage.Conversion),
+            new ConversionOptions
+            {
+                OutputFormat = OutputImageFormat.Pdf
+            },
+            remainingCount: 1,
+            progressPercent: 50);
+        var watchStatus = summaryService.CreateWatchProcessingStatus(
+            runtime,
+            @"C:\watch-in",
+            processedCount: 3,
+            failureCount: 1);
+
+        Assert.Equal("Processing watched file: animated.gif - frame 12 / 48", presenter.BuildWatchStatusText(watchStatus, TranslateTestText));
+        Assert.Equal("Processed: 3  Failed: 1", presenter.BuildWatchMetricsText(watchStatus, TranslateTestText));
+    }
+
+    [Fact]
+    public void WatchRuntimeStatusSummary_FormatsFailureCompletionThroughSharedPresenter()
+    {
+        var summaryService = new ConversionStatusSummaryService();
+        var presenter = new ConversionTextPresenter();
+        var completion = summaryService.CreateCompletionSummary(
+            new ConversionSummary(
+                totalCount: 1,
+                processedCount: 1,
+                successCount: 0,
+                failures: [new ConversionFailure("sample.png", "disk full")],
+                outputDirectories: [],
+                duration: TimeSpan.FromSeconds(3),
+                wasCanceled: false),
+            ConversionTriggerSource.Watch,
+            OutputImageFormat.Png,
+            new SizeEstimateResult(true, 4_096, 4_096, 4_096),
+            string.Empty);
+        var watchStatus = summaryService.CreateWatchCompletionStatus(
+            completion,
+            "sample.png",
+            "disk full",
+            @"C:\watch-in",
+            processedCount: 0,
+            failureCount: 4);
+
+        Assert.Equal("sample.png failed: disk full", presenter.BuildWatchStatusText(watchStatus, TranslateTestText));
+    }
+
+    private static string TranslateTestText(string key)
+    {
+        return key switch
+        {
+            "NoCurrentFile" => "None",
+            "GifPdfProgressTemplate" => "{0} - frame {1} / {2}",
+            "SummaryTotal" => "Total",
+            "SummaryProcessed" => "Processed",
+            "SummarySuccess" => "Success",
+            "SummaryFailed" => "Failed",
+            "SummaryCanceled" => "Canceled",
+            "SummaryDuration" => "Duration",
+            "YesText" => "Yes",
+            "HistorySourceManual" => "Manual",
+            "HistorySourceWatch" => "Watch",
+            "HistorySummaryCanceledTemplate" => "{0} · {1} · Processed {2}/{3} before cancellation",
+            "HistorySummaryTemplate" => "{0} · {1} · {2} total / {3} success / {4} failed",
+            "HistoryDetailTemplate" => "Input {0} · Estimate {1} · Duration {2}",
+            "WatchStatusStopped" => "Watch mode stopped",
+            "WatchStatusWaiting" => "Watch mode is ready. Enable it after selecting folders.",
+            "WatchStatusRunning" => "Watching: {0}",
+            "WatchStatusProcessing" => "Processing watched file: {0}",
+            "WatchStatusSingleFailureTemplate" => "{0} failed: {1}",
+            "WatchStatusProcessedTemplate" => "{0} converted successfully",
+            "WatchStatusErrorTemplate" => "Watch mode error: {0}",
+            "WatchMetricsTemplate" => "Processed: {0}  Failed: {1}",
+            "StatusCompletedWithFailures" => "Completed with failures",
+            "StatusCanceled" => "Canceled",
+            _ => key
+        };
     }
 }

@@ -32,7 +32,7 @@ namespace ImvixPro.ViewModels
 
         public string SelectWatchOutputFolderDialogTitle => T("SelectWatchOutputFolderDialogTitle");
 
-        public string WatchMetricsText => string.Format(CultureInfo.CurrentCulture, T("WatchMetricsTemplate"), WatchProcessedCount, WatchFailureCount);
+        public string WatchMetricsText => _conversionTextPresenter.BuildWatchMetricsText(_watchRuntimeStatus, T);
 
         public string TraySettingsTitleText => T("TraySettingsTitle");
 
@@ -114,7 +114,7 @@ namespace ImvixPro.ViewModels
             WatchIncludeSubfolders = watchProfile.IncludeSubfolders;
             KeepRunningInTray = preferences.KeepRunningInTray;
             RunOnStartup = preferences.RunOnStartup;
-            WatchStatusText = T("WatchStatusStopped");
+            ApplyWatchRuntimeStatus(_conversionStatusSummaryService.CreateStoppedWatchRuntimeStatus(0, 0));
 
             LoadRecentConversionHistory();
             RefreshConversionInsights();
@@ -123,7 +123,7 @@ namespace ImvixPro.ViewModels
 
         private async Task CompleteVersion3InitializationAsync()
         {
-            RefreshWatchStatus();
+            RefreshWatchStatus(resetTerminalState: true);
             RefreshConversionInsights();
 
             if (WatchModeEnabled)
@@ -142,39 +142,60 @@ namespace ImvixPro.ViewModels
             _systemIntegrationService.SetRunOnStartup(RunOnStartup);
         }
 
-        private void RefreshWatchStatus()
+        private void ApplyWatchRuntimeStatus(WatchRuntimeStatusSummary status)
+        {
+            ArgumentNullException.ThrowIfNull(status);
+
+            _watchRuntimeStatus = status;
+            WatchProcessedCount = status.ProcessedCount;
+            WatchFailureCount = status.FailureCount;
+            WatchCurrentFile = status.CurrentItemName;
+            IsWatchProcessing = status.IsProcessing;
+            WatchStatusText = _conversionTextPresenter.BuildWatchStatusText(status, T);
+            OnPropertyChanged(nameof(WatchMetricsText));
+        }
+
+        private void RefreshWatchStatus(bool resetTerminalState = false)
+        {
+            if (!resetTerminalState &&
+                _watchRuntimeStatus.State is WatchRuntimeState.Processing or WatchRuntimeState.LastCompletion or WatchRuntimeState.Error)
+            {
+                ApplyWatchRuntimeStatus(_watchRuntimeStatus with { WatchDirectory = WatchInputDirectory });
+                OnPropertyChanged(nameof(IsWatchModeRunning));
+                return;
+            }
+
+            ApplyWatchRuntimeStatus(BuildBaselineWatchRuntimeStatus());
+            OnPropertyChanged(nameof(IsWatchModeRunning));
+        }
+
+        private WatchRuntimeStatusSummary BuildBaselineWatchRuntimeStatus()
         {
             if (!WatchModeEnabled)
             {
-                WatchStatusText = T("WatchStatusStopped");
-                OnPropertyChanged(nameof(IsWatchModeRunning));
-                return;
-            }
-
-            if (IsWatchProcessing && !string.IsNullOrWhiteSpace(WatchCurrentFile))
-            {
-                WatchStatusText = string.Format(CultureInfo.CurrentCulture, T("WatchStatusProcessing"), WatchCurrentFile);
-                OnPropertyChanged(nameof(IsWatchModeRunning));
-                return;
-            }
-
-            if (_folderWatchService.IsRunning)
-            {
-                WatchStatusText = string.Format(CultureInfo.CurrentCulture, T("WatchStatusRunning"), WatchInputDirectory);
-                OnPropertyChanged(nameof(IsWatchModeRunning));
-                return;
+                return _conversionStatusSummaryService.CreateStoppedWatchRuntimeStatus(
+                    _watchRuntimeStatus.ProcessedCount,
+                    _watchRuntimeStatus.FailureCount);
             }
 
             if (!TryValidateWatchConfiguration(out var validationMessage))
             {
-                WatchStatusText = validationMessage;
-            }
-            else
-            {
-                WatchStatusText = T("WatchStatusWaiting");
+                return _conversionStatusSummaryService.CreateWatchValidationErrorStatus(
+                    validationMessage,
+                    WatchInputDirectory,
+                    _watchRuntimeStatus.ProcessedCount,
+                    _watchRuntimeStatus.FailureCount);
             }
 
-            OnPropertyChanged(nameof(IsWatchModeRunning));
+            return _folderWatchService.IsRunning
+                ? _conversionStatusSummaryService.CreateRunningWatchRuntimeStatus(
+                    WatchInputDirectory,
+                    _watchRuntimeStatus.ProcessedCount,
+                    _watchRuntimeStatus.FailureCount)
+                : _conversionStatusSummaryService.CreateWaitingWatchRuntimeStatus(
+                    WatchInputDirectory,
+                    _watchRuntimeStatus.ProcessedCount,
+                    _watchRuntimeStatus.FailureCount);
         }
 
         private async Task ReconfigureWatchModeAsync()
@@ -189,13 +210,17 @@ namespace ImvixPro.ViewModels
 
                 if (!WatchModeEnabled)
                 {
-                    RefreshWatchStatus();
+                    RefreshWatchStatus(resetTerminalState: true);
                     return;
                 }
 
                 if (!TryValidateWatchConfiguration(out var validationMessage))
                 {
-                    WatchStatusText = validationMessage;
+                    ApplyWatchRuntimeStatus(_conversionStatusSummaryService.CreateWatchValidationErrorStatus(
+                        validationMessage,
+                        WatchInputDirectory,
+                        _watchRuntimeStatus.ProcessedCount,
+                        _watchRuntimeStatus.FailureCount));
                     OnPropertyChanged(nameof(IsWatchModeRunning));
                     return;
                 }
@@ -210,11 +235,15 @@ namespace ImvixPro.ViewModels
                 _folderWatchService.Start(WatchInputDirectory, WatchIncludeSubfolders);
                 PersistSettings();
                 RefreshWatchProfileSummary();
-                RefreshWatchStatus();
+                RefreshWatchStatus(resetTerminalState: true);
             }
             catch (Exception ex)
             {
-                WatchStatusText = string.Format(CultureInfo.CurrentCulture, T("WatchStatusErrorTemplate"), ex.Message);
+                ApplyWatchRuntimeStatus(_conversionStatusSummaryService.CreateWatchErrorStatus(
+                    ex.Message,
+                    WatchInputDirectory,
+                    _watchRuntimeStatus.ProcessedCount,
+                    _watchRuntimeStatus.FailureCount));
                 OnPropertyChanged(nameof(IsWatchModeRunning));
             }
             finally
@@ -295,14 +324,21 @@ namespace ImvixPro.ViewModels
 
                 if (!TryCreateInputItem(path, out item, out var error, generateThumbnail: false) || item is null)
                 {
-                    WatchFailureCount++;
-                    WatchStatusText = string.Format(CultureInfo.CurrentCulture, T("WatchStatusSingleFailureTemplate"), Path.GetFileName(path), TranslateInputError(error));
+                    var nextFailureCount = _watchRuntimeStatus.FailureCount + 1;
+                    ApplyWatchRuntimeStatus(_conversionStatusSummaryService.CreateWatchErrorStatus(
+                        TranslateInputError(error),
+                        WatchInputDirectory,
+                        _watchRuntimeStatus.ProcessedCount,
+                        nextFailureCount,
+                        Path.GetFileName(path)));
                     return;
                 }
 
-                IsWatchProcessing = true;
-                WatchCurrentFile = item.FileName;
-                RefreshWatchStatus();
+                ApplyWatchRuntimeStatus(_conversionStatusSummaryService.CreateWatchProcessingStatus(
+                    new RuntimeStatusSummary("StatusConverting", item.FileName, 0, 0),
+                    WatchInputDirectory,
+                    _watchRuntimeStatus.ProcessedCount,
+                    _watchRuntimeStatus.FailureCount));
 
                 var snapshot = new System.Collections.Generic.List<ImageItemViewModel> { item };
                 var watchProfile = BuildConfiguredWatchProfile();
@@ -310,8 +346,19 @@ namespace ImvixPro.ViewModels
                 var estimate = _imageAnalysisService.Estimate(snapshot, options);
                 var progress = new Progress<ConversionProgress>(p =>
                 {
-                    WatchCurrentFile = p.FileName;
-                    RefreshWatchStatus();
+                    var progressPercent = p.TotalCount == 0
+                        ? 0
+                        : 100d * p.ProcessedCount / p.TotalCount;
+                    var runtimeStatus = _conversionStatusSummaryService.CreateProgressRuntimeStatus(
+                        p,
+                        options,
+                        Math.Max(0, p.TotalFileCount - p.ProcessedFileCount),
+                        progressPercent);
+                    ApplyWatchRuntimeStatus(_conversionStatusSummaryService.CreateWatchProcessingStatus(
+                        runtimeStatus,
+                        WatchInputDirectory,
+                        _watchRuntimeStatus.ProcessedCount,
+                        _watchRuntimeStatus.FailureCount));
                 });
 
                 var summary = await _conversionPipelineService.ConvertAsync(snapshot, options, progress, pauseController: null, cancellationToken: cancellation.Token);
@@ -325,37 +372,35 @@ namespace ImvixPro.ViewModels
                     logPath);
                 AppendHistory(completionSummary);
 
-                if (summary.FailureCount > 0)
-                {
-                    WatchFailureCount += summary.FailureCount;
-                    WatchStatusText = string.Format(CultureInfo.CurrentCulture, T("WatchStatusSingleFailureTemplate"), item.FileName, summary.Failures[0].Reason);
-                }
-                else
-                {
-                    WatchProcessedCount += summary.SuccessCount;
-                    WatchStatusText = string.Format(CultureInfo.CurrentCulture, T("WatchStatusProcessedTemplate"), item.FileName);
-                }
+                ApplyWatchRuntimeStatus(_conversionStatusSummaryService.CreateWatchCompletionStatus(
+                    completionSummary,
+                    item.FileName,
+                    summary.FailureCount > 0 ? summary.Failures[0].Reason : string.Empty,
+                    WatchInputDirectory,
+                    _watchRuntimeStatus.ProcessedCount + summary.SuccessCount,
+                    _watchRuntimeStatus.FailureCount + summary.FailureCount));
             }
             catch (OperationCanceledException)
             {
-                RefreshWatchStatus();
+                RefreshWatchStatus(resetTerminalState: true);
             }
             catch (Exception ex)
             {
-                WatchFailureCount++;
-                WatchStatusText = string.Format(CultureInfo.CurrentCulture, T("WatchStatusErrorTemplate"), ex.Message);
+                ApplyWatchRuntimeStatus(_conversionStatusSummaryService.CreateWatchErrorStatus(
+                    ex.Message,
+                    WatchInputDirectory,
+                    _watchRuntimeStatus.ProcessedCount,
+                    _watchRuntimeStatus.FailureCount + 1,
+                    item?.FileName ?? Path.GetFileName(path)));
             }
             finally
             {
                 item?.Dispose();
-                IsWatchProcessing = false;
-                WatchCurrentFile = string.Empty;
                 _watchProcessingGate.Release();
-                OnPropertyChanged(nameof(WatchMetricsText));
 
                 if (!WatchModeEnabled || cancellation.IsCancellationRequested)
                 {
-                    RefreshWatchStatus();
+                    RefreshWatchStatus(resetTerminalState: true);
                 }
                 else
                 {
@@ -492,7 +537,7 @@ namespace ImvixPro.ViewModels
                 return;
             }
 
-            RefreshWatchStatus();
+            RefreshWatchStatus(resetTerminalState: true);
         }
 
         private string BuildWatchHintText()

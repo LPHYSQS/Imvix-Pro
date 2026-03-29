@@ -51,11 +51,13 @@ namespace ImvixPro.ViewModels
         private readonly ImageConversionService _imageConversionService;
         private readonly ConversionPlanningService _conversionPlanningService;
         private readonly ConversionStatusSummaryService _conversionStatusSummaryService;
+        private readonly ConversionTextPresenter _conversionTextPresenter;
         private readonly WatchProfilePlanningService _watchProfilePlanningService;
         private readonly PdfSecurityService _pdfSecurityService;
         private readonly AppLogger _logger;
         private ConversionJobDefinition? _watchJobDefinitionSnapshot;
         private RuntimeStatusSummary _manualRuntimeStatus = new("StatusReady", string.Empty, 0, 0);
+        private WatchRuntimeStatusSummary _watchRuntimeStatus = new(WatchRuntimeState.Stopped, 0, 0, string.Empty);
 
         private string _statusKey = "StatusReady";
         private bool _isLoadingSettings;
@@ -87,6 +89,7 @@ namespace ImvixPro.ViewModels
             _imageAnalysisService = services.ImageAnalysisService ?? throw new ArgumentNullException(nameof(services.ImageAnalysisService));
             _conversionPlanningService = services.ConversionPlanningService ?? throw new ArgumentNullException(nameof(services.ConversionPlanningService));
             _conversionStatusSummaryService = services.ConversionStatusSummaryService ?? throw new ArgumentNullException(nameof(services.ConversionStatusSummaryService));
+            _conversionTextPresenter = services.ConversionTextPresenter ?? throw new ArgumentNullException(nameof(services.ConversionTextPresenter));
             _watchProfilePlanningService = services.WatchProfilePlanningService ?? throw new ArgumentNullException(nameof(services.WatchProfilePlanningService));
             _conversionPipelineService = services.ConversionPipelineService ?? throw new ArgumentNullException(nameof(services.ConversionPipelineService));
             _conversionHistoryService = services.ConversionHistoryService ?? throw new ArgumentNullException(nameof(services.ConversionHistoryService));

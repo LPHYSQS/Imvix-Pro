@@ -112,6 +112,99 @@ namespace ImvixPro.Services
                 entry.FailureLogPath);
         }
 
+        public WatchRuntimeStatusSummary CreateStoppedWatchRuntimeStatus(int processedCount, int failureCount)
+        {
+            return new WatchRuntimeStatusSummary(
+                WatchRuntimeState.Stopped,
+                Math.Max(0, processedCount),
+                Math.Max(0, failureCount),
+                string.Empty);
+        }
+
+        public WatchRuntimeStatusSummary CreateWaitingWatchRuntimeStatus(string watchDirectory, int processedCount, int failureCount)
+        {
+            return new WatchRuntimeStatusSummary(
+                WatchRuntimeState.Waiting,
+                Math.Max(0, processedCount),
+                Math.Max(0, failureCount),
+                watchDirectory ?? string.Empty);
+        }
+
+        public WatchRuntimeStatusSummary CreateRunningWatchRuntimeStatus(string watchDirectory, int processedCount, int failureCount)
+        {
+            return new WatchRuntimeStatusSummary(
+                WatchRuntimeState.Running,
+                Math.Max(0, processedCount),
+                Math.Max(0, failureCount),
+                watchDirectory ?? string.Empty);
+        }
+
+        public WatchRuntimeStatusSummary CreateWatchProcessingStatus(
+            RuntimeStatusSummary runtimeStatus,
+            string watchDirectory,
+            int processedCount,
+            int failureCount)
+        {
+            ArgumentNullException.ThrowIfNull(runtimeStatus);
+
+            return new WatchRuntimeStatusSummary(
+                WatchRuntimeState.Processing,
+                Math.Max(0, processedCount),
+                Math.Max(0, failureCount),
+                watchDirectory ?? string.Empty,
+                ActiveConversion: runtimeStatus);
+        }
+
+        public WatchRuntimeStatusSummary CreateWatchCompletionStatus(
+            CompletionSummaryModel summary,
+            string itemName,
+            string detailMessage,
+            string watchDirectory,
+            int processedCount,
+            int failureCount)
+        {
+            ArgumentNullException.ThrowIfNull(summary);
+
+            return new WatchRuntimeStatusSummary(
+                WatchRuntimeState.LastCompletion,
+                Math.Max(0, processedCount),
+                Math.Max(0, failureCount),
+                watchDirectory ?? string.Empty,
+                LastCompletion: summary,
+                LastItemName: itemName ?? string.Empty,
+                DetailMessage: detailMessage ?? string.Empty);
+        }
+
+        public WatchRuntimeStatusSummary CreateWatchValidationErrorStatus(
+            string validationMessage,
+            string watchDirectory,
+            int processedCount,
+            int failureCount)
+        {
+            return new WatchRuntimeStatusSummary(
+                WatchRuntimeState.ValidationError,
+                Math.Max(0, processedCount),
+                Math.Max(0, failureCount),
+                watchDirectory ?? string.Empty,
+                DetailMessage: validationMessage ?? string.Empty);
+        }
+
+        public WatchRuntimeStatusSummary CreateWatchErrorStatus(
+            string errorMessage,
+            string watchDirectory,
+            int processedCount,
+            int failureCount,
+            string itemName = "")
+        {
+            return new WatchRuntimeStatusSummary(
+                WatchRuntimeState.Error,
+                Math.Max(0, processedCount),
+                Math.Max(0, failureCount),
+                watchDirectory ?? string.Empty,
+                LastItemName: itemName ?? string.Empty,
+                DetailMessage: errorMessage ?? string.Empty);
+        }
+
         private static bool ShouldShowGifPdfFrameProgress(ConversionProgress progress, ConversionOptions options)
         {
             return options.OutputFormat == OutputImageFormat.Pdf &&

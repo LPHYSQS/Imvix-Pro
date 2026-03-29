@@ -17,6 +17,7 @@ namespace ImvixPro.Services
         private static readonly Lazy<ImageAnalysisService> ImageAnalysisServiceFactory = new(static () => new ImageAnalysisService());
         private static readonly Lazy<ConversionPlanningService> ConversionPlanningServiceFactory = new(static () => new ConversionPlanningService(ImageAnalysisServiceFactory.Value));
         private static readonly Lazy<ConversionStatusSummaryService> ConversionStatusSummaryServiceFactory = new(static () => new ConversionStatusSummaryService());
+        private static readonly Lazy<ConversionTextPresenter> ConversionTextPresenterFactory = new(static () => new ConversionTextPresenter());
         private static readonly Lazy<WatchProfilePlanningService> WatchProfilePlanningServiceFactory = new(static () => new WatchProfilePlanningService(ConversionPlanningServiceFactory.Value));
         private static readonly Lazy<AiImageEnhancementService> AiImageEnhancementServiceFactory = new(static () => new AiImageEnhancementService());
         private static readonly Lazy<AiMattingService> AiMattingServiceFactory = new(static () => new AiMattingService(LoggerFactory.Value));
@@ -48,6 +49,8 @@ namespace ImvixPro.Services
         public static ConversionPlanningService ConversionPlanningService => ConversionPlanningServiceFactory.Value;
 
         public static ConversionStatusSummaryService ConversionStatusSummaryService => ConversionStatusSummaryServiceFactory.Value;
+
+        public static ConversionTextPresenter ConversionTextPresenter => ConversionTextPresenterFactory.Value;
 
         public static WatchProfilePlanningService WatchProfilePlanningService => WatchProfilePlanningServiceFactory.Value;
 
@@ -92,6 +95,7 @@ namespace ImvixPro.Services
                 ImageAnalysisService,
                 ConversionPlanningService,
                 ConversionStatusSummaryService,
+                ConversionTextPresenter,
                 WatchProfilePlanningService,
                 ConversionPipelineService,
                 ConversionHistoryService,

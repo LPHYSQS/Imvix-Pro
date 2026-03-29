@@ -369,29 +369,9 @@ namespace ImvixPro.ViewModels
             _manualRuntimeStatus = status;
             _statusKey = status.StatusKey;
             StatusText = T(status.StatusKey);
-            CurrentFile = FormatRuntimeCurrentItemText(status);
+            CurrentFile = _conversionTextPresenter.BuildRuntimeCurrentItemText(status, T);
             RemainingCount = Math.Max(0, status.RemainingCount);
             ProgressPercent = Math.Clamp(status.ProgressPercent, 0d, 100d);
-        }
-
-        private string FormatRuntimeCurrentItemText(RuntimeStatusSummary status)
-        {
-            if (!status.HasCurrentItem)
-            {
-                return T("NoCurrentFile");
-            }
-
-            if (!status.HasCurrentSubItemProgress)
-            {
-                return status.CurrentItemName;
-            }
-
-            return string.Format(
-                CultureInfo.CurrentCulture,
-                T("GifPdfProgressTemplate"),
-                status.CurrentItemName,
-                status.CurrentSubItemIndex.GetValueOrDefault(),
-                status.CurrentSubItemCount.GetValueOrDefault());
         }
 
         private string BuildRecommendationFormatsText(ImageAnalysisResult analysis)
@@ -460,12 +440,8 @@ namespace ImvixPro.ViewModels
         {
             var summary = _conversionStatusSummaryService.CreateCompletionSummary(entry);
             var timestampText = entry.Timestamp.LocalDateTime.ToString("g", CultureInfo.CurrentCulture);
-            var sourceText = summary.Source == ConversionTriggerSource.Manual ? T("HistorySourceManual") : T("HistorySourceWatch");
-            var formatText = FormatOutputFormat(summary.OutputFormat);
-            var summaryText = summary.WasCanceled
-                ? string.Format(CultureInfo.CurrentCulture, T("HistorySummaryCanceledTemplate"), sourceText, formatText, summary.ProcessedCount, summary.TotalCount)
-                : string.Format(CultureInfo.CurrentCulture, T("HistorySummaryTemplate"), sourceText, formatText, summary.TotalCount, summary.SuccessCount, summary.FailureCount);
-            var detailText = string.Format(CultureInfo.CurrentCulture, T("HistoryDetailTemplate"), FormatBytes(summary.OriginalTotalBytes), FormatBytesRange(summary.EstimatedMinBytes, summary.EstimatedMaxBytes), FormatDuration(summary.Duration));
+            var summaryText = _conversionTextPresenter.BuildHistorySummaryText(summary, T);
+            var detailText = _conversionTextPresenter.BuildHistoryDetailText(summary, T);
 
             return new RecentConversionItem
             {

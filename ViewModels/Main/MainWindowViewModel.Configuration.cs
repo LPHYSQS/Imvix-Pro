@@ -611,16 +611,6 @@ namespace ImvixPro.ViewModels
                    extension.Equals(".lnk", StringComparison.OrdinalIgnoreCase);
         }
 
-        private static string FormatDuration(TimeSpan duration)
-        {
-            if (duration.TotalHours >= 1)
-            {
-                return string.Create(CultureInfo.InvariantCulture, $"{(int)duration.TotalHours}:{duration.Minutes:00}:{duration.Seconds:00}");
-            }
-
-            return string.Create(CultureInfo.InvariantCulture, $"{duration.Minutes:00}:{duration.Seconds:00}.{duration.Milliseconds / 10:00}");
-        }
-
         private void TryOpenOutputFolder(IReadOnlyList<string> outputFolders, bool hasOutput)
         {
             if (!hasOutput || !AutoOpenOutputDirectory)

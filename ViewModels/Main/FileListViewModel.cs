@@ -91,16 +91,7 @@ namespace ImvixPro.ViewModels
 
         public string BuildConversionSummaryText(CompletionSummaryModel summary)
         {
-            var processedLine = summary.WasCanceled
-                ? $"\n{T("SummaryProcessed")}: {summary.ProcessedCount}"
-                : string.Empty;
-            var canceledLine = summary.WasCanceled
-                ? $"\n{T("SummaryCanceled")}: {T("YesText")}"
-                : string.Empty;
-
-            return string.Create(
-                CultureInfo.InvariantCulture,
-                $"{SummaryTotalText}: {summary.TotalCount}{processedLine}\n{SummarySuccessText}: {summary.SuccessCount}\n{SummaryFailedText}: {summary.FailureCount}{canceledLine}\n{SummaryDurationText}: {FormatDuration(summary.Duration)}");
+            return _conversionTextPresenter.BuildCompletionSummaryText(summary, T);
         }
 
         [RelayCommand(CanExecute = nameof(CanClearImages))]
