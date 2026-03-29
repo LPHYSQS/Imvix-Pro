@@ -317,7 +317,13 @@ namespace ImvixPro.ViewModels
                 var summary = await _conversionPipelineService.ConvertAsync(snapshot, options, progress, pauseController: null, cancellationToken: cancellation.Token);
 
                 var logPath = _conversionLogService.WriteFailureLog(summary, options, snapshot, ConversionTriggerSource.Watch);
-                AppendHistory(summary, options, estimate, logPath, ConversionTriggerSource.Watch);
+                var completionSummary = _conversionStatusSummaryService.CreateCompletionSummary(
+                    summary,
+                    ConversionTriggerSource.Watch,
+                    options.OutputFormat,
+                    estimate,
+                    logPath);
+                AppendHistory(completionSummary);
 
                 if (summary.FailureCount > 0)
                 {

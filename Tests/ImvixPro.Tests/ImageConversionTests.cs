@@ -134,4 +134,64 @@ public sealed class ImageConversionTests
         Assert.False(plan.Diagnostics.EstimateDisclaimer.IncludesAiScaleAdjustment);
         Assert.True(plan.Diagnostics.EstimateDisclaimer.IncludesExpandedOutputs);
     }
+
+    [Fact]
+    public void RuntimeStatusSummary_SeparatesGifPdfFrameProgressFromCompletionState()
+    {
+        var summaryService = new ConversionStatusSummaryService();
+        var runtime = summaryService.CreateProgressRuntimeStatus(
+            new ConversionProgress(
+                processedCount: 12,
+                totalCount: 24,
+                processedFileCount: 0,
+                totalFileCount: 1,
+                fileName: "animated.gif",
+                currentFileProcessedCount: 12,
+                currentFileTotalCount: 48,
+                isFileCompleted: false,
+                succeeded: false,
+                error: null,
+                stage: ConversionStage.Conversion),
+            new ConversionOptions
+            {
+                OutputFormat = OutputImageFormat.Pdf
+            },
+            remainingCount: 1,
+            progressPercent: 50);
+
+        Assert.Equal("StatusProcessingGifFrames", runtime.StatusKey);
+        Assert.Equal("animated.gif", runtime.CurrentItemName);
+        Assert.True(runtime.HasCurrentSubItemProgress);
+        Assert.Equal(12, runtime.CurrentSubItemIndex);
+        Assert.Equal(48, runtime.CurrentSubItemCount);
+    }
+
+    [Fact]
+    public void CompletionSummaryModel_ReusesSharedCountsAcrossDialogAndHistory()
+    {
+        var summaryService = new ConversionStatusSummaryService();
+        var completion = summaryService.CreateCompletionSummary(
+            new ConversionSummary(
+                totalCount: 9,
+                processedCount: 7,
+                successCount: 5,
+                failures: [new ConversionFailure("a.png", "failed"), new ConversionFailure("b.png", "failed")],
+                outputDirectories: [],
+                duration: TimeSpan.FromSeconds(18),
+                wasCanceled: true),
+            ConversionTriggerSource.Manual,
+            OutputImageFormat.Webp,
+            new SizeEstimateResult(true, 2_048, 1_024, 1_536),
+            @"C:\logs\failures.txt");
+
+        Assert.Equal(ConversionTriggerSource.Manual, completion.Source);
+        Assert.Equal(OutputImageFormat.Webp, completion.OutputFormat);
+        Assert.Equal(9, completion.TotalCount);
+        Assert.Equal(7, completion.ProcessedCount);
+        Assert.Equal(5, completion.SuccessCount);
+        Assert.Equal(2, completion.FailureCount);
+        Assert.True(completion.WasCanceled);
+        Assert.Equal(2, completion.RemainingCount);
+        Assert.True(completion.HasFailureLog);
+    }
 }

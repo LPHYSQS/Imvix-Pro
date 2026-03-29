@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -114,7 +113,7 @@ namespace ImvixPro.ViewModels
 
                 if (!proceed)
                 {
-                    SetStatus("StatusReady");
+                    ApplyManualRuntimeStatus(_conversionStatusSummaryService.CreateReadyRuntimeStatus());
                     return;
                 }
             }
@@ -127,10 +126,7 @@ namespace ImvixPro.ViewModels
             IsConverting = true;
             LastFailureLogPath = string.Empty;
             FailedConversions.Clear();
-            ProgressPercent = 0;
-            RemainingCount = Images.Count;
-            CurrentFile = T("NoCurrentFile");
-            SetStatus("StatusConverting");
+            ApplyManualRuntimeStatus(_conversionStatusSummaryService.CreatePendingRuntimeStatus(Images.Count));
 
             var snapshot = Images.ToList();
             var options = BuildCurrentConversionOptions();
@@ -140,15 +136,15 @@ namespace ImvixPro.ViewModels
             {
                 var progress = new Progress<ConversionProgress>(p =>
                 {
-                    CurrentFile = BuildProgressFileText(p, options);
-                    StatusText = p.Stage == ConversionStage.AiEnhancement
-                        ? T("StatusAiEnhancing")
-                        : ShouldShowGifPdfFrameProgress(p, options)
-                        ? T("StatusProcessingGifFrames")
-                        : T(_statusKey);
-                    RemainingCount = Math.Min(RemainingCount, Math.Max(0, p.TotalFileCount - p.ProcessedFileCount));
                     var nextPercent = p.TotalCount == 0 ? 0 : 100d * p.ProcessedCount / p.TotalCount;
-                    ProgressPercent = Math.Max(ProgressPercent, nextPercent);
+                    var nextRemainingCount = Math.Min(RemainingCount, Math.Max(0, p.TotalFileCount - p.ProcessedFileCount));
+
+                    ApplyManualRuntimeStatus(
+                        _conversionStatusSummaryService.CreateProgressRuntimeStatus(
+                            p,
+                            options,
+                            nextRemainingCount,
+                            Math.Max(ProgressPercent, nextPercent)));
                 });
 
                 var summary = await _conversionPipelineService.ConvertAsync(
@@ -163,40 +159,41 @@ namespace ImvixPro.ViewModels
                     FailedConversions.Add(failure);
                 }
 
-                CurrentFile = summary.WasCanceled
-                    ? string.Format(CultureInfo.InvariantCulture, T("TaskSummaryCanceledInlineTemplate"), summary.ProcessedCount, summary.SuccessCount, summary.FailureCount)
-                    : string.Format(CultureInfo.InvariantCulture, T("TaskSummaryInlineTemplate"), summary.SuccessCount, summary.FailureCount, FormatDuration(summary.Duration));
-
-                RemainingCount = Math.Max(0, summary.TotalCount - summary.ProcessedCount);
-
-                if (summary.WasCanceled)
-                {
-                    SetStatus("StatusCanceled");
-                }
-                else if (summary.FailureCount > 0)
-                {
-                    SetStatus("StatusCompletedWithFailures");
-                }
-                else
-                {
-                    SetStatus("StatusCompleted");
-                }
-
                 var logPath = _conversionLogService.WriteFailureLog(summary, options, snapshot, ConversionTriggerSource.Manual);
-                LastFailureLogPath = logPath ?? string.Empty;
-                AppendHistory(summary, options, estimate, logPath, ConversionTriggerSource.Manual);
+                var completionSummary = _conversionStatusSummaryService.CreateCompletionSummary(
+                    summary,
+                    ConversionTriggerSource.Manual,
+                    options.OutputFormat,
+                    estimate,
+                    logPath);
 
-                ConversionCompleted?.Invoke(this, summary);
+                ApplyManualRuntimeStatus(_conversionStatusSummaryService.CreateCompletionRuntimeStatus(completionSummary));
+                LastFailureLogPath = completionSummary.FailureLogPath;
+                AppendHistory(completionSummary);
+
+                ConversionCompleted?.Invoke(this, completionSummary);
                 TryOpenOutputFolder(summary.OutputDirectories, summary.SuccessCount > 0);
             }
             catch (OperationCanceledException)
             {
-                SetStatus("StatusCanceled");
+                ApplyManualRuntimeStatus(_manualRuntimeStatus with
+                {
+                    StatusKey = "StatusCanceled",
+                    CurrentItemName = string.Empty,
+                    CurrentSubItemIndex = null,
+                    CurrentSubItemCount = null
+                });
             }
             catch (Exception ex)
             {
                 FailedConversions.Add(new ConversionFailure("System", ex.Message));
-                SetStatus("StatusUnexpectedError");
+                ApplyManualRuntimeStatus(_manualRuntimeStatus with
+                {
+                    StatusKey = "StatusUnexpectedError",
+                    CurrentItemName = string.Empty,
+                    CurrentSubItemIndex = null,
+                    CurrentSubItemCount = null
+                });
             }
             finally
             {
@@ -365,30 +362,36 @@ namespace ImvixPro.ViewModels
                     .Concat(EnumerateRuntimeWarningTexts(includePerformanceHint: true)));
         }
 
-        private bool ShouldShowGifPdfFrameProgress(ConversionProgress progress, ConversionOptions options)
+        private void ApplyManualRuntimeStatus(RuntimeStatusSummary status)
         {
-            return options.OutputFormat == OutputImageFormat.Pdf &&
-                   progress.CurrentFileTotalCount > 1 &&
-                   Path.GetExtension(progress.FileName).Equals(".gif", StringComparison.OrdinalIgnoreCase);
+            ArgumentNullException.ThrowIfNull(status);
+
+            _manualRuntimeStatus = status;
+            _statusKey = status.StatusKey;
+            StatusText = T(status.StatusKey);
+            CurrentFile = FormatRuntimeCurrentItemText(status);
+            RemainingCount = Math.Max(0, status.RemainingCount);
+            ProgressPercent = Math.Clamp(status.ProgressPercent, 0d, 100d);
         }
 
-        private string BuildProgressFileText(ConversionProgress progress, ConversionOptions options)
+        private string FormatRuntimeCurrentItemText(RuntimeStatusSummary status)
         {
-            if (!ShouldShowGifPdfFrameProgress(progress, options))
+            if (!status.HasCurrentItem)
             {
-                return progress.FileName;
+                return T("NoCurrentFile");
             }
 
-            var frameNumber = progress.CurrentFileProcessedCount <= 0
-                ? 1
-                : Math.Min(progress.CurrentFileProcessedCount, progress.CurrentFileTotalCount);
+            if (!status.HasCurrentSubItemProgress)
+            {
+                return status.CurrentItemName;
+            }
 
             return string.Format(
                 CultureInfo.CurrentCulture,
                 T("GifPdfProgressTemplate"),
-                progress.FileName,
-                frameNumber,
-                progress.CurrentFileTotalCount);
+                status.CurrentItemName,
+                status.CurrentSubItemIndex.GetValueOrDefault(),
+                status.CurrentSubItemCount.GetValueOrDefault());
         }
 
         private string BuildRecommendationFormatsText(ImageAnalysisResult analysis)
@@ -455,46 +458,41 @@ namespace ImvixPro.ViewModels
 
         private RecentConversionItem BuildHistoryItem(ConversionHistoryEntry entry)
         {
+            var summary = _conversionStatusSummaryService.CreateCompletionSummary(entry);
             var timestampText = entry.Timestamp.LocalDateTime.ToString("g", CultureInfo.CurrentCulture);
-            var sourceText = entry.Source == ConversionTriggerSource.Manual ? T("HistorySourceManual") : T("HistorySourceWatch");
-            var formatText = FormatOutputFormat(entry.OutputFormat);
-            var duration = TimeSpan.FromMilliseconds(Math.Max(0, entry.DurationMilliseconds));
-            var summaryText = entry.WasCanceled
-                ? string.Format(CultureInfo.CurrentCulture, T("HistorySummaryCanceledTemplate"), sourceText, formatText, entry.ProcessedCount, entry.TotalCount)
-                : string.Format(CultureInfo.CurrentCulture, T("HistorySummaryTemplate"), sourceText, formatText, entry.TotalCount, entry.SuccessCount, entry.FailureCount);
-            var detailText = string.Format(CultureInfo.CurrentCulture, T("HistoryDetailTemplate"), FormatBytes(entry.OriginalTotalBytes), FormatBytesRange(entry.EstimatedMinBytes, entry.EstimatedMaxBytes), FormatDuration(duration));
+            var sourceText = summary.Source == ConversionTriggerSource.Manual ? T("HistorySourceManual") : T("HistorySourceWatch");
+            var formatText = FormatOutputFormat(summary.OutputFormat);
+            var summaryText = summary.WasCanceled
+                ? string.Format(CultureInfo.CurrentCulture, T("HistorySummaryCanceledTemplate"), sourceText, formatText, summary.ProcessedCount, summary.TotalCount)
+                : string.Format(CultureInfo.CurrentCulture, T("HistorySummaryTemplate"), sourceText, formatText, summary.TotalCount, summary.SuccessCount, summary.FailureCount);
+            var detailText = string.Format(CultureInfo.CurrentCulture, T("HistoryDetailTemplate"), FormatBytes(summary.OriginalTotalBytes), FormatBytesRange(summary.EstimatedMinBytes, summary.EstimatedMaxBytes), FormatDuration(summary.Duration));
 
             return new RecentConversionItem
             {
                 TimestampText = timestampText,
                 SummaryText = summaryText,
                 DetailText = detailText,
-                FailureLogPath = entry.FailureLogPath
+                FailureLogPath = summary.FailureLogPath
             };
         }
 
-        private void AppendHistory(
-            ConversionSummary summary,
-            ConversionOptions options,
-            SizeEstimateResult estimate,
-            string? failureLogPath,
-            ConversionTriggerSource source)
+        private void AppendHistory(CompletionSummaryModel summary)
         {
             var updated = _conversionHistoryService.Append(new ConversionHistoryEntry
             {
                 Timestamp = DateTimeOffset.Now,
-                Source = source,
-                OutputFormat = options.OutputFormat,
+                Source = summary.Source,
+                OutputFormat = summary.OutputFormat,
                 TotalCount = summary.TotalCount,
                 ProcessedCount = summary.ProcessedCount,
                 SuccessCount = summary.SuccessCount,
                 FailureCount = summary.FailureCount,
-                OriginalTotalBytes = estimate.OriginalTotalBytes,
-                EstimatedMinBytes = estimate.EstimatedMinBytes,
-                EstimatedMaxBytes = estimate.EstimatedMaxBytes,
+                OriginalTotalBytes = summary.OriginalTotalBytes,
+                EstimatedMinBytes = summary.EstimatedMinBytes,
+                EstimatedMaxBytes = summary.EstimatedMaxBytes,
                 DurationMilliseconds = summary.Duration.TotalMilliseconds,
                 WasCanceled = summary.WasCanceled,
-                FailureLogPath = failureLogPath ?? string.Empty
+                FailureLogPath = summary.FailureLogPath
             });
 
             ReplaceHistory(updated);
@@ -553,7 +551,7 @@ namespace ImvixPro.ViewModels
         {
             _manualPauseController.Pause();
             IsConversionPaused = true;
-            SetStatus("StatusPaused");
+            ApplyManualRuntimeStatus(_manualRuntimeStatus with { StatusKey = "StatusPaused" });
         }
 
         [RelayCommand(CanExecute = nameof(CanResumeConversion))]
@@ -561,7 +559,7 @@ namespace ImvixPro.ViewModels
         {
             _manualPauseController.Resume();
             IsConversionPaused = false;
-            SetStatus("StatusConverting");
+            ApplyManualRuntimeStatus(_manualRuntimeStatus with { StatusKey = "StatusConverting" });
         }
 
         [RelayCommand(CanExecute = nameof(CanCancelConversion))]

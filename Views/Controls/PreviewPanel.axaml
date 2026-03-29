@@ -102,7 +102,7 @@
             </Border>
 
             <TextBlock Text="{Binding NoPreviewText}" Classes="secondary" />
-            <TextBlock Text="{Binding CurrentFile, StringFormat='{}{0}'}" TextTrimming="CharacterEllipsis" />
+            <TextBlock Text="{Binding PreviewSelectionFileText, StringFormat='{}{0}'}" TextTrimming="CharacterEllipsis" />
             <Border IsVisible="{Binding IsPreviewWindowHintVisible}"
                     Background="{DynamicResource SurfaceAltBrush}"
                     BorderBrush="{DynamicResource BorderBrush}"

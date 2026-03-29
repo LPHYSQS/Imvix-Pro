@@ -50,10 +50,12 @@ namespace ImvixPro.ViewModels
         private readonly LocalizationService _localizationService;
         private readonly ImageConversionService _imageConversionService;
         private readonly ConversionPlanningService _conversionPlanningService;
+        private readonly ConversionStatusSummaryService _conversionStatusSummaryService;
         private readonly WatchProfilePlanningService _watchProfilePlanningService;
         private readonly PdfSecurityService _pdfSecurityService;
         private readonly AppLogger _logger;
         private ConversionJobDefinition? _watchJobDefinitionSnapshot;
+        private RuntimeStatusSummary _manualRuntimeStatus = new("StatusReady", string.Empty, 0, 0);
 
         private string _statusKey = "StatusReady";
         private bool _isLoadingSettings;
@@ -68,7 +70,7 @@ namespace ImvixPro.ViewModels
         private int _gifPreviewIndex;
         private long _gifPreviewRequestId;
 
-        public event EventHandler<ConversionSummary>? ConversionCompleted;
+        public event EventHandler<CompletionSummaryModel>? ConversionCompleted;
 
         public MainWindowViewModel()
             : this(AppServices.CreateMainWindowViewModelServices())
@@ -84,6 +86,7 @@ namespace ImvixPro.ViewModels
             _imageConversionService = services.ImageConversionService ?? throw new ArgumentNullException(nameof(services.ImageConversionService));
             _imageAnalysisService = services.ImageAnalysisService ?? throw new ArgumentNullException(nameof(services.ImageAnalysisService));
             _conversionPlanningService = services.ConversionPlanningService ?? throw new ArgumentNullException(nameof(services.ConversionPlanningService));
+            _conversionStatusSummaryService = services.ConversionStatusSummaryService ?? throw new ArgumentNullException(nameof(services.ConversionStatusSummaryService));
             _watchProfilePlanningService = services.WatchProfilePlanningService ?? throw new ArgumentNullException(nameof(services.WatchProfilePlanningService));
             _conversionPipelineService = services.ConversionPipelineService ?? throw new ArgumentNullException(nameof(services.ConversionPipelineService));
             _conversionHistoryService = services.ConversionHistoryService ?? throw new ArgumentNullException(nameof(services.ConversionHistoryService));
@@ -162,10 +165,7 @@ namespace ImvixPro.ViewModels
             RefreshEnumOptions();
 
             RightPanelTabIndex = 0;
-            CurrentFile = T("NoCurrentFile");
-            RemainingCount = 0;
-            ProgressPercent = 0;
-            StatusText = T(_statusKey);
+            ApplyManualRuntimeStatus(_conversionStatusSummaryService.CreateReadyRuntimeStatus());
 
             _isLoadingSettings = false;
             RefreshLocalizedProperties();
@@ -331,6 +331,7 @@ namespace ImvixPro.ViewModels
 
         partial void OnSelectedImageChanged(ImageItemViewModel? value)
         {
+            OnPropertyChanged(nameof(PreviewSelectionFileText));
             CancelPendingPdfPreviewRender();
             CancelPendingSelectedPsdPreviewRender();
             ClearSelectedPreview();
@@ -408,8 +409,7 @@ namespace ImvixPro.ViewModels
             RefreshThemeOptions(SelectedTheme?.Code);
             RefreshLocalizedProperties();
             RefreshEnumOptions();
-            StatusText = T(_statusKey);
-            CurrentFile = T("NoCurrentFile");
+            ApplyManualRuntimeStatus(_manualRuntimeStatus);
             OnPropertyChanged(nameof(CurrentLanguageCode));
             OnPropertyChanged(nameof(IsSystemLanguageSelected));
             PersistSettings();

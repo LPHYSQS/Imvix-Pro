@@ -340,6 +340,7 @@ namespace ImvixPro.ViewModels
         private void SetStatus(string key)
         {
             _statusKey = key;
+            _manualRuntimeStatus = _manualRuntimeStatus with { StatusKey = key };
             StatusText = T(key);
         }
 
@@ -424,6 +425,7 @@ namespace ImvixPro.ViewModels
             OnPropertyChanged(nameof(PreviewTabText));
             OnPropertyChanged(nameof(SettingsTabText));
             OnPropertyChanged(nameof(NoPreviewText));
+            OnPropertyChanged(nameof(PreviewSelectionFileText));
             OnPropertyChanged(nameof(PreviewWindowHintText));
             OnPropertyChanged(nameof(StatusLabelText));
             OnPropertyChanged(nameof(CurrentFileLabelText));

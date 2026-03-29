@@ -149,7 +149,7 @@ namespace ImvixPro.Views
             }
         }
 
-        private async void OnConversionCompleted(object? sender, ConversionSummary summary)
+        private async void OnConversionCompleted(object? sender, CompletionSummaryModel summary)
         {
             if (!IsVisible)
             {

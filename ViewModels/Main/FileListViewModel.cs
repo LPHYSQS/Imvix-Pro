@@ -19,7 +19,7 @@ namespace ImvixPro.ViewModels
 
             if (candidates.Count == 0)
             {
-                SetStatus("StatusReady");
+                ApplyManualRuntimeStatus(_conversionStatusSummaryService.CreateReadyRuntimeStatus());
                 RefreshConversionInsights();
                 return;
             }
@@ -89,7 +89,7 @@ namespace ImvixPro.ViewModels
             UseSourceFolder = false;
         }
 
-        public string BuildConversionSummaryText(ConversionSummary summary)
+        public string BuildConversionSummaryText(CompletionSummaryModel summary)
         {
             var processedLine = summary.WasCanceled
                 ? $"\n{T("SummaryProcessed")}: {summary.ProcessedCount}"
@@ -127,7 +127,7 @@ namespace ImvixPro.ViewModels
             Images.Clear();
             FailedConversions.Clear();
             LastFailureLogPath = string.Empty;
-            SetStatus("StatusReady");
+            ApplyManualRuntimeStatus(_conversionStatusSummaryService.CreateReadyRuntimeStatus());
             RefreshConversionInsights();
         }
 

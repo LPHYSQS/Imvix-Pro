@@ -18,6 +18,8 @@ namespace ImvixPro.ViewModels
 
         public string PreviewAiBusyText => T("StatusAiPreviewEnhancing");
 
+        public string PreviewSelectionFileText => SelectedImage?.FileName ?? T("NoCurrentFile");
+
         [ObservableProperty]
         private bool isPreviewAiBusy;
 
