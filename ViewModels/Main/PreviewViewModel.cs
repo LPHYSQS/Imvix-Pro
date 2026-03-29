@@ -30,11 +30,6 @@ namespace ImvixPro.ViewModels
             };
         }
 
-        public ConversionOptions CreatePreviewWindowOptions()
-        {
-            return BuildCurrentJobDefinition().ToConversionOptions();
-        }
-
         public void SetPreviewAiBusy(bool isBusy)
         {
             void Apply()

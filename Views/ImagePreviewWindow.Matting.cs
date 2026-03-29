@@ -203,11 +203,13 @@ namespace ImvixPro.Views
             RefreshPreviewActionStates();
         }
 
-        private string BuildAiMattingCacheKey(ConversionOptions options)
+        private string BuildAiMattingCacheKey(PreviewToolState toolState)
         {
+            ArgumentNullException.ThrowIfNull(toolState);
+
             return string.Create(
                 CultureInfo.InvariantCulture,
-                $"{_sourceFilePath}|{options.AiMattingModel}|{options.AiMattingDevice}|{options.AiMattingResolutionMode}|{options.AiMattingEdgeOptimizationEnabled}|{options.AiMattingEdgeOptimizationStrength}");
+                $"{_sourceFilePath}|{toolState.AiMattingModel}|{toolState.AiMattingDevice}|{toolState.AiMattingResolutionMode}|{toolState.AiMattingEdgeOptimizationEnabled}|{toolState.AiMattingEdgeOptimizationStrength}");
         }
 
         private PreviewToolState BuildAiMattingState()
@@ -216,17 +218,12 @@ namespace ImvixPro.Views
             return session?.PreviewToolState.Clone() ?? new PreviewToolState();
         }
 
-        private ConversionOptions BuildAiMattingOptions()
+        private ConversionOptions BuildAiMattingSaveOptions(PreviewToolState toolState)
         {
-            var options = BuildAiEnhancementOptions();
-            BuildAiMattingState().ApplyTo(options);
-            return options;
-        }
+            ArgumentNullException.ThrowIfNull(toolState);
 
-        private ConversionOptions BuildAiMattingSaveOptions()
-        {
-            var options = BuildAiMattingOptions();
-            options.OutputFormat = AiMattingFormatCatalog.Normalize(options.AiMattingOutputFormat);
+            var options = BuildAiEnhancementOptions();
+            options.OutputFormat = AiMattingFormatCatalog.Normalize(toolState.AiMattingOutputFormat);
             options.ResizeMode = ResizeMode.None;
             options.RenameMode = RenameMode.KeepOriginal;
             options.RenamePrefix = string.Empty;
@@ -261,8 +258,8 @@ namespace ImvixPro.Views
                 return;
             }
 
-            var options = BuildAiMattingOptions();
-            var cacheKey = BuildAiMattingCacheKey(options);
+            var toolState = BuildAiMattingState();
+            var cacheKey = BuildAiMattingCacheKey(toolState);
             if (string.Equals(_aiMattingCacheKey, cacheKey, StringComparison.Ordinal) &&
                 !string.IsNullOrWhiteSpace(_aiMattingResultPath) &&
                 File.Exists(_aiMattingResultPath) &&
@@ -287,11 +284,11 @@ namespace ImvixPro.Views
             {
                 var result = await _aiMattingService.ProcessAsync(
                         _sourceFilePath,
-                        options.AiMattingModel,
-                        options.AiMattingDevice,
-                        options.AiMattingResolutionMode,
-                        options.AiMattingEdgeOptimizationEnabled,
-                        options.AiMattingEdgeOptimizationStrength,
+                        toolState.AiMattingModel,
+                        toolState.AiMattingDevice,
+                        toolState.AiMattingResolutionMode,
+                        toolState.AiMattingEdgeOptimizationEnabled,
+                        toolState.AiMattingEdgeOptimizationStrength,
                         cancellationSource.Token)
                     .ConfigureAwait(false);
 
@@ -354,7 +351,7 @@ namespace ImvixPro.Views
                         ShowToast(string.Format(
                             CultureInfo.CurrentCulture,
                             T("PreviewMattingModelFallbackTemplate"),
-                            AiMattingModelCatalog.BuildDisplayName(options.AiMattingModel, T),
+                            AiMattingModelCatalog.BuildDisplayName(toolState.AiMattingModel, T),
                             AiMattingModelCatalog.BuildDisplayName(result.EffectiveModel, T)));
                     }
                 });
@@ -425,8 +422,9 @@ namespace ImvixPro.Views
                 return;
             }
 
-            var options = BuildAiMattingSaveOptions();
-            var defaultFormat = AiMattingFormatCatalog.Normalize(options.AiMattingOutputFormat);
+            var toolState = BuildAiMattingState();
+            var options = BuildAiMattingSaveOptions(toolState);
+            var defaultFormat = AiMattingFormatCatalog.Normalize(toolState.AiMattingOutputFormat);
             var defaultExtension = ImageConversionService.GetFileExtension(defaultFormat);
             var suggestedName = string.IsNullOrWhiteSpace(_sourceFilePath)
                 ? "matting_result"
@@ -467,7 +465,7 @@ namespace ImvixPro.Views
                 var extension = ImageConversionService.GetFileExtension(targetFormat);
                 options.OutputFormat = targetFormat;
                 var destinationPath = EnsureOutputExtension(localPath, extension);
-                var exportSourcePath = await ResolveAiMattingExportSourcePathAsync(options).ConfigureAwait(false);
+                var exportSourcePath = await ResolveAiMattingExportSourcePathAsync(toolState).ConfigureAwait(false);
                 await _imageConversionService.ExportRasterToPathAsync(exportSourcePath, destinationPath, options).ConfigureAwait(false);
                 await Dispatcher.UIThread.InvokeAsync(() => ShowToast(T("PreviewMattingSaved")));
             }
@@ -487,15 +485,17 @@ namespace ImvixPro.Views
             }
         }
 
-        private async Task<string> ResolveAiMattingExportSourcePathAsync(ConversionOptions options)
+        private async Task<string> ResolveAiMattingExportSourcePathAsync(PreviewToolState toolState)
         {
-            if (options.AiMattingBackgroundMode != AiMattingBackgroundMode.SolidColor || _aiMattingResult is null)
+            ArgumentNullException.ThrowIfNull(toolState);
+
+            if (toolState.AiMattingBackgroundMode != AiMattingBackgroundMode.SolidColor || _aiMattingResult is null)
             {
                 return _aiMattingResultPath!;
             }
 
             var flattenedPath = Path.Combine(_aiMattingResult.WorkingDirectory, "matting-export-solid.png");
-            await Task.Run(() => CreateSolidBackgroundExport(_aiMattingResultPath!, flattenedPath, options.AiMattingBackgroundColor)).ConfigureAwait(false);
+            await Task.Run(() => CreateSolidBackgroundExport(_aiMattingResultPath!, flattenedPath, toolState.AiMattingBackgroundColor)).ConfigureAwait(false);
             return flattenedPath;
         }
 

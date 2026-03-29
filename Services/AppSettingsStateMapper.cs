@@ -261,15 +261,7 @@ namespace ImvixPro.Services
                 AiEnhancementEnabled = source.AiEnhancementEnabled,
                 AiEnhancementScale = source.AiEnhancementScale,
                 AiEnhancementModel = source.AiEnhancementModel,
-                AiExecutionMode = source.AiExecutionMode,
-                AiMattingModel = source.AiMattingModel,
-                AiMattingDevice = source.AiMattingDevice,
-                AiMattingOutputFormat = source.AiMattingOutputFormat,
-                AiMattingBackgroundMode = source.AiMattingBackgroundMode,
-                AiMattingBackgroundColor = source.AiMattingBackgroundColor,
-                AiMattingEdgeOptimizationEnabled = source.AiMattingEdgeOptimizationEnabled,
-                AiMattingEdgeOptimizationStrength = source.AiMattingEdgeOptimizationStrength,
-                AiMattingResolutionMode = source.AiMattingResolutionMode
+                AiExecutionMode = source.AiExecutionMode
             };
         }
 

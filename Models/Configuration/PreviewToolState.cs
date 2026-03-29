@@ -1,4 +1,3 @@
-using System;
 using ImvixPro.AI.Matting.Models;
 
 namespace ImvixPro.Models
@@ -34,20 +33,6 @@ namespace ImvixPro.Models
                 AiMattingEdgeOptimizationStrength = AiMattingEdgeOptimizationStrength,
                 AiMattingResolutionMode = AiMattingResolutionMode
             };
-        }
-
-        public void ApplyTo(ConversionOptions options)
-        {
-            ArgumentNullException.ThrowIfNull(options);
-
-            options.AiMattingModel = AiMattingModel;
-            options.AiMattingDevice = AiMattingDevice;
-            options.AiMattingOutputFormat = AiMattingOutputFormat;
-            options.AiMattingBackgroundMode = AiMattingBackgroundMode;
-            options.AiMattingBackgroundColor = AiMattingBackgroundColor;
-            options.AiMattingEdgeOptimizationEnabled = AiMattingEdgeOptimizationEnabled;
-            options.AiMattingEdgeOptimizationStrength = AiMattingEdgeOptimizationStrength;
-            options.AiMattingResolutionMode = AiMattingResolutionMode;
         }
     }
 }
