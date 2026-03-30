@@ -1,6 +1,7 @@
 using Avalonia.Media.Imaging;
 using ImvixPro.Models;
 using System;
+using System.Threading.Tasks;
 
 namespace ImvixPro.Services
 {
@@ -22,6 +23,14 @@ namespace ImvixPro.Services
 
         void RefreshPdfUiState();
 
+        void RefreshGifPdfUiState();
+
+        void RefreshGifSpecificFrameUiState();
+
+        void RefreshGifTrimUiState();
+
+        void WarmAllGifPreviewsIfNeeded();
+
         void RefreshSelectedPdfPreview(bool preferImmediatePreview);
 
         bool ShouldLoadSelectedPsdPreviewAsync(ImageItemViewModel image);
@@ -34,15 +43,27 @@ namespace ImvixPro.Services
 
         bool ShouldLoadGifPreviewFrames();
 
-        void LoadGifPreview(string filePath);
+        Task LoadGifPreviewAsync(string filePath);
 
         void IncrementGifPreviewRequestId();
 
-        void RefreshSelectedAnimatedGifPreview();
+        void PrepareSelectedAnimatedGifPreview(string filePath);
 
         bool TryApplySelectedGifTrimPreviewRange();
 
         bool TryApplySelectedGifSpecificFramePreview();
+
+        bool IsGifSpecificFramePlaybackActive();
+
+        bool CanToggleGifSpecificFramePlayback();
+
+        bool HasReadyGifSpecificFramePlaybackFrames();
+
+        void SetGifSpecificFramePlaybackActive(bool isPlaying);
+
+        void StartGifSpecificFramePlayback();
+
+        void PauseGifSpecificFramePlayback();
 
         bool ShouldRefreshSelectedConfigurablePreview(ImageItemViewModel image);
 
@@ -74,6 +95,10 @@ namespace ImvixPro.Services
             {
                 context.RefreshSelectedPdfPreview(preferImmediatePreview: true);
             }
+            else if (image.IsAnimatedGif)
+            {
+                RefreshSelectedAnimatedGifPreview(image, context);
+            }
             else if (context.ShouldLoadSelectedPsdPreviewAsync(image))
             {
                 context.RefreshSelectedPsdPreviewAsync(preferImmediatePreview: true, useThumbnailPlaceholder: true);
@@ -81,20 +106,6 @@ namespace ImvixPro.Services
             else
             {
                 context.SetSelectedPreview(context.CreatePreviewBitmap(image.FilePath, SelectedPreviewWidth));
-            }
-
-            if (!image.IsAnimatedGif)
-            {
-                return;
-            }
-
-            if (context.ShouldLoadGifPreviewFrames())
-            {
-                context.LoadGifPreview(image.FilePath);
-            }
-            else
-            {
-                context.IncrementGifPreviewRequestId();
             }
         }
 
@@ -110,6 +121,30 @@ namespace ImvixPro.Services
                 image,
                 context,
                 preferImmediatePdfPreview: true);
+        }
+
+        public void HandleGifHandlingModeChanged(
+            ImageItemViewModel? image,
+            IPreviewRenderContext context,
+            GifHandlingMode mode)
+        {
+            ArgumentNullException.ThrowIfNull(context);
+
+            context.RefreshGifPdfUiState();
+            context.RefreshGifSpecificFrameUiState();
+            context.RefreshGifTrimUiState();
+
+            if (image is null || !image.IsAnimatedGif)
+            {
+                return;
+            }
+
+            if (mode is GifHandlingMode.AllFrames or GifHandlingMode.SpecificFrame)
+            {
+                context.WarmAllGifPreviewsIfNeeded();
+            }
+
+            RefreshSelectedAnimatedGifPreview(image, context);
         }
 
         public void HandleBackgroundSettingsChanged(ImageItemViewModel? image, IPreviewRenderContext context)
@@ -145,7 +180,7 @@ namespace ImvixPro.Services
 
             if (!context.TryApplySelectedGifTrimPreviewRange())
             {
-                context.LoadGifPreview(image.FilePath);
+                _ = context.LoadGifPreviewAsync(image.FilePath);
             }
         }
 
@@ -160,8 +195,53 @@ namespace ImvixPro.Services
 
             if (!context.TryApplySelectedGifSpecificFramePreview())
             {
-                context.LoadGifPreview(image.FilePath);
+                _ = context.LoadGifPreviewAsync(image.FilePath);
             }
+        }
+
+        public async Task HandleGifSpecificFramePlaybackToggleAsync(
+            ImageItemViewModel? image,
+            IPreviewRenderContext context)
+        {
+            ArgumentNullException.ThrowIfNull(context);
+
+            if (context.IsGifSpecificFramePlaybackActive())
+            {
+                context.PauseGifSpecificFramePlayback();
+                return;
+            }
+
+            if (image is null || !image.IsAnimatedGif || !context.CanToggleGifSpecificFramePlayback())
+            {
+                return;
+            }
+
+            context.SetGifSpecificFramePlaybackActive(true);
+
+            if (context.HasReadyGifSpecificFramePlaybackFrames())
+            {
+                context.StartGifSpecificFramePlayback();
+                return;
+            }
+
+            await context.LoadGifPreviewAsync(image.FilePath).ConfigureAwait(false);
+
+            if (!context.HasReadyGifSpecificFramePlaybackFrames())
+            {
+                context.SetGifSpecificFramePlaybackActive(false);
+            }
+        }
+
+        public void HandleGifSpecificFrameRestoreCompleted(ImageItemViewModel? image, IPreviewRenderContext context)
+        {
+            ArgumentNullException.ThrowIfNull(context);
+
+            if (image is null || !image.IsAnimatedGif)
+            {
+                return;
+            }
+
+            context.TryApplySelectedGifSpecificFramePreview();
         }
 
         private static void RefreshPreviewForCurrentConfiguration(
@@ -176,7 +256,7 @@ namespace ImvixPro.Services
 
             if (image.IsAnimatedGif)
             {
-                context.RefreshSelectedAnimatedGifPreview();
+                RefreshSelectedAnimatedGifPreview(image, context);
                 return;
             }
 
@@ -197,6 +277,20 @@ namespace ImvixPro.Services
             }
 
             context.RefreshSelectedConfigurablePreview();
+        }
+
+        private static void RefreshSelectedAnimatedGifPreview(ImageItemViewModel image, IPreviewRenderContext context)
+        {
+            context.PrepareSelectedAnimatedGifPreview(image.FilePath);
+
+            if (context.ShouldLoadGifPreviewFrames())
+            {
+                _ = context.LoadGifPreviewAsync(image.FilePath);
+            }
+            else
+            {
+                context.IncrementGifPreviewRequestId();
+            }
         }
     }
 }

@@ -31,8 +31,7 @@ namespace ImvixPro.Views
             Barcode
         }
 
-        private sealed record PreviewQrUrlItem(string Url, bool UsesHttps);
-        private sealed record PreviewQrResultItem(string Content, IReadOnlyList<PreviewQrUrlItem> Urls)
+        private sealed record PreviewQrResultItem(string Content, IReadOnlyList<PreviewToolLinkItem> Urls)
         {
             public bool HasUrls => Urls.Count > 0;
 
@@ -42,7 +41,7 @@ namespace ImvixPro.Views
         }
 
         private readonly PreviewQrService _previewQrService = new();
-        private readonly List<PreviewQrUrlItem> _qrUrlItems = new();
+        private readonly List<PreviewToolLinkItem> _qrUrlItems = new();
         private readonly List<PreviewQrResultItem> _qrResultItems = new();
         private PreviewRecognitionMode _panelMode = PreviewRecognitionMode.Ocr;
         private CancellationTokenSource? _qrLinksAnimationCts;
@@ -388,7 +387,7 @@ namespace ImvixPro.Views
 
             foreach (var url in urls)
             {
-                _qrUrlItems.Add(new PreviewQrUrlItem(
+                _qrUrlItems.Add(new PreviewToolLinkItem(
                     url,
                     url.StartsWith("https://", StringComparison.OrdinalIgnoreCase)));
             }
@@ -411,10 +410,10 @@ namespace ImvixPro.Views
                     continue;
                 }
 
-                var urlItems = new List<PreviewQrUrlItem>();
+                var urlItems = new List<PreviewToolLinkItem>();
                 foreach (var url in PreviewQrService.ExtractUrls(result.Content))
                 {
-                    urlItems.Add(new PreviewQrUrlItem(
+                    urlItems.Add(new PreviewToolLinkItem(
                         url,
                         url.StartsWith("https://", StringComparison.OrdinalIgnoreCase)));
                 }
@@ -777,7 +776,7 @@ namespace ImvixPro.Views
             return border;
         }
 
-        private Control BuildQrResultLinkRow(PreviewQrUrlItem item, int displayIndex)
+        private Control BuildQrResultLinkRow(PreviewToolLinkItem item, int displayIndex)
         {
             var border = new Border
             {
@@ -879,7 +878,7 @@ namespace ImvixPro.Views
             return border;
         }
 
-        private Control BuildQrUrlRow(PreviewQrUrlItem item, int displayIndex)
+        private Control BuildQrUrlRow(PreviewToolLinkItem item, int displayIndex)
         {
             var border = new Border
             {

@@ -3,7 +3,6 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using Avalonia.Platform;
 using Avalonia.Platform.Storage;
 using Avalonia.VisualTree;
 using ImvixPro.Models;
@@ -20,17 +19,10 @@ namespace ImvixPro.Views
 {
     public partial class MainWindow : Window
     {
-        private readonly SettingsService _settingsService;
-        private readonly AppLogger _logger;
         private readonly MainWindowShellCoordinator _shellCoordinator;
+        private readonly MainWindowHostController _hostController;
         private MainWindowViewModel? _subscribedViewModel;
         private NotificationState? _subscribedNotificationState;
-        private bool _windowPlacementRestored;
-        private bool _startupPathsHandled;
-        private IReadOnlyList<string> _pendingStartupPaths = [];
-        private TrayIcon? _trayIcon;
-        private NativeMenuItem? _restoreTrayMenuItem;
-        private NativeMenuItem? _exitTrayMenuItem;
 
         public MainWindow()
             : this(AppServices.CreateMainWindowServices())
@@ -40,11 +32,10 @@ namespace ImvixPro.Views
         internal MainWindow(MainWindowServices services)
         {
             ArgumentNullException.ThrowIfNull(services);
-            _settingsService = services.SettingsService ?? throw new ArgumentNullException(nameof(services.SettingsService));
-            _logger = services.Logger ?? throw new ArgumentNullException(nameof(services.Logger));
             _shellCoordinator = services.ShellCoordinator ?? throw new ArgumentNullException(nameof(services.ShellCoordinator));
+            _hostController = services.HostController ?? throw new ArgumentNullException(nameof(services.HostController));
             InitializeComponent();
-            InitializeTrayIcon();
+            _hostController.InitializeTrayIcon(OnTrayIconClicked, OnTrayRestoreClick, OnTrayExitClick);
             Opened += OnWindowOpened;
             Closing += OnWindowClosing;
             DataContextChanged += OnDataContextChanged;
@@ -53,28 +44,9 @@ namespace ImvixPro.Views
 
         private MainWindowViewModel? ViewModel => DataContext as MainWindowViewModel;
 
-        private static IReadOnlyList<FilePickerFileType> BuildImageFileTypes(MainWindowViewModel vm)
-        {
-            return
-            [
-                new FilePickerFileType(vm.ImportSupportedFilesText)
-                {
-                    Patterns = ["*.png", "*.jpg", "*.jpeg", "*.webp", "*.bmp", "*.gif", "*.tif", "*.tiff", "*.ico", "*.svg", "*.pdf", "*.psd", "*.exe", "*.lnk"]
-                },
-                new FilePickerFileType(vm.ImportPsdText)
-                {
-                    Patterns = ["*.psd"]
-                }
-            ];
-        }
-
         public void SetStartupPaths(IEnumerable<string>? paths)
         {
-            _pendingStartupPaths = paths?
-                .Where(path => !string.IsNullOrWhiteSpace(path))
-                .Select(path => path.Trim())
-                .ToArray()
-                ?? [];
+            _hostController.SetStartupPaths(paths);
         }
 
         public async Task HandleSecondInstanceActivationAsync()
@@ -109,12 +81,12 @@ namespace ImvixPro.Views
                 _subscribedNotificationState.PropertyChanged += OnNotificationStatePropertyChanged;
             }
 
-            UpdateTrayIconState();
+            _hostController.UpdateTrayIconState(ViewModel);
 
-            if (_windowPlacementRestored)
+            if (_hostController.IsWindowPlacementRestored)
             {
                 ViewModel?.LoadRecentConversionHistory();
-                ApplyStartupPaths();
+                _hostController.ApplyStartupPaths(ViewModel);
                 _ = _shellCoordinator.ShowPendingCompletionDialogAsync(this, _subscribedNotificationState);
             }
         }
@@ -127,7 +99,7 @@ namespace ImvixPro.Views
                     nameof(MainWindowViewModel.TrayExitText) or
                     nameof(MainWindowViewModel.WindowTitle))
             {
-                UpdateTrayIconState();
+                _hostController.UpdateTrayIconState(ViewModel);
             }
         }
 
@@ -241,30 +213,25 @@ namespace ImvixPro.Views
 
         private void OnWindowOpened(object? sender, EventArgs e)
         {
-            if (!_windowPlacementRestored)
-            {
-                _windowPlacementRestored = true;
-                RestoreWindowPlacement();
-            }
-
+            _hostController.RestoreWindowPlacementIfNeeded(this);
             ViewModel?.LoadRecentConversionHistory();
-            ApplyStartupPaths();
-            UpdateTrayIconState();
+            _hostController.ApplyStartupPaths(ViewModel);
+            _hostController.UpdateTrayIconState(ViewModel);
             _ = _shellCoordinator.ShowPendingCompletionDialogAsync(this, _subscribedNotificationState);
         }
 
         private void OnWindowClosing(object? sender, WindowClosingEventArgs e)
         {
-            SaveWindowPlacement();
+            _hostController.SaveWindowPlacement(this);
 
             if (_shellCoordinator.ShouldHideToTray(ViewModel?.KeepRunningInTray == true, e.CloseReason))
             {
                 e.Cancel = true;
-                _shellCoordinator.HideToTray(this, UpdateTrayIconState);
+                _shellCoordinator.HideToTray(this, () => _hostController.UpdateTrayIconState(ViewModel));
                 return;
             }
 
-            CleanupTrayIcon();
+            _hostController.CleanupTrayIcon();
 
             if (_subscribedViewModel is not null)
             {
@@ -277,102 +244,6 @@ namespace ImvixPro.Views
             {
                 _subscribedNotificationState.PropertyChanged -= OnNotificationStatePropertyChanged;
                 _subscribedNotificationState = null;
-            }
-        }
-
-        private void InitializeTrayIcon()
-        {
-            if (Application.Current is null)
-            {
-                return;
-            }
-
-            try
-            {
-                using var stream = AssetLoader.Open(AppIdentity.GetAssetUri("Assets/logo.ico"));
-
-                _restoreTrayMenuItem = new NativeMenuItem();
-                _restoreTrayMenuItem.Click += OnTrayRestoreClick;
-
-                _exitTrayMenuItem = new NativeMenuItem();
-                _exitTrayMenuItem.Click += OnTrayExitClick;
-
-                var menu = new NativeMenu();
-                menu.Add(_restoreTrayMenuItem);
-                menu.Add(new NativeMenuItemSeparator());
-                menu.Add(_exitTrayMenuItem);
-
-                _trayIcon = new TrayIcon
-                {
-                    Icon = new WindowIcon(stream),
-                    Menu = menu,
-                    IsVisible = false
-                };
-
-                _trayIcon.Clicked += OnTrayIconClicked;
-
-                var icons = new TrayIcons();
-                icons.Add(_trayIcon);
-                TrayIcon.SetIcons(Application.Current, icons);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(nameof(MainWindow), "Failed to initialize tray icon. Continuing without tray integration.", ex);
-                _trayIcon = null;
-                _restoreTrayMenuItem = null;
-                _exitTrayMenuItem = null;
-            }
-        }
-
-        private void UpdateTrayIconState()
-        {
-            if (_trayIcon is null)
-            {
-                return;
-            }
-
-            var vm = ViewModel;
-            _trayIcon.ToolTipText = vm?.WindowTitle ?? AppIdentity.DisplayName;
-            _trayIcon.IsVisible = vm?.KeepRunningInTray == true;
-
-            if (_restoreTrayMenuItem is not null)
-            {
-                _restoreTrayMenuItem.Header = vm?.TrayRestoreText ?? "Show Main Window";
-            }
-
-            if (_exitTrayMenuItem is not null)
-            {
-                _exitTrayMenuItem.Header = vm?.TrayExitText ?? $"Exit {AppIdentity.DisplayName}";
-            }
-        }
-
-        private void CleanupTrayIcon()
-        {
-            if (_restoreTrayMenuItem is not null)
-            {
-                _restoreTrayMenuItem.Click -= OnTrayRestoreClick;
-                _restoreTrayMenuItem = null;
-            }
-
-            if (_exitTrayMenuItem is not null)
-            {
-                _exitTrayMenuItem.Click -= OnTrayExitClick;
-                _exitTrayMenuItem = null;
-            }
-
-            if (_trayIcon is null)
-            {
-                return;
-            }
-
-            _trayIcon.Clicked -= OnTrayIconClicked;
-            _trayIcon.IsVisible = false;
-            _trayIcon.Dispose();
-            _trayIcon = null;
-
-            if (Application.Current is not null)
-            {
-                TrayIcon.SetIcons(Application.Current, new TrayIcons());
             }
         }
 
@@ -391,164 +262,6 @@ namespace ImvixPro.Views
             _shellCoordinator.ExitApplication(this);
         }
 
-        private void ApplyStartupPaths()
-        {
-            if (_startupPathsHandled || _pendingStartupPaths.Count == 0)
-            {
-                return;
-            }
-
-            var vm = ViewModel;
-            if (vm is null)
-            {
-                return;
-            }
-
-            _startupPathsHandled = true;
-            vm.AddFiles(_pendingStartupPaths);
-        }
-
-        private void RestoreWindowPlacement()
-        {
-            var settings = _settingsService.Load();
-
-            if (settings.HasWindowPlacement)
-            {
-                if (settings.WindowWidth > 0)
-                {
-                    Width = Math.Max(MinWidth, settings.WindowWidth);
-                }
-
-                if (settings.WindowHeight > 0)
-                {
-                    Height = Math.Max(MinHeight, settings.WindowHeight);
-                }
-
-                var savedPosition = new PixelPoint(settings.WindowPositionX, settings.WindowPositionY);
-                if (TryPlaceOnExistingScreen(savedPosition))
-                {
-                    return;
-                }
-            }
-
-            CenterOnPrimaryScreen();
-        }
-
-        private bool TryPlaceOnExistingScreen(PixelPoint desiredPosition)
-        {
-            var screens = Screens;
-            if (screens is null)
-            {
-                return false;
-            }
-
-            var screen = screens.ScreenFromPoint(desiredPosition);
-            if (screen is null)
-            {
-                var fallbackScaling = screens.Primary?.Scaling ?? 1d;
-                var estimatedSize = GetWindowPixelSize(fallbackScaling);
-                var rect = new PixelRect(desiredPosition, estimatedSize);
-                screen = screens.ScreenFromBounds(rect);
-            }
-
-            if (screen is null)
-            {
-                return false;
-            }
-
-            WindowStartupLocation = WindowStartupLocation.Manual;
-            Position = ClampToWorkingArea(desiredPosition, screen);
-            return true;
-        }
-
-        private void CenterOnPrimaryScreen()
-        {
-            var screens = Screens;
-            var primary = screens?.Primary
-                ?? screens?.All.FirstOrDefault(s => s.IsPrimary)
-                ?? screens?.All.FirstOrDefault();
-
-            if (primary is null)
-            {
-                WindowStartupLocation = WindowStartupLocation.CenterScreen;
-                return;
-            }
-
-            var area = primary.WorkingArea;
-            var size = GetWindowPixelSize(primary.Scaling);
-
-            var x = area.X + Math.Max(0, (area.Width - size.Width) / 2);
-            var y = area.Y + Math.Max(0, (area.Height - size.Height) / 2);
-
-            WindowStartupLocation = WindowStartupLocation.Manual;
-            Position = new PixelPoint(x, y);
-        }
-
-        private PixelPoint ClampToWorkingArea(PixelPoint desiredPosition, Screen screen)
-        {
-            var area = screen.WorkingArea;
-            var size = GetWindowPixelSize(screen.Scaling);
-
-            var maxX = area.Right - size.Width;
-            var maxY = area.Bottom - size.Height;
-
-            var x = maxX < area.X
-                ? area.X
-                : Math.Clamp(desiredPosition.X, area.X, maxX);
-
-            var y = maxY < area.Y
-                ? area.Y
-                : Math.Clamp(desiredPosition.Y, area.Y, maxY);
-
-            return new PixelPoint(x, y);
-        }
-
-        private PixelSize GetWindowPixelSize(double scaling)
-        {
-            var safeScaling = scaling > 0 ? scaling : 1d;
-
-            var widthDip = Bounds.Width > 0
-                ? Bounds.Width
-                : (double.IsNaN(Width) || Width <= 0 ? MinWidth : Width);
-
-            var heightDip = Bounds.Height > 0
-                ? Bounds.Height
-                : (double.IsNaN(Height) || Height <= 0 ? MinHeight : Height);
-
-            var widthPx = Math.Max(1, (int)Math.Round(widthDip * safeScaling));
-            var heightPx = Math.Max(1, (int)Math.Round(heightDip * safeScaling));
-
-            return new PixelSize(widthPx, heightPx);
-        }
-
-        private void SaveWindowPlacement()
-        {
-            if (WindowState == WindowState.Minimized)
-            {
-                return;
-            }
-
-            var settings = _settingsService.Load();
-            settings.HasWindowPlacement = true;
-            settings.WindowPositionX = Position.X;
-            settings.WindowPositionY = Position.Y;
-
-            if (WindowState == WindowState.Normal)
-            {
-                if (Bounds.Width > 0)
-                {
-                    settings.WindowWidth = Bounds.Width;
-                }
-
-                if (Bounds.Height > 0)
-                {
-                    settings.WindowHeight = Bounds.Height;
-                }
-            }
-
-            _settingsService.Save(settings);
-        }
-
         internal async void OnImportClick(object? sender, RoutedEventArgs e)
         {
             var vm = ViewModel;
@@ -557,19 +270,7 @@ namespace ImvixPro.Views
                 return;
             }
 
-            var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
-            {
-                AllowMultiple = true,
-                Title = vm.ImportDialogTitle,
-                FileTypeFilter = BuildImageFileTypes(vm)
-            });
-
-            var paths = files
-                .Select(file => file.TryGetLocalPath())
-                .Where(path => !string.IsNullOrWhiteSpace(path))
-                .Cast<string>();
-
-            vm.AddFiles(paths);
+            await _hostController.ImportFilesAsync(this, vm);
         }
 
         internal async void OnImportFolderClick(object? sender, RoutedEventArgs e)
@@ -580,18 +281,7 @@ namespace ImvixPro.Views
                 return;
             }
 
-            var folders = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
-            {
-                AllowMultiple = true,
-                Title = vm.ImportFolderDialogTitle
-            });
-
-            var paths = folders
-                .Select(folder => folder.TryGetLocalPath())
-                .Where(path => !string.IsNullOrWhiteSpace(path))
-                .Cast<string>();
-
-            vm.AddFiles(paths);
+            await _hostController.ImportFoldersAsync(this, vm);
         }
 
         internal async void OnSelectOutputFolderClick(object? sender, RoutedEventArgs e)
@@ -602,19 +292,7 @@ namespace ImvixPro.Views
                 return;
             }
 
-            var folders = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
-            {
-                AllowMultiple = false,
-                Title = vm.SelectFolderDialogTitle
-            });
-
-            var folderPath = folders.FirstOrDefault()?.TryGetLocalPath();
-            if (string.IsNullOrWhiteSpace(folderPath))
-            {
-                return;
-            }
-
-            vm.SetOutputDirectory(folderPath);
+            await _hostController.SelectOutputFolderAsync(this, vm);
         }
 
         internal async void OnSelectWatchInputFolderClick(object? sender, RoutedEventArgs e)
@@ -625,19 +303,7 @@ namespace ImvixPro.Views
                 return;
             }
 
-            var folders = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
-            {
-                AllowMultiple = false,
-                Title = vm.SelectWatchInputFolderDialogTitle
-            });
-
-            var folderPath = folders.FirstOrDefault()?.TryGetLocalPath();
-            if (string.IsNullOrWhiteSpace(folderPath))
-            {
-                return;
-            }
-
-            vm.SetWatchInputDirectory(folderPath);
+            await _hostController.SelectWatchInputFolderAsync(this, vm);
         }
 
         internal async void OnSelectWatchOutputFolderClick(object? sender, RoutedEventArgs e)
@@ -648,19 +314,7 @@ namespace ImvixPro.Views
                 return;
             }
 
-            var folders = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
-            {
-                AllowMultiple = false,
-                Title = vm.SelectWatchOutputFolderDialogTitle
-            });
-
-            var folderPath = folders.FirstOrDefault()?.TryGetLocalPath();
-            if (string.IsNullOrWhiteSpace(folderPath))
-            {
-                return;
-            }
-
-            vm.SetWatchOutputDirectory(folderPath);
+            await _hostController.SelectWatchOutputFolderAsync(this, vm);
         }
 
         internal void OnDropZoneDragOver(object? sender, DragEventArgs e)

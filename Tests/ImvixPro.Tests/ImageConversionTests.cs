@@ -639,9 +639,7 @@ public sealed class ImageConversionTests
                 "RestoreGifSpecificFrameSelection:C:\\preview\\animated.gif",
                 "RestoreGifTrimSelection:C:\\preview\\animated.gif",
                 "RestorePdfSelection:C:\\preview\\animated.gif",
-                "ShouldLoadSelectedPsdPreviewAsync:C:\\preview\\animated.gif",
-                "CreatePreviewBitmap:C:\\preview\\animated.gif:760",
-                "SetSelectedPreview",
+                "PrepareSelectedAnimatedGifPreview:C:\\preview\\animated.gif",
                 "ShouldLoadGifPreviewFrames",
                 "IncrementGifPreviewRequestId"
             ],
@@ -668,7 +666,40 @@ public sealed class ImageConversionTests
                 "RefreshGifHandlingModeOptions",
                 "RestoreGifTrimSelection:C:\\preview\\animated.gif",
                 "RefreshPdfUiState",
-                "RefreshSelectedAnimatedGifPreview"
+                "PrepareSelectedAnimatedGifPreview:C:\\preview\\animated.gif",
+                "ShouldLoadGifPreviewFrames",
+                "IncrementGifPreviewRequestId"
+            ],
+            context.Calls);
+    }
+
+    [Fact]
+    public void PreviewRenderCoordinator_GifHandlingModeChanged_RefreshesGifPreviewThroughCoordinator()
+    {
+        var coordinator = new PreviewRenderCoordinator();
+        var context = new FakePreviewRenderContext
+        {
+            ShouldLoadGifPreviewFramesResult = true
+        };
+        var image = ImageItemViewModel.CreateImported(
+            @"C:\preview\animated.gif",
+            fileSize: 8_192,
+            pixelWidth: 640,
+            pixelHeight: 360,
+            thumbnail: null,
+            gifFrameCount: 24);
+
+        coordinator.HandleGifHandlingModeChanged(image, context, GifHandlingMode.SpecificFrame);
+
+        Assert.Equal(
+            [
+                "RefreshGifPdfUiState",
+                "RefreshGifSpecificFrameUiState",
+                "RefreshGifTrimUiState",
+                "WarmAllGifPreviewsIfNeeded",
+                "PrepareSelectedAnimatedGifPreview:C:\\preview\\animated.gif",
+                "ShouldLoadGifPreviewFrames",
+                "LoadGifPreviewAsync:C:\\preview\\animated.gif"
             ],
             context.Calls);
     }
@@ -766,6 +797,60 @@ public sealed class ImageConversionTests
             gifFrameCount: 24);
 
         coordinator.HandleGifSpecificFrameSelectionChanged(image, context);
+
+        Assert.Equal(
+            [
+                "TryApplySelectedGifSpecificFramePreview"
+            ],
+            context.Calls);
+    }
+
+    [Fact]
+    public async Task PreviewRenderCoordinator_GifSpecificFramePlaybackToggle_StartsPlaybackFromLoadedFrames()
+    {
+        var coordinator = new PreviewRenderCoordinator();
+        var context = new FakePreviewRenderContext
+        {
+            CanToggleGifSpecificFramePlaybackResult = true,
+            HasReadyGifSpecificFramePlaybackFramesResult = true
+        };
+        var image = ImageItemViewModel.CreateImported(
+            @"C:\preview\animated.gif",
+            fileSize: 8_192,
+            pixelWidth: 640,
+            pixelHeight: 360,
+            thumbnail: null,
+            gifFrameCount: 24);
+
+        await coordinator.HandleGifSpecificFramePlaybackToggleAsync(image, context);
+
+        Assert.Equal(
+            [
+                "CanToggleGifSpecificFramePlayback",
+                "SetGifSpecificFramePlaybackActive:True",
+                "HasReadyGifSpecificFramePlaybackFrames",
+                "StartGifSpecificFramePlayback"
+            ],
+            context.Calls);
+    }
+
+    [Fact]
+    public void PreviewRenderCoordinator_GifSpecificFrameRestoreCompleted_ReusesLoadedPreviewWhenAvailable()
+    {
+        var coordinator = new PreviewRenderCoordinator();
+        var context = new FakePreviewRenderContext
+        {
+            TryApplySelectedGifSpecificFramePreviewResult = true
+        };
+        var image = ImageItemViewModel.CreateImported(
+            @"C:\preview\animated.gif",
+            fileSize: 8_192,
+            pixelWidth: 640,
+            pixelHeight: 360,
+            thumbnail: null,
+            gifFrameCount: 24);
+
+        coordinator.HandleGifSpecificFrameRestoreCompleted(image, context);
 
         Assert.Equal(
             [
@@ -873,6 +958,10 @@ public sealed class ImageConversionTests
 
         public bool ShouldRefreshSelectedConfigurablePreviewResult { get; set; }
 
+        public bool CanToggleGifSpecificFramePlaybackResult { get; set; }
+
+        public bool HasReadyGifSpecificFramePlaybackFramesResult { get; set; }
+
         public void CancelPendingPdfPreviewRender()
         {
             Calls.Add("CancelPendingPdfPreviewRender");
@@ -913,6 +1002,26 @@ public sealed class ImageConversionTests
             Calls.Add("RefreshPdfUiState");
         }
 
+        public void RefreshGifPdfUiState()
+        {
+            Calls.Add("RefreshGifPdfUiState");
+        }
+
+        public void RefreshGifSpecificFrameUiState()
+        {
+            Calls.Add("RefreshGifSpecificFrameUiState");
+        }
+
+        public void RefreshGifTrimUiState()
+        {
+            Calls.Add("RefreshGifTrimUiState");
+        }
+
+        public void WarmAllGifPreviewsIfNeeded()
+        {
+            Calls.Add("WarmAllGifPreviewsIfNeeded");
+        }
+
         public void RefreshSelectedPdfPreview(bool preferImmediatePreview)
         {
             Calls.Add($"RefreshSelectedPdfPreview:{preferImmediatePreview}");
@@ -946,9 +1055,10 @@ public sealed class ImageConversionTests
             return ShouldLoadGifPreviewFramesResult;
         }
 
-        public void LoadGifPreview(string filePath)
+        public Task LoadGifPreviewAsync(string filePath)
         {
-            Calls.Add($"LoadGifPreview:{filePath}");
+            Calls.Add($"LoadGifPreviewAsync:{filePath}");
+            return Task.CompletedTask;
         }
 
         public void IncrementGifPreviewRequestId()
@@ -956,9 +1066,9 @@ public sealed class ImageConversionTests
             Calls.Add("IncrementGifPreviewRequestId");
         }
 
-        public void RefreshSelectedAnimatedGifPreview()
+        public void PrepareSelectedAnimatedGifPreview(string filePath)
         {
-            Calls.Add("RefreshSelectedAnimatedGifPreview");
+            Calls.Add($"PrepareSelectedAnimatedGifPreview:{filePath}");
         }
 
         public bool TryApplySelectedGifTrimPreviewRange()
@@ -971,6 +1081,39 @@ public sealed class ImageConversionTests
         {
             Calls.Add("TryApplySelectedGifSpecificFramePreview");
             return TryApplySelectedGifSpecificFramePreviewResult;
+        }
+
+        public bool IsGifSpecificFramePlaybackActive()
+        {
+            Calls.Add("IsGifSpecificFramePlaybackActive");
+            return false;
+        }
+
+        public bool CanToggleGifSpecificFramePlayback()
+        {
+            Calls.Add("CanToggleGifSpecificFramePlayback");
+            return CanToggleGifSpecificFramePlaybackResult;
+        }
+
+        public bool HasReadyGifSpecificFramePlaybackFrames()
+        {
+            Calls.Add("HasReadyGifSpecificFramePlaybackFrames");
+            return HasReadyGifSpecificFramePlaybackFramesResult;
+        }
+
+        public void SetGifSpecificFramePlaybackActive(bool isPlaying)
+        {
+            Calls.Add($"SetGifSpecificFramePlaybackActive:{isPlaying}");
+        }
+
+        public void StartGifSpecificFramePlayback()
+        {
+            Calls.Add("StartGifSpecificFramePlayback");
+        }
+
+        public void PauseGifSpecificFramePlayback()
+        {
+            Calls.Add("PauseGifSpecificFramePlayback");
         }
 
         public bool ShouldRefreshSelectedConfigurablePreview(ImageItemViewModel image)

@@ -367,8 +367,6 @@ namespace ImvixPro.ViewModels
             OnPropertyChanged(nameof(SvgSettingsText));
             OnPropertyChanged(nameof(SvgUseBackgroundText));
             RefreshPdfUiState();
-            RefreshGifSpecificFrameUiState();
-            RefreshGifTrimUiState();
 
             RefreshConversionInsights();
             RefreshPreviewSelectionState();
@@ -423,6 +421,26 @@ namespace ImvixPro.ViewModels
                 _owner.RefreshPdfUiState();
             }
 
+            public void RefreshGifPdfUiState()
+            {
+                _owner.RefreshGifPdfUiState();
+            }
+
+            public void RefreshGifSpecificFrameUiState()
+            {
+                _owner.RefreshGifSpecificFrameUiState();
+            }
+
+            public void RefreshGifTrimUiState()
+            {
+                _owner.RefreshGifTrimUiState();
+            }
+
+            public void WarmAllGifPreviewsIfNeeded()
+            {
+                _owner.WarmAllGifPreviewsIfNeeded();
+            }
+
             public void RefreshSelectedPdfPreview(bool preferImmediatePreview)
             {
                 _owner.RefreshSelectedPdfPreview(preferImmediatePreview);
@@ -453,9 +471,9 @@ namespace ImvixPro.ViewModels
                 return _owner.ShouldLoadGifPreviewFrames();
             }
 
-            public void LoadGifPreview(string filePath)
+            public Task LoadGifPreviewAsync(string filePath)
             {
-                _ = _owner.LoadGifPreviewAsync(filePath);
+                return _owner.LoadGifPreviewAsync(filePath);
             }
 
             public void IncrementGifPreviewRequestId()
@@ -463,9 +481,9 @@ namespace ImvixPro.ViewModels
                 Interlocked.Increment(ref _owner._gifPreviewRequestId);
             }
 
-            public void RefreshSelectedAnimatedGifPreview()
+            public void PrepareSelectedAnimatedGifPreview(string filePath)
             {
-                _owner.RefreshSelectedAnimatedGifPreview();
+                _owner.PrepareSelectedAnimatedGifPreview(filePath);
             }
 
             public bool TryApplySelectedGifTrimPreviewRange()
@@ -476,6 +494,36 @@ namespace ImvixPro.ViewModels
             public bool TryApplySelectedGifSpecificFramePreview()
             {
                 return _owner.TryApplySelectedGifSpecificFramePreview();
+            }
+
+            public bool IsGifSpecificFramePlaybackActive()
+            {
+                return _owner.IsGifSpecificFramePlaying;
+            }
+
+            public bool CanToggleGifSpecificFramePlayback()
+            {
+                return _owner.CanAdjustGifSpecificFrame;
+            }
+
+            public bool HasReadyGifSpecificFramePlaybackFrames()
+            {
+                return _owner.HasReadyGifSpecificFramePlaybackFrames();
+            }
+
+            public void SetGifSpecificFramePlaybackActive(bool isPlaying)
+            {
+                _owner.IsGifSpecificFramePlaying = isPlaying;
+            }
+
+            public void StartGifSpecificFramePlayback()
+            {
+                _owner.StartGifSpecificFramePlayback();
+            }
+
+            public void PauseGifSpecificFramePlayback()
+            {
+                _owner.PauseGifSpecificFramePlayback();
             }
 
             public bool ShouldRefreshSelectedConfigurablePreview(ImageItemViewModel image)
@@ -671,23 +719,7 @@ namespace ImvixPro.ViewModels
             }
 
             PersistSettings();
-
-            if (SelectedImage is null || !SelectedImage.IsAnimatedGif)
-            {
-                RefreshGifPdfUiState();
-                RefreshGifSpecificFrameUiState();
-                return;
-            }
-
-            RefreshGifPdfUiState();
-            RefreshGifSpecificFrameUiState();
-
-            if (value is GifHandlingMode.AllFrames or GifHandlingMode.SpecificFrame)
-            {
-                WarmAllGifPreviewsIfNeeded();
-            }
-
-            RefreshSelectedAnimatedGifPreview();
+            _previewRenderCoordinator.HandleGifHandlingModeChanged(SelectedImage, _previewRenderContext, value);
         }
 
         partial void OnSelectedGifHandlingModeOptionChanged(EnumOption<GifHandlingMode>? value)

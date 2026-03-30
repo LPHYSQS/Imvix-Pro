@@ -137,11 +137,12 @@ namespace ImvixPro.Services
         internal static MainWindowServices CreateMainWindowServices()
         {
             return new MainWindowServices(
-                SettingsService,
-                Logger,
                 new MainWindowShellCoordinator(
                     CreateImagePreviewWindowServices(),
-                    CreateFileDetailWindowServices()));
+                    CreateFileDetailWindowServices()),
+                new MainWindowHostController(
+                    SettingsService,
+                    Logger));
         }
 
         public static LocalizationService CreateLocalizationService(string? languageCode = null)

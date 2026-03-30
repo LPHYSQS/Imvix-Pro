@@ -3,7 +3,6 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
-using ImvixPro.Services;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -14,21 +13,8 @@ namespace ImvixPro.Views
 {
     public partial class ImagePreviewWindow
     {
-        private sealed record PreviewBarcodeResultItem(
-            string Content,
-            string Format,
-            bool IsQrCode,
-            IReadOnlyList<PreviewQrUrlItem> Urls)
-        {
-            public bool HasUrls => Urls.Count > 0;
-
-            public bool HasSingleUrl => Urls.Count == 1;
-
-            public bool HasMultipleUrls => Urls.Count > 1;
-        }
-
-        private readonly PreviewBarcodeService _previewBarcodeService = new();
-        private readonly List<PreviewBarcodeResultItem> _barcodeResultItems = new();
+        private readonly PreviewBarcodeToolController _barcodeToolController = new();
+        private readonly List<PreviewBarcodeToolResultItem> _barcodeResultItems = new();
 
         private bool HasBarcodeResults => _barcodeResultItems.Count > 0;
 
@@ -58,14 +44,9 @@ namespace ImvixPro.Views
                     await WaitForUiRenderAsync();
                 }
 
-                var imageBytes = await CreateCurrentOcrImageBytesAsync(cancellationSource.Token);
-                if (imageBytes is null || imageBytes.Length == 0)
-                {
-                    ApplyBarcodeResult(PreviewBarcodeBatchRecognition.Error(GetUnavailableText(PreviewRecognitionMode.Barcode)));
-                    return;
-                }
-
-                var result = await _previewBarcodeService.RecognizeAllAsync(imageBytes, cancellationSource.Token);
+                var result = await _barcodeToolController
+                    .RecognizeAsync(CreateCurrentOcrImageBytesAsync, cancellationSource.Token)
+                    .ConfigureAwait(false);
                 if (_isClosed || !ReferenceEquals(_ocrCts, cancellationSource))
                 {
                     return;
@@ -90,7 +71,7 @@ namespace ImvixPro.Views
             }
         }
 
-        private void ApplyBarcodeResult(PreviewBarcodeBatchRecognition result)
+        private void ApplyBarcodeResult(PreviewBarcodeToolResult result)
         {
             _panelMode = PreviewRecognitionMode.Barcode;
             ResetQrLinkState();
@@ -103,20 +84,16 @@ namespace ImvixPro.Views
 
             if (result.HasResults)
             {
-                SetStructuredBarcodeResults(result.Results);
-                _copyAllText = BuildBarcodeResultsCopyText(result.Results);
+                SetStructuredBarcodeResults(result.Items);
+                _copyAllText = BuildBarcodeResultsCopyText(result.Items);
                 OcrStatusText.Text = string.Empty;
                 SetOcrPlaceholder(string.Empty);
             }
             else
             {
-                var placeholder = result.ErrorMessage switch
-                {
-                    PreviewBarcodeService.PathErrorCode => T("PreviewBarcodeUnavailable"),
-                    PreviewBarcodeService.InitializationFailedErrorCode => T("PreviewBarcodeInitializationFailed"),
-                    null or "" => T("PreviewBarcodeEmpty"),
-                    _ => result.ErrorMessage!
-                };
+                var placeholder = string.IsNullOrWhiteSpace(result.ErrorMessage)
+                    ? T("PreviewBarcodeEmpty")
+                    : result.ErrorMessage!;
 
                 OcrStatusText.Text = string.Empty;
                 SetOcrPlaceholder(placeholder);
@@ -134,31 +111,10 @@ namespace ImvixPro.Views
             RefreshQrResultsView();
         }
 
-        private void SetStructuredBarcodeResults(IReadOnlyList<PreviewBarcodeResult> results)
+        private void SetStructuredBarcodeResults(IReadOnlyList<PreviewBarcodeToolResultItem> results)
         {
             _barcodeResultItems.Clear();
-
-            foreach (var result in results)
-            {
-                if (string.IsNullOrWhiteSpace(result.Content))
-                {
-                    continue;
-                }
-
-                var urlItems = new List<PreviewQrUrlItem>();
-                foreach (var url in PreviewQrService.ExtractUrls(result.Content))
-                {
-                    urlItems.Add(new PreviewQrUrlItem(
-                        url,
-                        url.StartsWith("https://", StringComparison.OrdinalIgnoreCase)));
-                }
-
-                _barcodeResultItems.Add(new PreviewBarcodeResultItem(
-                    result.Content,
-                    result.Format,
-                    result.IsQrCode,
-                    urlItems));
-            }
+            _barcodeResultItems.AddRange(results);
 
             RefreshQrResultsView();
         }
@@ -194,7 +150,7 @@ namespace ImvixPro.Views
             return FormatT("PreviewBarcodeMultipleDetected", _barcodeResultItems.Count);
         }
 
-        private string BuildBarcodeResultsCopyText(IReadOnlyList<PreviewBarcodeResult> results)
+        private string BuildBarcodeResultsCopyText(IReadOnlyList<PreviewBarcodeToolResultItem> results)
         {
             var builder = new StringBuilder();
 
@@ -220,7 +176,7 @@ namespace ImvixPro.Views
             return builder.ToString();
         }
 
-        private Control BuildBarcodeResultCard(PreviewBarcodeResultItem item, int displayIndex)
+        private Control BuildBarcodeResultCard(PreviewBarcodeToolResultItem item, int displayIndex)
         {
             var border = new Border
             {
@@ -364,8 +320,8 @@ namespace ImvixPro.Views
                 SetWrappedButtonContent(openButton, T("PreviewQrOpenLink"));
                 openButton.Click += (_, _) =>
                 {
-                    OpenQrUrl(item.Urls[0].Url);
-                };
+                        OpenQrUrl(item.Urls[0].Url);
+                    };
 
                 var actionsGrid = new Grid
                 {

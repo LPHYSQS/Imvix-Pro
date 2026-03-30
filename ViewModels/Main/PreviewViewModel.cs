@@ -130,7 +130,7 @@ namespace ImvixPro.ViewModels
             return SelectedOutputFormat == OutputImageFormat.Gif || SelectedGifHandlingMode == GifHandlingMode.AllFrames;
         }
 
-        private void RefreshSelectedAnimatedGifPreview()
+        private void PrepareSelectedAnimatedGifPreview(string filePath)
         {
             if (SelectedImage is null || !SelectedImage.IsAnimatedGif)
             {
@@ -140,16 +140,7 @@ namespace ImvixPro.ViewModels
             }
 
             ClearSelectedPreview();
-            SelectedPreview = ImageConversionService.TryCreatePreview(SelectedImage.FilePath, 760, SvgUseBackground, EffectiveSvgBackgroundColor);
-
-            if (ShouldLoadGifPreviewFrames())
-            {
-                _ = LoadGifPreviewAsync(SelectedImage.FilePath);
-            }
-            else
-            {
-                Interlocked.Increment(ref _gifPreviewRequestId);
-            }
+            SelectedPreview = ImageConversionService.TryCreatePreview(filePath, 760, SvgUseBackground, EffectiveSvgBackgroundColor);
 
             RefreshGifSpecificFrameUiState();
             RefreshGifTrimUiState();

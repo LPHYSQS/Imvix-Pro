@@ -114,34 +114,7 @@ namespace ImvixPro.ViewModels
         [RelayCommand]
         private async Task ToggleGifSpecificFramePlaybackAsync()
         {
-            if (IsGifSpecificFramePlaying)
-            {
-                PauseGifSpecificFramePlayback();
-                return;
-            }
-
-            if (!CanAdjustGifSpecificFrame || SelectedImage is null)
-            {
-                return;
-            }
-
-            IsGifSpecificFramePlaying = true;
-
-            if (_gifPreviewFrames is not null &&
-                _gifPreviewDurations is not null &&
-                _gifPreviewFrames.Count > 0 &&
-                _gifPreviewFrames.Count == _gifPreviewDurations.Count)
-            {
-                StartGifSpecificFramePlayback();
-                return;
-            }
-
-            await LoadGifPreviewAsync(SelectedImage.FilePath);
-
-            if (_gifPreviewFrames is null || !IsGifSpecificFrameControlsVisible)
-            {
-                IsGifSpecificFramePlaying = false;
-            }
+            await _previewRenderCoordinator.HandleGifSpecificFramePlaybackToggleAsync(SelectedImage, _previewRenderContext);
         }
 
         private void RefreshGifHandlingModeOptions()
@@ -229,13 +202,9 @@ namespace ImvixPro.ViewModels
                     : 0;
 
                 SetGifSpecificFrameIndex(stableIndex, persist: false, refreshPreview: false, cacheSelection: false);
-                if (_gifPreviewFrames is not null && SelectedGifHandlingMode == GifHandlingMode.SpecificFrame)
-                {
-                    ApplyGifSpecificFramePreview(disposeExistingPreview: false);
-                }
-
                 OnPropertyChanged(nameof(GifSpecificFrameCountdownText));
                 _isRestoringGifSpecificFrameSelection = false;
+                _previewRenderCoordinator.HandleGifSpecificFrameRestoreCompleted(image, _previewRenderContext);
             }, DispatcherPriority.Render);
         }
 
@@ -354,6 +323,15 @@ namespace ImvixPro.ViewModels
 
             ApplyGifSpecificFramePreview(disposeExistingPreview: false);
             return true;
+        }
+
+        private bool HasReadyGifSpecificFramePlaybackFrames()
+        {
+            return IsGifSpecificFrameControlsVisible &&
+                   _gifPreviewFrames is not null &&
+                   _gifPreviewDurations is not null &&
+                   _gifPreviewFrames.Count > 0 &&
+                   _gifPreviewFrames.Count == _gifPreviewDurations.Count;
         }
 
         private void SetGifSpecificFrameIndex(int index, bool persist, bool refreshPreview, bool cacheSelection = true)
