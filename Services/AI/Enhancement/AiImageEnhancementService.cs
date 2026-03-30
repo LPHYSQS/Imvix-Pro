@@ -9,6 +9,7 @@ using System.Drawing.Imaging;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Runtime.Versioning;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -490,11 +491,17 @@ namespace ImvixPro.Services
 
         private static SKBitmap? TryDecodeWithSystemDrawing(string inputPath)
         {
-            if (!OperatingSystem.IsWindows())
+            if (!OperatingSystem.IsWindowsVersionAtLeast(6, 1))
             {
                 return null;
             }
 
+            return TryDecodeWithSystemDrawingCore(inputPath);
+        }
+
+        [SupportedOSPlatform("windows6.1")]
+        private static SKBitmap? TryDecodeWithSystemDrawingCore(string inputPath)
+        {
             try
             {
                 using var stream = File.OpenRead(inputPath);

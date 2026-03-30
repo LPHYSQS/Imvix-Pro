@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using System.Runtime.Versioning;
 
 namespace ImvixPro.Services
 {
@@ -100,6 +101,7 @@ namespace ImvixPro.Services
             }
         }
 
+        [SupportedOSPlatform("windows")]
         private static bool TryCreateShortcut(string shortcutPath)
         {
             if (!TryResolveAppLaunch(out var targetPath, out var arguments, out var workingDirectory, out var iconPath))

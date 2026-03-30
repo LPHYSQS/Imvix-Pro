@@ -93,6 +93,11 @@ namespace ImvixPro.ViewModels
         {
             ArgumentNullException.ThrowIfNull(ruleSummary);
 
+            if (!ruleSummary.Ai.IsEnabled)
+            {
+                return null;
+            }
+
             var bypassedInputCount = ruleSummary.Ai.BypassedInputCount;
             if (!bypassedInputCount.HasValue || bypassedInputCount.Value <= 0)
             {

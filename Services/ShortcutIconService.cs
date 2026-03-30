@@ -3,6 +3,7 @@ using Svg.Skia;
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 
 namespace ImvixPro.Services
 {
@@ -67,6 +68,7 @@ namespace ImvixPro.Services
             return null;
         }
 
+        [SupportedOSPlatform("windows")]
         private static bool TryResolveShortcut(string shortcutPath, out ShortcutMetadata metadata)
         {
             metadata = default;
@@ -262,6 +264,7 @@ namespace ImvixPro.Services
             return string.Equals(firstPath, secondPath, StringComparison.OrdinalIgnoreCase);
         }
 
+        [SupportedOSPlatform("windows")]
         private static void TryReleaseComObject(object? instance)
         {
             if (instance is not null && Marshal.IsComObject(instance))

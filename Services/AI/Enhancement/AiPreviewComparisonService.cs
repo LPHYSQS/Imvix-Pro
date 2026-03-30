@@ -4,6 +4,7 @@ using SkiaSharp;
 using System;
 using System.Globalization;
 using System.IO;
+using System.Runtime.Versioning;
 
 namespace ImvixPro.Services
 {
@@ -186,10 +187,18 @@ namespace ImvixPro.Services
             {
             }
 
-            if (!OperatingSystem.IsWindows())
+            if (!OperatingSystem.IsWindowsVersionAtLeast(6, 1))
             {
                 return false;
             }
+
+            return TryReadSourceSizeWithSystemDrawing(filePath, out size);
+        }
+
+        [SupportedOSPlatform("windows6.1")]
+        private static bool TryReadSourceSizeWithSystemDrawing(string filePath, out PixelSize size)
+        {
+            size = default;
 
             try
             {
