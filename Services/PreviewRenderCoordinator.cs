@@ -20,6 +20,8 @@ namespace ImvixPro.Services
 
         void RestorePdfSelection(ImageItemViewModel? image);
 
+        void RefreshPdfUiState();
+
         void RefreshSelectedPdfPreview(bool preferImmediatePreview);
 
         bool ShouldLoadSelectedPsdPreviewAsync(ImageItemViewModel image);
@@ -35,6 +37,12 @@ namespace ImvixPro.Services
         void LoadGifPreview(string filePath);
 
         void IncrementGifPreviewRequestId();
+
+        void RefreshSelectedAnimatedGifPreview();
+
+        bool ShouldRefreshSelectedConfigurablePreview(ImageItemViewModel image);
+
+        void RefreshSelectedConfigurablePreview();
     }
 
     internal sealed class PreviewRenderCoordinator
@@ -84,6 +92,62 @@ namespace ImvixPro.Services
             {
                 context.IncrementGifPreviewRequestId();
             }
+        }
+
+        public void HandleOutputFormatChanged(ImageItemViewModel? image, IPreviewRenderContext context)
+        {
+            ArgumentNullException.ThrowIfNull(context);
+
+            context.RefreshGifHandlingModeOptions();
+            context.RestoreGifTrimSelection(image);
+            context.RefreshPdfUiState();
+
+            RefreshPreviewForCurrentConfiguration(
+                image,
+                context,
+                preferImmediatePdfPreview: true);
+        }
+
+        public void HandleBackgroundSettingsChanged(ImageItemViewModel? image, IPreviewRenderContext context)
+        {
+            ArgumentNullException.ThrowIfNull(context);
+
+            RefreshConfigurablePreview(image, context);
+        }
+
+        private static void RefreshPreviewForCurrentConfiguration(
+            ImageItemViewModel? image,
+            IPreviewRenderContext context,
+            bool preferImmediatePdfPreview)
+        {
+            if (image is null)
+            {
+                return;
+            }
+
+            if (image.IsAnimatedGif)
+            {
+                context.RefreshSelectedAnimatedGifPreview();
+                return;
+            }
+
+            if (image.IsPdfDocument)
+            {
+                context.RefreshSelectedPdfPreview(preferImmediatePdfPreview);
+                return;
+            }
+
+            RefreshConfigurablePreview(image, context);
+        }
+
+        private static void RefreshConfigurablePreview(ImageItemViewModel? image, IPreviewRenderContext context)
+        {
+            if (image is null || !context.ShouldRefreshSelectedConfigurablePreview(image))
+            {
+                return;
+            }
+
+            context.RefreshSelectedConfigurablePreview();
         }
     }
 }

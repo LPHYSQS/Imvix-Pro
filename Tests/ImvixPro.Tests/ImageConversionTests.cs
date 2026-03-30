@@ -1,7 +1,9 @@
+using Avalonia.Controls;
 using Avalonia.Media.Imaging;
 using ImvixPro.Models;
 using ImvixPro.Services;
 using ImvixPro.ViewModels;
+using ImvixPro.Views;
 
 namespace ImvixPro.Tests;
 
@@ -646,6 +648,104 @@ public sealed class ImageConversionTests
             context.Calls);
     }
 
+    [Fact]
+    public void PreviewRenderCoordinator_OutputFormatChanged_RefreshesGifBranchThroughCoordinator()
+    {
+        var coordinator = new PreviewRenderCoordinator();
+        var context = new FakePreviewRenderContext();
+        var image = ImageItemViewModel.CreateImported(
+            @"C:\preview\animated.gif",
+            fileSize: 8_192,
+            pixelWidth: 640,
+            pixelHeight: 360,
+            thumbnail: null,
+            gifFrameCount: 24);
+
+        coordinator.HandleOutputFormatChanged(image, context);
+
+        Assert.Equal(
+            [
+                "RefreshGifHandlingModeOptions",
+                "RestoreGifTrimSelection:C:\\preview\\animated.gif",
+                "RefreshPdfUiState",
+                "RefreshSelectedAnimatedGifPreview"
+            ],
+            context.Calls);
+    }
+
+    [Fact]
+    public void PreviewRenderCoordinator_BackgroundSettingsChanged_RefreshesConfigurablePreviewOnly()
+    {
+        var coordinator = new PreviewRenderCoordinator();
+        var context = new FakePreviewRenderContext
+        {
+            ShouldRefreshSelectedConfigurablePreviewResult = true
+        };
+        var image = ImageItemViewModel.CreateImported(
+            @"C:\preview\transparent.png",
+            fileSize: 2_048,
+            pixelWidth: 800,
+            pixelHeight: 600,
+            thumbnail: null,
+            gifFrameCount: 1);
+
+        coordinator.HandleBackgroundSettingsChanged(image, context);
+
+        Assert.Equal(
+            [
+                "ShouldRefreshSelectedConfigurablePreview:C:\\preview\\transparent.png",
+                "RefreshSelectedConfigurablePreview"
+            ],
+            context.Calls);
+    }
+
+    [Fact]
+    public void MainWindowShellCoordinator_TryCreateImageRequestSource_PrefersSenderDataContext()
+    {
+        var senderImage = ImageItemViewModel.CreateImported(
+            @"C:\preview\sender.png",
+            fileSize: 1_024,
+            pixelWidth: 400,
+            pixelHeight: 300,
+            thumbnail: null,
+            gifFrameCount: 1);
+        var fallbackImage = ImageItemViewModel.CreateImported(
+            @"C:\preview\fallback.png",
+            fileSize: 1_024,
+            pixelWidth: 400,
+            pixelHeight: 300,
+            thumbnail: null,
+            gifFrameCount: 1);
+        var sender = new Button
+        {
+            DataContext = senderImage
+        };
+
+        var success = MainWindowShellCoordinator.TryCreateImageRequestSource(sender, fallbackImage, out var request);
+
+        Assert.True(success);
+        Assert.Same(senderImage, request.Image);
+        Assert.Equal(ShellImageRequestOrigin.SenderDataContext, request.Origin);
+    }
+
+    [Fact]
+    public void MainWindowShellCoordinator_TryCreateImageRequestSource_UsesSelectedImageFallback()
+    {
+        var fallbackImage = ImageItemViewModel.CreateImported(
+            @"C:\preview\fallback.png",
+            fileSize: 1_024,
+            pixelWidth: 400,
+            pixelHeight: 300,
+            thumbnail: null,
+            gifFrameCount: 1);
+
+        var success = MainWindowShellCoordinator.TryCreateImageRequestSource(null, fallbackImage, out var request);
+
+        Assert.True(success);
+        Assert.Same(fallbackImage, request.Image);
+        Assert.Equal(ShellImageRequestOrigin.SelectedImageFallback, request.Origin);
+    }
+
     private static string TranslateTestText(string key)
     {
         return key switch
@@ -692,6 +792,8 @@ public sealed class ImageConversionTests
 
         public bool ShouldLoadGifPreviewFramesResult { get; set; }
 
+        public bool ShouldRefreshSelectedConfigurablePreviewResult { get; set; }
+
         public void CancelPendingPdfPreviewRender()
         {
             Calls.Add("CancelPendingPdfPreviewRender");
@@ -725,6 +827,11 @@ public sealed class ImageConversionTests
         public void RestorePdfSelection(ImageItemViewModel? image)
         {
             Calls.Add($"RestorePdfSelection:{image?.FilePath}");
+        }
+
+        public void RefreshPdfUiState()
+        {
+            Calls.Add("RefreshPdfUiState");
         }
 
         public void RefreshSelectedPdfPreview(bool preferImmediatePreview)
@@ -768,6 +875,22 @@ public sealed class ImageConversionTests
         public void IncrementGifPreviewRequestId()
         {
             Calls.Add("IncrementGifPreviewRequestId");
+        }
+
+        public void RefreshSelectedAnimatedGifPreview()
+        {
+            Calls.Add("RefreshSelectedAnimatedGifPreview");
+        }
+
+        public bool ShouldRefreshSelectedConfigurablePreview(ImageItemViewModel image)
+        {
+            Calls.Add($"ShouldRefreshSelectedConfigurablePreview:{image.FilePath}");
+            return ShouldRefreshSelectedConfigurablePreviewResult;
+        }
+
+        public void RefreshSelectedConfigurablePreview()
+        {
+            Calls.Add("RefreshSelectedConfigurablePreview");
         }
     }
 }

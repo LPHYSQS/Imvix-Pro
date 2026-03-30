@@ -316,15 +316,21 @@ namespace ImvixPro.ViewModels
             return ImageConversionService.TryCreatePreview(filePath, maxWidth, renderSettings.UseBackground, renderSettings.BackgroundColor);
         }
 
-        private void RefreshSelectedPreviewIfConfigurableSource()
+        private bool ShouldRefreshSelectedConfigurablePreview(ImageItemViewModel image)
         {
-            if (SelectedImage is null || SelectedImage.IsPdfDocument || SelectedImage.IsAnimatedGif)
+            ArgumentNullException.ThrowIfNull(image);
+
+            if (image.IsPdfDocument || image.IsAnimatedGif)
             {
-                return;
+                return false;
             }
 
-            if (!IsBackgroundFillSource(SelectedImage) &&
-                !IsIconSource(SelectedImage.FilePath))
+            return IsBackgroundFillSource(image) || IsIconSource(image.FilePath);
+        }
+
+        private void RefreshSelectedConfigurablePreview()
+        {
+            if (SelectedImage is null || !ShouldRefreshSelectedConfigurablePreview(SelectedImage))
             {
                 return;
             }

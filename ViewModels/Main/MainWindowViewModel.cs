@@ -418,6 +418,11 @@ namespace ImvixPro.ViewModels
                 _owner.RestorePdfSelection(image);
             }
 
+            public void RefreshPdfUiState()
+            {
+                _owner.RefreshPdfUiState();
+            }
+
             public void RefreshSelectedPdfPreview(bool preferImmediatePreview)
             {
                 _owner.RefreshSelectedPdfPreview(preferImmediatePreview);
@@ -456,6 +461,21 @@ namespace ImvixPro.ViewModels
             public void IncrementGifPreviewRequestId()
             {
                 Interlocked.Increment(ref _owner._gifPreviewRequestId);
+            }
+
+            public void RefreshSelectedAnimatedGifPreview()
+            {
+                _owner.RefreshSelectedAnimatedGifPreview();
+            }
+
+            public bool ShouldRefreshSelectedConfigurablePreview(ImageItemViewModel image)
+            {
+                return _owner.ShouldRefreshSelectedConfigurablePreview(image);
+            }
+
+            public void RefreshSelectedConfigurablePreview()
+            {
+                _owner.RefreshSelectedConfigurablePreview();
             }
         }
 
@@ -499,7 +519,6 @@ namespace ImvixPro.ViewModels
         partial void OnSelectedOutputFormatChanged(OutputImageFormat value)
         {
             PersistSettings();
-            RefreshGifHandlingModeOptions();
             OnPropertyChanged(nameof(IsGifPreviewVisible));
             OnPropertyChanged(nameof(IsGifTrimRangeVisible));
             OnPropertyChanged(nameof(IsSvgBackgroundToggleVisible));
@@ -510,16 +529,7 @@ namespace ImvixPro.ViewModels
             OnPropertyChanged(nameof(IsIconTransparencyToggleVisible));
             OnPropertyChanged(nameof(IsIconBackgroundColorVisible));
             OnPropertyChanged(nameof(SvgUseBackgroundText));
-            RestoreGifTrimSelection(SelectedImage);
-            RefreshGifTrimUiState();
-            RefreshPdfUiState();
-            RefreshSelectedAnimatedGifPreview();
-            RefreshSelectedPreviewIfConfigurableSource();
-
-            if (SelectedImage?.IsPdfDocument == true)
-            {
-                RefreshSelectedPdfPreview(preferImmediatePreview: true);
-            }
+            _previewRenderCoordinator.HandleOutputFormatChanged(SelectedImage, _previewRenderContext);
 
             RefreshPreviewSelectionState();
         }
@@ -767,7 +777,7 @@ namespace ImvixPro.ViewModels
         {
             OnPropertyChanged(nameof(SvgBackgroundToggleValue));
             OnPropertyChanged(nameof(IsSvgBackgroundColorVisible));
-            RefreshSelectedPreviewIfConfigurableSource();
+            _previewRenderCoordinator.HandleBackgroundSettingsChanged(SelectedImage, _previewRenderContext);
             RefreshPreviewSelectionState();
             PersistSettings();
         }
@@ -786,7 +796,7 @@ namespace ImvixPro.ViewModels
             }
 
             UpdateSvgColorInputs(parsed);
-            RefreshSelectedPreviewIfConfigurableSource();
+            _previewRenderCoordinator.HandleBackgroundSettingsChanged(SelectedImage, _previewRenderContext);
             PersistSettings();
         }
 
@@ -804,7 +814,7 @@ namespace ImvixPro.ViewModels
             }
 
             UpdateSvgColorInputs(parsed);
-            RefreshSelectedPreviewIfConfigurableSource();
+            _previewRenderCoordinator.HandleBackgroundSettingsChanged(SelectedImage, _previewRenderContext);
             PersistSettings();
         }
 
@@ -816,14 +826,14 @@ namespace ImvixPro.ViewModels
             }
 
             UpdateSvgColorInputs(value);
-            RefreshSelectedPreviewIfConfigurableSource();
+            _previewRenderCoordinator.HandleBackgroundSettingsChanged(SelectedImage, _previewRenderContext);
             PersistSettings();
         }
 
         partial void OnIconUseTransparencyChanged(bool value)
         {
             OnPropertyChanged(nameof(IsIconBackgroundColorVisible));
-            RefreshSelectedPreviewIfConfigurableSource();
+            _previewRenderCoordinator.HandleBackgroundSettingsChanged(SelectedImage, _previewRenderContext);
             RefreshPreviewSelectionState();
             PersistSettings();
         }
@@ -842,7 +852,7 @@ namespace ImvixPro.ViewModels
             }
 
             UpdateIconColorInputs(parsed);
-            RefreshSelectedPreviewIfConfigurableSource();
+            _previewRenderCoordinator.HandleBackgroundSettingsChanged(SelectedImage, _previewRenderContext);
             PersistSettings();
         }
 
@@ -860,7 +870,7 @@ namespace ImvixPro.ViewModels
             }
 
             UpdateIconColorInputs(parsed);
-            RefreshSelectedPreviewIfConfigurableSource();
+            _previewRenderCoordinator.HandleBackgroundSettingsChanged(SelectedImage, _previewRenderContext);
             PersistSettings();
         }
 
@@ -872,7 +882,7 @@ namespace ImvixPro.ViewModels
             }
 
             UpdateIconColorInputs(value);
-            RefreshSelectedPreviewIfConfigurableSource();
+            _previewRenderCoordinator.HandleBackgroundSettingsChanged(SelectedImage, _previewRenderContext);
             PersistSettings();
         }
 

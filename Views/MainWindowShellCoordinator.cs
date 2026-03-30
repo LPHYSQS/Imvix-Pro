@@ -36,6 +36,16 @@ namespace ImvixPro.Views
         string CancelText,
         Func<string, Task<PdfUnlockAttemptResult>> UnlockAsync);
 
+    internal enum ShellImageRequestOrigin
+    {
+        SenderDataContext,
+        SelectedImageFallback
+    }
+
+    internal readonly record struct ShellImageRequestSource(
+        ImageItemViewModel Image,
+        ShellImageRequestOrigin Origin);
+
     internal sealed class MainWindowShellCoordinator
     {
         private readonly ImagePreviewWindowServices _imagePreviewWindowServices;
@@ -221,12 +231,57 @@ namespace ImvixPro.Views
             ShowPreviewWindow(owner, CreatePreviewRequest(viewModel, image, includeGifTrimRange));
         }
 
+        public async Task OpenPreviewFromSourceAsync(
+            Window owner,
+            MainWindowViewModel? viewModel,
+            object? source,
+            bool includeGifTrimRange,
+            bool allowSelectedImageFallback,
+            bool skipAnimatedGif)
+        {
+            ArgumentNullException.ThrowIfNull(owner);
+
+            if (!TryCreateImageRequestSource(
+                    source,
+                    allowSelectedImageFallback ? viewModel?.SelectedImage : null,
+                    out var request))
+            {
+                return;
+            }
+
+            if (skipAnimatedGif && request.Image.IsAnimatedGif)
+            {
+                return;
+            }
+
+            await OpenPreviewAsync(owner, viewModel, request.Image, includeGifTrimRange);
+        }
+
         public void OpenFileDetailWindow(Window owner, MainWindowViewModel? viewModel, ImageItemViewModel image)
         {
             ArgumentNullException.ThrowIfNull(owner);
             ArgumentNullException.ThrowIfNull(image);
 
             ShowFileDetailWindow(owner, CreateFileDetailRequest(viewModel, image));
+        }
+
+        public void OpenFileDetailWindowFromSource(
+            Window owner,
+            MainWindowViewModel? viewModel,
+            object? source,
+            bool allowSelectedImageFallback = false)
+        {
+            ArgumentNullException.ThrowIfNull(owner);
+
+            if (!TryCreateImageRequestSource(
+                    source,
+                    allowSelectedImageFallback ? viewModel?.SelectedImage : null,
+                    out var request))
+            {
+                return;
+            }
+
+            OpenFileDetailWindow(owner, viewModel, request.Image);
         }
 
         public async Task ShowPdfUnlockDialogAsync(Window owner, MainWindowViewModel? viewModel, ImageItemViewModel image)
@@ -262,6 +317,46 @@ namespace ImvixPro.Views
             };
 
             await dialog.ShowDialog<bool>(owner);
+        }
+
+        public async Task ShowPdfUnlockDialogFromSourceAsync(
+            Window owner,
+            MainWindowViewModel? viewModel,
+            object? source,
+            bool allowSelectedImageFallback = false)
+        {
+            ArgumentNullException.ThrowIfNull(owner);
+
+            if (!TryCreateImageRequestSource(
+                    source,
+                    allowSelectedImageFallback ? viewModel?.SelectedImage : null,
+                    out var request))
+            {
+                return;
+            }
+
+            await ShowPdfUnlockDialogAsync(owner, viewModel, request.Image);
+        }
+
+        internal static bool TryCreateImageRequestSource(
+            object? source,
+            ImageItemViewModel? selectedImageFallback,
+            out ShellImageRequestSource request)
+        {
+            if (source is Control { DataContext: ImageItemViewModel image })
+            {
+                request = new ShellImageRequestSource(image, ShellImageRequestOrigin.SenderDataContext);
+                return true;
+            }
+
+            if (selectedImageFallback is not null)
+            {
+                request = new ShellImageRequestSource(selectedImageFallback, ShellImageRequestOrigin.SelectedImageFallback);
+                return true;
+            }
+
+            request = default;
+            return false;
         }
 
         internal PreviewWindowRequest CreatePreviewRequest(

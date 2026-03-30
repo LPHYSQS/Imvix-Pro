@@ -711,13 +711,13 @@ namespace ImvixPro.Views
                 return;
             }
 
-            var vm = ViewModel;
-            if (vm?.SelectedImage is null)
-            {
-                return;
-            }
-
-            await _shellCoordinator.OpenPreviewAsync(this, vm, vm.SelectedImage, includeGifTrimRange: true);
+            await _shellCoordinator.OpenPreviewFromSourceAsync(
+                this,
+                ViewModel,
+                sender,
+                includeGifTrimRange: true,
+                allowSelectedImageFallback: true,
+                skipAnimatedGif: false);
             e.Handled = true;
         }
 
@@ -783,39 +783,25 @@ namespace ImvixPro.Views
 
         internal async void OnImageItemDoubleTapped(object? sender, TappedEventArgs e)
         {
-            if (sender is not Control { DataContext: ImageItemViewModel image })
-            {
-                return;
-            }
-
-            if (image.IsAnimatedGif)
-            {
-                return;
-            }
-
-            await _shellCoordinator.OpenPreviewAsync(this, ViewModel, image, includeGifTrimRange: false);
+            await _shellCoordinator.OpenPreviewFromSourceAsync(
+                this,
+                ViewModel,
+                sender,
+                includeGifTrimRange: false,
+                allowSelectedImageFallback: false,
+                skipAnimatedGif: true);
             e.Handled = true;
         }
 
         internal void OnShowFileDetailClick(object? sender, RoutedEventArgs e)
         {
-            if (sender is not Control { DataContext: ImageItemViewModel image })
-            {
-                return;
-            }
-
-            _shellCoordinator.OpenFileDetailWindow(this, ViewModel, image);
+            _shellCoordinator.OpenFileDetailWindowFromSource(this, ViewModel, sender);
             e.Handled = true;
         }
 
         internal async void OnPdfUnlockClick(object? sender, RoutedEventArgs e)
         {
-            if (sender is not Control { DataContext: ImageItemViewModel image })
-            {
-                return;
-            }
-
-            await _shellCoordinator.ShowPdfUnlockDialogAsync(this, ViewModel, image);
+            await _shellCoordinator.ShowPdfUnlockDialogFromSourceAsync(this, ViewModel, sender);
             e.Handled = true;
         }
     }
