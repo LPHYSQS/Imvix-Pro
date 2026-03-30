@@ -69,6 +69,8 @@ namespace ImvixPro.Views
             AiMattingBusyText.Text = _isAiMattingSaveBusy
                 ? T("PreviewMattingSaving")
                 : T("PreviewMattingBusy");
+            AiMattingProcessingNoticeTitleText.Text = T("PreviewProcessingNoticeTitle");
+            AiMattingProcessingNoticeBodyText.Text = T("PreviewAiProcessingNotice");
             RefreshPreviewActionStates();
         }
 
@@ -97,6 +99,7 @@ namespace ImvixPro.Views
                                         !isBlockedByRecognitionSession;
 
             AiMattingBusyOverlay.IsVisible = _isAiMattingBusy || _isAiMattingSaveBusy;
+            AiMattingProcessingNoticeCard.IsVisible = _isAiMattingBusy;
             AiMattingCompareHost.IsVisible = isSplitView;
             AiMattingCompareInputLayer.IsVisible = isSplitView;
             AiMattingPreviewActionBar.IsVisible = _isAiMattingCompareActive;

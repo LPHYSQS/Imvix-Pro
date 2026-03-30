@@ -1234,6 +1234,7 @@ namespace ImvixPro.Views
         private void UpdateOcrBusyUi()
         {
             OcrBusyProgressBar.IsVisible = _isOcrBusy;
+            RecognitionProcessingNoticeCard.IsVisible = _isOcrBusy;
             RefreshRecognitionChrome();
 
             if (_isOcrBusy)

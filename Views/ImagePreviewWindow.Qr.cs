@@ -138,6 +138,8 @@ namespace ImvixPro.Views
             SetWrappedButtonContent(OcrCopyAllButton, T("PreviewOcrCopyAll"));
             SetWrappedButtonContent(CloseOcrButton, GetCloseText(_panelMode));
             SetWrappedButtonContent(OpenLinkButton, T("PreviewQrOpenLink"));
+            RecognitionProcessingNoticeTitleText.Text = T("PreviewProcessingNoticeTitle");
+            RecognitionProcessingNoticeBodyText.Text = T("PreviewRecognitionProcessingNotice");
 
             SetWrappedButtonContent(
                 OcrButton,

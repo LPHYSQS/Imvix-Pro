@@ -93,6 +93,8 @@ namespace ImvixPro.Views
             AiEraserBusyText.Text = _isAiEraserSaveBusy
                 ? T("PreviewAiSaving")
                 : T("PreviewEraserBusy");
+            AiEraserProcessingNoticeTitleText.Text = T("PreviewProcessingNoticeTitle");
+            AiEraserProcessingNoticeBodyText.Text = T("PreviewAiProcessingNotice");
             AiEraserSizeLabel.Text = string.Create(
                 CultureInfo.CurrentCulture,
                 $"{T("ERASER_SIZE")} ({Math.Round(_aiEraserBrushSize, MidpointRounding.AwayFromZero)})");
@@ -139,6 +141,7 @@ namespace ImvixPro.Views
             AiEraserEditHost.IsVisible = _isAiEraserEditing;
             AiEraserInputLayer.IsVisible = _isAiEraserEditing;
             AiEraserBusyOverlay.IsVisible = _isAiEraserBusy || _isAiEraserSaveBusy;
+            AiEraserProcessingNoticeCard.IsVisible = _isAiEraserBusy;
             AiEraserMaskOverlayImage.Source = _isAiEraserEditing ? _aiEraserOverlayBitmap : null;
             AiEraserInputLayer.Cursor = _isAiEraserEditing ? new Cursor(StandardCursorType.Cross) : null;
 

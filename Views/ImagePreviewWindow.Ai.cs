@@ -99,6 +99,8 @@ namespace ImvixPro.Views
             AiBusyText.Text = _isAiSaveBusy
                 ? T("PreviewAiSaving")
                 : T("PreviewAiBusy");
+            AiProcessingNoticeTitleText.Text = T("PreviewProcessingNoticeTitle");
+            AiProcessingNoticeBodyText.Text = T("PreviewAiProcessingNotice");
             RefreshAiPreviewDiagnosticsText();
             RefreshAiPreviewUi();
         }
@@ -126,6 +128,7 @@ namespace ImvixPro.Views
                                         !isBlockedByRecognitionSession;
 
             AiBusyOverlay.IsVisible = _isAiPreviewBusy || _isAiSaveBusy;
+            AiProcessingNoticeCard.IsVisible = _isAiPreviewBusy;
             AiCompareHost.IsVisible = isSplitView;
             AiCompareInputLayer.IsVisible = isSplitView;
             AiPreviewActionBar.IsVisible = _isAiCompareActive;
