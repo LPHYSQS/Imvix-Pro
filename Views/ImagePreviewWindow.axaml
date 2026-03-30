@@ -282,7 +282,7 @@
                                     <Image x:Name="AiEraserMaskOverlayImage"
                                            HorizontalAlignment="Stretch"
                                            VerticalAlignment="Stretch"
-                                           RenderOptions.BitmapInterpolationMode="HighQuality"
+                                           RenderOptions.BitmapInterpolationMode="LowQuality"
                                            Stretch="Uniform" />
 
                                     <Border x:Name="AiEraserInputLayer"
@@ -299,9 +299,9 @@
                                                 Width="0"
                                                 Height="0"
                                                 CornerRadius="999"
-                                                BorderBrush="#E5FFFFFF"
+                                                BorderBrush="#CC93C5FD"
                                                 BorderThickness="1.5"
-                                                Background="#22EF4444" />
+                                                Background="#263B82F6" />
                                     </Canvas>
                                 </Grid>
                                 <Border x:Name="AiBusyOverlay"

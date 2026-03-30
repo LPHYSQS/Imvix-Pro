@@ -23,7 +23,8 @@ namespace ImvixPro.Views
     public partial class ImagePreviewWindow
     {
         private const double DefaultAiEraserBrushSize = 36d;
-        private static readonly SKColor AiEraserOverlayColor = new(239, 68, 68, 148);
+        private const int AiEraserOverlayPixelStride = 4;
+        private static readonly SKColor AiEraserOverlayColor = new(59, 130, 246, 112);
 
         private enum AiEraserToolMode
         {
@@ -44,7 +45,7 @@ namespace ImvixPro.Views
         private SKBitmap? _aiEraserPreviewMaskBitmap;
         private SKBitmap? _aiEraserSourceMaskBitmap;
         private Bitmap? _aiEraserCompareSourceBitmap;
-        private byte[]? _aiEraserOverlayCopyBuffer;
+        private byte[]? _aiEraserOverlayRowBuffer;
         private Point _aiEraserCursorPoint;
         private PixelSize _aiEraserSourcePixelSize;
         private bool _isAiEraserEditing;
@@ -273,7 +274,7 @@ namespace ImvixPro.Views
                 new Vector(96d, 96d),
                 PixelFormat.Bgra8888,
                 AlphaFormat.Premul);
-            _aiEraserOverlayCopyBuffer = new byte[_aiEraserPreviewMaskBitmap.ByteCount];
+            _aiEraserOverlayRowBuffer = null;
             _isAiEraserEditing = true;
             _isAiEraserDrawing = false;
             _isAiEraserCursorVisible = false;
@@ -301,7 +302,7 @@ namespace ImvixPro.Views
 
             _aiEraserOverlayBitmap?.Dispose();
             _aiEraserOverlayBitmap = null;
-            _aiEraserOverlayCopyBuffer = null;
+            _aiEraserOverlayRowBuffer = null;
             _aiEraserSourcePixelSize = default;
         }
 
@@ -386,26 +387,50 @@ namespace ImvixPro.Views
             return bitmap;
         }
 
-        private void SyncAiEraserOverlayToUi()
+        private void SyncAiEraserOverlayToUi(SKRectI? dirtyRect = null)
         {
             if (_aiEraserPreviewMaskBitmap is null ||
-                _aiEraserOverlayBitmap is null ||
-                _aiEraserOverlayCopyBuffer is null)
+                _aiEraserOverlayBitmap is null)
             {
                 return;
             }
 
-            Marshal.Copy(_aiEraserPreviewMaskBitmap.GetPixels(), _aiEraserOverlayCopyBuffer, 0, _aiEraserPreviewMaskBitmap.ByteCount);
+            var copyRect = dirtyRect ?? new SKRectI(0, 0, _aiEraserPreviewMaskBitmap.Width, _aiEraserPreviewMaskBitmap.Height);
+            copyRect = ClampAiEraserDirtyRect(copyRect, _aiEraserPreviewMaskBitmap.Width, _aiEraserPreviewMaskBitmap.Height);
+            if (copyRect.Width <= 0 || copyRect.Height <= 0)
+            {
+                return;
+            }
 
             using var framebuffer = _aiEraserOverlayBitmap.Lock();
-            for (var row = 0; row < framebuffer.Size.Height; row++)
+            var rowCopyBytes = copyRect.Width * AiEraserOverlayPixelStride;
+            var rowBuffer = EnsureAiEraserOverlayRowBuffer(rowCopyBytes);
+            var sourcePixels = _aiEraserPreviewMaskBitmap.GetPixels();
+            for (var row = copyRect.Top; row < copyRect.Bottom; row++)
             {
+                var sourceOffset = (row * _aiEraserPreviewMaskBitmap.RowBytes) + (copyRect.Left * AiEraserOverlayPixelStride);
+                var destinationOffset = (row * framebuffer.RowBytes) + (copyRect.Left * AiEraserOverlayPixelStride);
                 Marshal.Copy(
-                    _aiEraserOverlayCopyBuffer,
-                    row * _aiEraserPreviewMaskBitmap.RowBytes,
-                    framebuffer.Address + (row * framebuffer.RowBytes),
-                    _aiEraserPreviewMaskBitmap.RowBytes);
+                    IntPtr.Add(sourcePixels, sourceOffset),
+                    rowBuffer,
+                    0,
+                    rowCopyBytes);
+                Marshal.Copy(
+                    rowBuffer,
+                    0,
+                    framebuffer.Address + destinationOffset,
+                    rowCopyBytes);
             }
+        }
+
+        private byte[] EnsureAiEraserOverlayRowBuffer(int requiredLength)
+        {
+            if (_aiEraserOverlayRowBuffer is null || _aiEraserOverlayRowBuffer.Length < requiredLength)
+            {
+                _aiEraserOverlayRowBuffer = new byte[requiredLength];
+            }
+
+            return _aiEraserOverlayRowBuffer;
         }
 
         private Rect GetAiEraserContentRect()
@@ -499,7 +524,11 @@ namespace ImvixPro.Views
                 fromPoint.SourceDiameter,
                 _aiEraserToolMode == AiEraserToolMode.Eraser,
                 SKColors.White);
-            SyncAiEraserOverlayToUi();
+            SyncAiEraserOverlayToUi(CalculateAiEraserDirtyRect(
+                _aiEraserPreviewMaskBitmap,
+                fromPoint.PreviewPoint,
+                toPoint.PreviewPoint,
+                fromPoint.PreviewDiameter));
         }
 
         private static void DrawAiEraserStroke(
@@ -534,6 +563,30 @@ namespace ImvixPro.Views
             }
 
             canvas.Flush();
+        }
+
+        private static SKRectI CalculateAiEraserDirtyRect(
+            SKBitmap bitmap,
+            SKPoint fromPoint,
+            SKPoint toPoint,
+            float diameter)
+        {
+            var padding = Math.Max(2f, (diameter / 2f) + 2f);
+            var left = (int)Math.Floor(Math.Min(fromPoint.X, toPoint.X) - padding);
+            var top = (int)Math.Floor(Math.Min(fromPoint.Y, toPoint.Y) - padding);
+            var right = (int)Math.Ceiling(Math.Max(fromPoint.X, toPoint.X) + padding);
+            var bottom = (int)Math.Ceiling(Math.Max(fromPoint.Y, toPoint.Y) + padding);
+
+            return ClampAiEraserDirtyRect(new SKRectI(left, top, right, bottom), bitmap.Width, bitmap.Height);
+        }
+
+        private static SKRectI ClampAiEraserDirtyRect(SKRectI rect, int width, int height)
+        {
+            var left = Math.Clamp(rect.Left, 0, width);
+            var top = Math.Clamp(rect.Top, 0, height);
+            var right = Math.Clamp(rect.Right, left, width);
+            var bottom = Math.Clamp(rect.Bottom, top, height);
+            return new SKRectI(left, top, right, bottom);
         }
 
         private bool HasAiEraserMaskContent()
