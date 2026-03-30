@@ -425,7 +425,6 @@ namespace ImvixPro.ViewModels
             OnPropertyChanged(nameof(PreviewTabText));
             OnPropertyChanged(nameof(SettingsTabText));
             OnPropertyChanged(nameof(NoPreviewText));
-            OnPropertyChanged(nameof(PreviewSelectionFileText));
             OnPropertyChanged(nameof(PreviewWindowHintText));
             OnPropertyChanged(nameof(StatusLabelText));
             OnPropertyChanged(nameof(CurrentFileLabelText));
@@ -528,6 +527,7 @@ namespace ImvixPro.ViewModels
             RefreshPdfLocalizedProperties();
             RefreshGifLabels();
             RefreshGifPdfLocalizedProperties();
+            RefreshPreviewSelectionState();
         }
 
         private string EffectiveSvgBackgroundColor => ToHexColor(SvgBackgroundColorValue);

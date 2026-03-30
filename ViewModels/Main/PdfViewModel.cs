@@ -400,6 +400,7 @@ namespace ImvixPro.ViewModels
             OnPropertyChanged(nameof(PdfRangeMaximum));
             RefreshPdfPageState();
             RefreshPdfRangeState();
+            RefreshPreviewSelectionState();
         }
 
         private void RefreshPdfLocalizedProperties()
@@ -424,6 +425,7 @@ namespace ImvixPro.ViewModels
             OnPropertyChanged(nameof(PdfLockedActionHintText));
             RefreshPdfSecurityLabels();
             RefreshPdfUiState();
+            RefreshPreviewSelectionState();
         }
 
         private void ApplyPdfPageSelection(
@@ -518,11 +520,13 @@ namespace ImvixPro.ViewModels
             OnPropertyChanged(nameof(PdfPageIndicatorText));
             GoToPreviousPdfPageCommand.NotifyCanExecuteChanged();
             GoToNextPdfPageCommand.NotifyCanExecuteChanged();
+            RefreshPreviewSelectionState();
         }
 
         private void RefreshPdfRangeState()
         {
             OnPropertyChanged(nameof(PdfPageRangeIndicatorText));
+            RefreshPreviewSelectionState();
         }
 
         private void CancelPendingPdfPreviewRender()

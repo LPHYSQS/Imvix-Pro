@@ -56,6 +56,7 @@ namespace ImvixPro.ViewModels
             OnPropertyChanged(nameof(GifTrimRangeText));
             OnPropertyChanged(nameof(GifTrimRangeMinimum));
             OnPropertyChanged(nameof(GifTrimRangeMaximum));
+            RefreshPreviewSelectionState();
         }
 
         private void RestoreGifTrimSelection(ImageItemViewModel? image)
@@ -107,6 +108,8 @@ namespace ImvixPro.ViewModels
             {
                 ApplyGifTrimPreviewRangeIfNeeded();
             }
+
+            RefreshPreviewSelectionState();
         }
 
         private void ApplyGifTrimPreviewRangeIfNeeded()

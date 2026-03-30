@@ -18,10 +18,13 @@ namespace ImvixPro.ViewModels
 
         public string PreviewAiBusyText => T("StatusAiPreviewEnhancing");
 
-        public string PreviewSelectionFileText => SelectedImage?.FileName ?? T("NoCurrentFile");
-
         [ObservableProperty]
         private bool isPreviewAiBusy;
+
+        partial void OnSelectedPreviewChanged(Bitmap? value)
+        {
+            RefreshPreviewSelectionState();
+        }
 
         public PreviewSessionState CreatePreviewSessionState()
         {
@@ -60,6 +63,7 @@ namespace ImvixPro.ViewModels
         private void RefreshLocalizedPropertiesPreviewAi()
         {
             OnPropertyChanged(nameof(PreviewAiBusyText));
+            RefreshPreviewSelectionState();
         }
 
         private void RefreshGifLabels()
@@ -333,6 +337,78 @@ namespace ImvixPro.ViewModels
 
             SelectedPreview?.Dispose();
             SelectedPreview = CreatePreviewBitmap(SelectedImage.FilePath, 760);
+        }
+
+        private void RefreshPreviewSelectionState()
+        {
+            PreviewSelectionState.Apply(BuildPreviewSelectionSnapshot());
+        }
+
+        private PreviewSelectionSnapshot BuildPreviewSelectionSnapshot()
+        {
+            return new PreviewSelectionSnapshot
+            {
+                SelectedPreview = SelectedPreview,
+                PreviewSelectionFileText = SelectedImage?.FileName ?? T("NoCurrentFile"),
+                IsPreviewWindowHintVisible = SelectedImage is not null,
+                IsPdfSelected = IsPdfSelected,
+                IsPdfNavigationVisible = IsPdfNavigationVisible,
+                CanGoToPreviousPdfPage = CanGoToPreviousPdfPage,
+                CanGoToNextPdfPage = CanGoToNextPdfPage,
+                IsSelectedPdfLocked = IsSelectedPdfLocked,
+                IsSelectedPdfUnlocked = IsSelectedPdfUnlocked,
+                PdfPageIndicatorText = PdfPageIndicatorText,
+                PdfPageRangeIndicatorText = PdfPageRangeIndicatorText,
+                PdfLockedPreviewTitleText = PdfLockedPreviewTitleText,
+                PdfLockedPreviewDescriptionText = PdfLockedPreviewDescriptionText,
+                PdfLockedActionHintText = PdfLockedActionHintText,
+                IsPdfImageExportVisible = IsPdfImageExportVisible,
+                IsPdfDocumentExportVisible = IsPdfDocumentExportVisible,
+                IsPdfImageModeSelectorVisible = IsPdfImageModeSelectorVisible,
+                IsPdfDocumentModeSelectorVisible = IsPdfDocumentModeSelectorVisible,
+                IsPdfImagePageSliderVisible = IsPdfImagePageSliderVisible,
+                IsPdfDocumentPageSliderVisible = IsPdfDocumentPageSliderVisible,
+                IsPdfDocumentRangeSliderVisible = IsPdfDocumentRangeSliderVisible,
+                IsSinglePagePdf = IsSinglePagePdf,
+                IsPdfImageAllPagesMode = IsPdfImageAllPagesMode,
+                IsPdfImageCurrentPageMode = IsPdfImageCurrentPageMode,
+                IsPdfDocumentAllPagesMode = IsPdfDocumentAllPagesMode,
+                IsPdfDocumentCurrentPageMode = IsPdfDocumentCurrentPageMode,
+                IsPdfDocumentPageRangeMode = IsPdfDocumentPageRangeMode,
+                IsPdfDocumentSplitSinglePagesMode = IsPdfDocumentSplitSinglePagesMode,
+                PdfPageMinimum = PdfPageMinimum,
+                PdfPageMaximum = PdfPageMaximum,
+                PdfRangeMinimum = PdfRangeMinimum,
+                PdfRangeMaximum = PdfRangeMaximum,
+                SelectedPdfPageIndex = SelectedPdfPageIndex,
+                SelectedPdfRangeStartIndex = SelectedPdfRangeStartIndex,
+                SelectedPdfRangeEndIndex = SelectedPdfRangeEndIndex,
+                IsGifPreviewVisible = IsGifPreviewVisible,
+                IsGifHandlingSelectorVisible = IsGifHandlingSelectorVisible,
+                IsGifPdfModeSelectorVisible = IsGifPdfModeSelectorVisible,
+                IsGifPdfExportAllFramesMode = IsGifPdfExportAllFramesMode,
+                IsGifPdfExportCurrentFrameMode = IsGifPdfExportCurrentFrameMode,
+                IsGifSpecificFrameControlsVisible = IsGifSpecificFrameControlsVisible,
+                GifSpecificFrameMaximum = GifSpecificFrameMaximum,
+                GifSpecificFrameSliderValue = GifSpecificFrameSliderValue,
+                CanAdjustGifSpecificFrame = CanAdjustGifSpecificFrame,
+                IsGifSpecificFramePlaybackPaused = IsGifSpecificFramePlaybackPaused,
+                IsGifSpecificFramePlaying = IsGifSpecificFramePlaying,
+                GifSpecificFrameCountdownText = GifSpecificFrameCountdownText,
+                IsGifTrimRangeVisible = IsGifTrimRangeVisible,
+                GifTrimRangeMinimum = GifTrimRangeMinimum,
+                GifTrimRangeMaximum = GifTrimRangeMaximum,
+                SelectedGifTrimStartIndex = SelectedGifTrimStartIndex,
+                SelectedGifTrimEndIndex = SelectedGifTrimEndIndex,
+                IsSvgPreviewVisible = IsSvgPreviewVisible,
+                IsSvgBackgroundToggleVisible = IsSvgBackgroundToggleVisible,
+                IsSvgBackgroundToggleEnabled = IsSvgBackgroundToggleEnabled,
+                IsSvgBackgroundRequiredHintVisible = IsSvgBackgroundRequiredHintVisible,
+                IsSvgBackgroundColorVisible = IsSvgBackgroundColorVisible,
+                IsIconPreviewVisible = IsIconPreviewVisible,
+                IsIconTransparencyToggleVisible = IsIconTransparencyToggleVisible,
+                IsIconBackgroundColorVisible = IsIconBackgroundColorVisible
+            };
         }
     }
 }

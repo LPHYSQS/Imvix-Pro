@@ -23,8 +23,8 @@
                             Height="44"
                             VerticalAlignment="Center"
                             HorizontalAlignment="Center"
-                            IsVisible="{Binding IsPdfNavigationVisible}"
-                            IsEnabled="{Binding CanGoToPreviousPdfPage}"
+                            IsVisible="{Binding PreviewSelectionState.IsPdfNavigationVisible}"
+                            IsEnabled="{Binding PreviewSelectionState.CanGoToPreviousPdfPage}"
                             Command="{Binding GoToPreviousPdfPageCommand}"
                             ToolTip.Tip="{Binding PdfPreviousPageText}">
                         <Path Width="14"
@@ -39,9 +39,9 @@
                     </Button>
 
                     <Grid Grid.Column="1">
-                        <Image Source="{Binding SelectedPreview}" Stretch="Uniform" />
+                        <Image Source="{Binding PreviewSelectionState.SelectedPreview}" Stretch="Uniform" />
 
-                        <Border IsVisible="{Binding IsSelectedPdfLocked}"
+                        <Border IsVisible="{Binding PreviewSelectionState.IsSelectedPdfLocked}"
                                 Background="{DynamicResource PdfLockOverlayBrush}"
                                 CornerRadius="8"
                                 Padding="18">
@@ -64,11 +64,11 @@
                                                   Data="{StaticResource IconLockClosedGeometry}" />
                                         </Viewbox>
                                     </Border>
-                                    <TextBlock Text="{Binding PdfLockedPreviewTitleText}"
+                                    <TextBlock Text="{Binding PreviewSelectionState.PdfLockedPreviewTitleText}"
                                                FontWeight="SemiBold"
                                                FontSize="16"
                                                TextAlignment="Center" />
-                                    <TextBlock Text="{Binding PdfLockedPreviewDescriptionText}"
+                                    <TextBlock Text="{Binding PreviewSelectionState.PdfLockedPreviewDescriptionText}"
                                                Classes="secondary"
                                                MaxWidth="248"
                                                TextAlignment="Center"
@@ -84,8 +84,8 @@
                             Height="44"
                             VerticalAlignment="Center"
                             HorizontalAlignment="Center"
-                            IsVisible="{Binding IsPdfNavigationVisible}"
-                            IsEnabled="{Binding CanGoToNextPdfPage}"
+                            IsVisible="{Binding PreviewSelectionState.IsPdfNavigationVisible}"
+                            IsEnabled="{Binding PreviewSelectionState.CanGoToNextPdfPage}"
                             Command="{Binding GoToNextPdfPageCommand}"
                             ToolTip.Tip="{Binding PdfNextPageText}">
                         <Path Width="14"
@@ -102,8 +102,8 @@
             </Border>
 
             <TextBlock Text="{Binding NoPreviewText}" Classes="secondary" />
-            <TextBlock Text="{Binding PreviewSelectionFileText, StringFormat='{}{0}'}" TextTrimming="CharacterEllipsis" />
-            <Border IsVisible="{Binding IsPreviewWindowHintVisible}"
+            <TextBlock Text="{Binding PreviewSelectionState.PreviewSelectionFileText, StringFormat='{}{0}'}" TextTrimming="CharacterEllipsis" />
+            <Border IsVisible="{Binding PreviewSelectionState.IsPreviewWindowHintVisible}"
                     Background="{DynamicResource SurfaceAltBrush}"
                     BorderBrush="{DynamicResource BorderBrush}"
                     BorderThickness="1"
@@ -130,12 +130,12 @@
                                VerticalAlignment="Top" />
                 </Grid>
             </Border>
-            <TextBlock IsVisible="{Binding IsPdfSelected}"
-                       Text="{Binding PdfPageIndicatorText}"
+            <TextBlock IsVisible="{Binding PreviewSelectionState.IsPdfSelected}"
+                       Text="{Binding PreviewSelectionState.PdfPageIndicatorText}"
                        Classes="secondary"
                        FontWeight="SemiBold" />
-            <TextBlock IsVisible="{Binding IsSelectedPdfLocked}"
-                       Text="{Binding PdfLockedActionHintText}"
+            <TextBlock IsVisible="{Binding PreviewSelectionState.IsSelectedPdfLocked}"
+                       Text="{Binding PreviewSelectionState.PdfLockedActionHintText}"
                        Classes="secondary"
                        TextWrapping="Wrap" />
 
@@ -158,8 +158,8 @@
                 </StackPanel>
             </Border>
 
-            <Border IsVisible="{Binding IsPdfImageExportVisible}"
-                    IsEnabled="{Binding IsSelectedPdfUnlocked}"
+            <Border IsVisible="{Binding PreviewSelectionState.IsPdfImageExportVisible}"
+                    IsEnabled="{Binding PreviewSelectionState.IsSelectedPdfUnlocked}"
                     Background="{DynamicResource SurfaceAltBrush}"
                     BorderBrush="{DynamicResource BorderBrush}"
                     BorderThickness="1"
@@ -173,43 +173,43 @@
                         <TextBlock Text="{Binding PdfImageExportTitleText}" FontWeight="SemiBold" VerticalAlignment="Center" />
                     </StackPanel>
 
-                    <TextBlock IsVisible="{Binding IsSinglePagePdf}"
+                    <TextBlock IsVisible="{Binding PreviewSelectionState.IsSinglePagePdf}"
                                Text="{Binding PdfSinglePageHintText}"
                                Classes="secondary"
                                TextWrapping="Wrap" />
 
-                    <StackPanel IsVisible="{Binding IsPdfImageModeSelectorVisible}" Orientation="Horizontal" Spacing="14">
+                    <StackPanel IsVisible="{Binding PreviewSelectionState.IsPdfImageModeSelectorVisible}" Orientation="Horizontal" Spacing="14">
                         <RadioButton GroupName="PdfImageMode"
-                                     IsChecked="{Binding IsPdfImageAllPagesMode}"
+                                     IsChecked="{Binding PreviewSelectionState.IsPdfImageAllPagesMode, Mode=OneWay}"
                                      Checked="OnPdfImageAllPagesChecked"
                                      Content="{Binding PdfExportAllPagesText}" />
                         <RadioButton GroupName="PdfImageMode"
-                                     IsChecked="{Binding IsPdfImageCurrentPageMode}"
+                                     IsChecked="{Binding PreviewSelectionState.IsPdfImageCurrentPageMode, Mode=OneWay}"
                                      Checked="OnPdfImageCurrentPageChecked"
                                      Content="{Binding PdfExportCurrentPageText}" />
                     </StackPanel>
 
-                    <Grid IsVisible="{Binding IsPdfImagePageSliderVisible}"
+                    <Grid IsVisible="{Binding PreviewSelectionState.IsPdfImagePageSliderVisible}"
                           ColumnDefinitions="Auto,*,Auto"
                           ColumnSpacing="8">
                         <TextBlock Grid.Column="0" Text="{Binding PdfPageText}" VerticalAlignment="Center" />
                         <Slider Grid.Column="1"
-                                Minimum="{Binding PdfPageMinimum}"
-                                Maximum="{Binding PdfPageMaximum}"
-                                Value="{Binding SelectedPdfPageIndex, Mode=OneWay}"
+                                Minimum="{Binding PreviewSelectionState.PdfPageMinimum}"
+                                Maximum="{Binding PreviewSelectionState.PdfPageMaximum}"
+                                Value="{Binding PreviewSelectionState.SelectedPdfPageIndex, Mode=OneWay}"
                                 TickFrequency="1"
                                 IsSnapToTickEnabled="True"
                                 ValueChanged="OnPdfPageSliderValueChanged" />
                         <TextBlock Grid.Column="2"
-                                   Text="{Binding PdfPageIndicatorText}"
+                                   Text="{Binding PreviewSelectionState.PdfPageIndicatorText}"
                                    VerticalAlignment="Center"
                                    FontWeight="SemiBold" />
                     </Grid>
                 </StackPanel>
             </Border>
 
-            <Border IsVisible="{Binding IsPdfDocumentExportVisible}"
-                    IsEnabled="{Binding IsSelectedPdfUnlocked}"
+            <Border IsVisible="{Binding PreviewSelectionState.IsPdfDocumentExportVisible}"
+                    IsEnabled="{Binding PreviewSelectionState.IsSelectedPdfUnlocked}"
                     Background="{DynamicResource SurfaceAltBrush}"
                     BorderBrush="{DynamicResource BorderBrush}"
                     BorderThickness="1"
@@ -223,60 +223,60 @@
                         <TextBlock Text="{Binding PdfDocumentExportTitleText}" FontWeight="SemiBold" VerticalAlignment="Center" />
                     </StackPanel>
 
-                    <TextBlock IsVisible="{Binding IsSinglePagePdf}"
+                    <TextBlock IsVisible="{Binding PreviewSelectionState.IsSinglePagePdf}"
                                Text="{Binding PdfSinglePageHintText}"
                                Classes="secondary"
                                TextWrapping="Wrap" />
 
-                    <StackPanel IsVisible="{Binding IsPdfDocumentModeSelectorVisible}" Orientation="Horizontal" Spacing="14">
+                    <StackPanel IsVisible="{Binding PreviewSelectionState.IsPdfDocumentModeSelectorVisible}" Orientation="Horizontal" Spacing="14">
                         <RadioButton GroupName="PdfDocumentMode"
-                                     IsChecked="{Binding IsPdfDocumentAllPagesMode}"
+                                     IsChecked="{Binding PreviewSelectionState.IsPdfDocumentAllPagesMode, Mode=OneWay}"
                                      Checked="OnPdfDocumentAllPagesChecked"
                                      Content="{Binding PdfExportAllPagesText}" />
                         <RadioButton GroupName="PdfDocumentMode"
-                                     IsChecked="{Binding IsPdfDocumentCurrentPageMode}"
+                                     IsChecked="{Binding PreviewSelectionState.IsPdfDocumentCurrentPageMode, Mode=OneWay}"
                                      Checked="OnPdfDocumentCurrentPageChecked"
                                      Content="{Binding PdfExportCurrentPageText}" />
                         <RadioButton GroupName="PdfDocumentMode"
-                                     IsChecked="{Binding IsPdfDocumentPageRangeMode}"
+                                     IsChecked="{Binding PreviewSelectionState.IsPdfDocumentPageRangeMode, Mode=OneWay}"
                                      Checked="OnPdfDocumentRangeChecked"
                                      Content="{Binding PdfExportPageRangeText}" />
                         <RadioButton GroupName="PdfDocumentMode"
-                                     IsChecked="{Binding IsPdfDocumentSplitSinglePagesMode}"
+                                     IsChecked="{Binding PreviewSelectionState.IsPdfDocumentSplitSinglePagesMode, Mode=OneWay}"
                                      Checked="OnPdfDocumentSplitSinglePagesChecked"
                                      Content="{Binding PdfSplitSinglePagesText}" />
                     </StackPanel>
 
-                    <Grid IsVisible="{Binding IsPdfDocumentPageSliderVisible}"
+                    <Grid IsVisible="{Binding PreviewSelectionState.IsPdfDocumentPageSliderVisible}"
                           ColumnDefinitions="Auto,*,Auto"
                           ColumnSpacing="8">
                         <TextBlock Grid.Column="0" Text="{Binding PdfPageText}" VerticalAlignment="Center" />
                         <Slider Grid.Column="1"
-                                Minimum="{Binding PdfPageMinimum}"
-                                Maximum="{Binding PdfPageMaximum}"
-                                Value="{Binding SelectedPdfPageIndex, Mode=OneWay}"
+                                Minimum="{Binding PreviewSelectionState.PdfPageMinimum}"
+                                Maximum="{Binding PreviewSelectionState.PdfPageMaximum}"
+                                Value="{Binding PreviewSelectionState.SelectedPdfPageIndex, Mode=OneWay}"
                                 TickFrequency="1"
                                 IsSnapToTickEnabled="True"
                                 ValueChanged="OnPdfPageSliderValueChanged" />
                         <TextBlock Grid.Column="2"
-                                   Text="{Binding PdfPageIndicatorText}"
+                                   Text="{Binding PreviewSelectionState.PdfPageIndicatorText}"
                                    VerticalAlignment="Center"
                                    FontWeight="SemiBold" />
                     </Grid>
 
-                    <StackPanel IsVisible="{Binding IsPdfDocumentRangeSliderVisible}" Spacing="6">
+                    <StackPanel IsVisible="{Binding PreviewSelectionState.IsPdfDocumentRangeSliderVisible}" Spacing="6">
                         <TextBlock Text="{Binding PdfExportPageRangeText}" />
-                        <controls:PageRangeSelector Minimum="{Binding PdfRangeMinimum}"
-                                                    Maximum="{Binding PdfRangeMaximum}"
-                                                    StartValue="{Binding SelectedPdfRangeStartIndex, Mode=OneWay}"
-                                                    EndValue="{Binding SelectedPdfRangeEndIndex, Mode=OneWay}"
+                        <controls:PageRangeSelector Minimum="{Binding PreviewSelectionState.PdfRangeMinimum}"
+                                                    Maximum="{Binding PreviewSelectionState.PdfRangeMaximum}"
+                                                    StartValue="{Binding PreviewSelectionState.SelectedPdfRangeStartIndex, Mode=OneWay}"
+                                                    EndValue="{Binding PreviewSelectionState.SelectedPdfRangeEndIndex, Mode=OneWay}"
                                                     RangeChanged="OnPdfRangeChanged" />
-                        <TextBlock Text="{Binding PdfPageRangeIndicatorText}" Classes="secondary" />
+                        <TextBlock Text="{Binding PreviewSelectionState.PdfPageRangeIndicatorText}" Classes="secondary" />
                     </StackPanel>
                 </StackPanel>
             </Border>
 
-            <Border IsVisible="{Binding IsGifPreviewVisible}"
+            <Border IsVisible="{Binding PreviewSelectionState.IsGifPreviewVisible}"
                     Background="{DynamicResource SurfaceAltBrush}"
                     BorderBrush="{DynamicResource BorderBrush}"
                     BorderThickness="1"
@@ -289,7 +289,7 @@
                         </Border>
                         <TextBlock Text="{Binding GifHandlingText}" FontWeight="SemiBold" VerticalAlignment="Center" />
                     </StackPanel>
-                    <ComboBox IsVisible="{Binding IsGifHandlingSelectorVisible}"
+                    <ComboBox IsVisible="{Binding PreviewSelectionState.IsGifHandlingSelectorVisible}"
                               ItemsSource="{Binding GifHandlingModes}"
                               SelectedItem="{Binding SelectedGifHandlingModeOption}">
                         <ComboBox.ItemTemplate>
@@ -298,57 +298,57 @@
                             </DataTemplate>
                         </ComboBox.ItemTemplate>
                     </ComboBox>
-                    <StackPanel IsVisible="{Binding IsGifPdfModeSelectorVisible}" Orientation="Horizontal" Spacing="14">
+                    <StackPanel IsVisible="{Binding PreviewSelectionState.IsGifPdfModeSelectorVisible}" Orientation="Horizontal" Spacing="14">
                         <RadioButton GroupName="GifPdfMode"
-                                     IsChecked="{Binding IsGifPdfExportAllFramesMode}"
+                                     IsChecked="{Binding PreviewSelectionState.IsGifPdfExportAllFramesMode, Mode=OneWay}"
                                      Checked="OnGifPdfAllFramesChecked"
                                      Content="{Binding GifPdfExportAllFramesText}" />
                         <RadioButton GroupName="GifPdfMode"
-                                     IsChecked="{Binding IsGifPdfExportCurrentFrameMode}"
+                                     IsChecked="{Binding PreviewSelectionState.IsGifPdfExportCurrentFrameMode, Mode=OneWay}"
                                      Checked="OnGifPdfCurrentFrameChecked"
                                      Content="{Binding GifPdfExportCurrentFrameText}" />
                     </StackPanel>
-                    <TextBlock IsVisible="{Binding IsGifPdfModeSelectorVisible}"
+                    <TextBlock IsVisible="{Binding PreviewSelectionState.IsGifPdfModeSelectorVisible}"
                                Text="{Binding GifPdfOutputDirectoryNoteText}"
                                Classes="secondary"
                                TextWrapping="Wrap" />
-                    <Grid IsVisible="{Binding IsGifSpecificFrameControlsVisible}"
+                    <Grid IsVisible="{Binding PreviewSelectionState.IsGifSpecificFrameControlsVisible}"
                           ColumnDefinitions="Auto,*,Auto"
                           ColumnSpacing="8">
                         <Button Grid.Column="0"
                                 Classes="icon-only"
                                 Command="{Binding ToggleGifSpecificFramePlaybackCommand}"
-                                IsEnabled="{Binding CanAdjustGifSpecificFrame}"
+                                IsEnabled="{Binding PreviewSelectionState.CanAdjustGifSpecificFrame}"
                                 ToolTip.Tip="{Binding GifSpecificFramePlaybackButtonText}">
                             <Grid Width="16" Height="16">
-                                <Path IsVisible="{Binding IsGifSpecificFramePlaybackPaused}"
+                                <Path IsVisible="{Binding PreviewSelectionState.IsGifSpecificFramePlaybackPaused}"
                                       Classes="line-icon"
                                       Data="{StaticResource IconPlayGeometry}" />
-                                <Path IsVisible="{Binding IsGifSpecificFramePlaying}"
+                                <Path IsVisible="{Binding PreviewSelectionState.IsGifSpecificFramePlaying}"
                                       Classes="line-icon"
                                       Data="{StaticResource IconPauseGeometry}" />
                             </Grid>
                         </Button>
                         <Slider Grid.Column="1"
                                 Minimum="0"
-                                Maximum="{Binding GifSpecificFrameMaximum}"
-                                Value="{Binding GifSpecificFrameSliderValue, Mode=OneWay}"
+                                Maximum="{Binding PreviewSelectionState.GifSpecificFrameMaximum}"
+                                Value="{Binding PreviewSelectionState.GifSpecificFrameSliderValue, Mode=OneWay}"
                                 ValueChanged="OnGifSpecificFrameSliderValueChanged"
                                 TickFrequency="1"
                                 IsSnapToTickEnabled="True"
-                                IsEnabled="{Binding CanAdjustGifSpecificFrame}" />
+                                IsEnabled="{Binding PreviewSelectionState.CanAdjustGifSpecificFrame}" />
                         <TextBlock Grid.Column="2"
                                    MinWidth="28"
                                    FontWeight="SemiBold"
                                    HorizontalAlignment="Right"
                                    TextAlignment="Right"
                                    VerticalAlignment="Center"
-                                   Text="{Binding GifSpecificFrameCountdownText}" />
+                                   Text="{Binding PreviewSelectionState.GifSpecificFrameCountdownText}" />
                     </Grid>
                 </StackPanel>
             </Border>
 
-            <Border IsVisible="{Binding IsSvgPreviewVisible}"
+            <Border IsVisible="{Binding PreviewSelectionState.IsSvgPreviewVisible}"
                     Background="{DynamicResource SurfaceAltBrush}"
                     BorderBrush="{DynamicResource BorderBrush}"
                     BorderThickness="1"
@@ -361,23 +361,23 @@
                         </Border>
                         <TextBlock Text="{Binding SvgSettingsText}" FontWeight="SemiBold" VerticalAlignment="Center" />
                     </StackPanel>
-                    <CheckBox IsVisible="{Binding IsSvgBackgroundToggleVisible}"
-                              IsEnabled="{Binding IsSvgBackgroundToggleEnabled}"
+                    <CheckBox IsVisible="{Binding PreviewSelectionState.IsSvgBackgroundToggleVisible}"
+                              IsEnabled="{Binding PreviewSelectionState.IsSvgBackgroundToggleEnabled}"
                               IsChecked="{Binding SvgBackgroundToggleValue}"
                               Content="{Binding SvgUseBackgroundText}" />
-                    <TextBlock IsVisible="{Binding IsSvgBackgroundRequiredHintVisible}"
+                    <TextBlock IsVisible="{Binding PreviewSelectionState.IsSvgBackgroundRequiredHintVisible}"
                                Text="{Binding SvgBackgroundRequiredHintText}"
                                Classes="secondary"
                                TextWrapping="Wrap" />
-                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8" IsVisible="{Binding IsSvgBackgroundColorVisible}">
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8" IsVisible="{Binding PreviewSelectionState.IsSvgBackgroundColorVisible}">
                         <TextBlock Grid.Column="0" Text="{Binding SvgBackgroundColorText}" VerticalAlignment="Center" />
                         <TextBox Grid.Column="1" Text="{Binding SvgBackgroundColor, UpdateSourceTrigger=LostFocus}" Watermark="#FFFFFFFF" />
                     </Grid>
-                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8" IsVisible="{Binding IsSvgBackgroundColorVisible}">
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8" IsVisible="{Binding PreviewSelectionState.IsSvgBackgroundColorVisible}">
                         <TextBlock Grid.Column="0" Text="{Binding SvgBackgroundColorRgbText}" VerticalAlignment="Center" />
                         <TextBox Grid.Column="1" Text="{Binding SvgBackgroundColorRgb, UpdateSourceTrigger=LostFocus}" Watermark="255,255,255" />
                     </Grid>
-                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8" IsVisible="{Binding IsSvgBackgroundColorVisible}">
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8" IsVisible="{Binding PreviewSelectionState.IsSvgBackgroundColorVisible}">
                         <TextBlock Grid.Column="0" Text="{Binding SvgColorPickerText}" VerticalAlignment="Top" Margin="0,6,0,0" />
                         <cp:ColorView Grid.Column="1"
                                       MinHeight="220"
@@ -388,11 +388,11 @@
                                       IsComponentSliderVisible="False"
                                       IsComponentTextInputVisible="False" />
                     </Grid>
-                    <TextBlock IsVisible="{Binding IsSvgBackgroundColorVisible}" Text="{Binding SvgBackgroundColorHintText}" Classes="secondary" TextWrapping="Wrap" />
+                    <TextBlock IsVisible="{Binding PreviewSelectionState.IsSvgBackgroundColorVisible}" Text="{Binding SvgBackgroundColorHintText}" Classes="secondary" TextWrapping="Wrap" />
                 </StackPanel>
             </Border>
 
-            <Border IsVisible="{Binding IsIconPreviewVisible}"
+            <Border IsVisible="{Binding PreviewSelectionState.IsIconPreviewVisible}"
                     Background="{DynamicResource SurfaceAltBrush}"
                     BorderBrush="{DynamicResource BorderBrush}"
                     BorderThickness="1"
@@ -405,18 +405,18 @@
                         </Border>
                         <TextBlock Text="{Binding IconSettingsText}" FontWeight="SemiBold" VerticalAlignment="Center" />
                     </StackPanel>
-                    <CheckBox IsVisible="{Binding IsIconTransparencyToggleVisible}"
+                    <CheckBox IsVisible="{Binding PreviewSelectionState.IsIconTransparencyToggleVisible}"
                               IsChecked="{Binding IconUseTransparency}"
                               Content="{Binding IconUseTransparencyText}" />
-                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8" IsVisible="{Binding IsIconBackgroundColorVisible}">
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8" IsVisible="{Binding PreviewSelectionState.IsIconBackgroundColorVisible}">
                         <TextBlock Grid.Column="0" Text="{Binding SvgBackgroundColorText}" VerticalAlignment="Center" />
                         <TextBox Grid.Column="1" Text="{Binding IconBackgroundColor, UpdateSourceTrigger=LostFocus}" Watermark="#FFFFFFFF" />
                     </Grid>
-                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8" IsVisible="{Binding IsIconBackgroundColorVisible}">
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8" IsVisible="{Binding PreviewSelectionState.IsIconBackgroundColorVisible}">
                         <TextBlock Grid.Column="0" Text="{Binding SvgBackgroundColorRgbText}" VerticalAlignment="Center" />
                         <TextBox Grid.Column="1" Text="{Binding IconBackgroundColorRgb, UpdateSourceTrigger=LostFocus}" Watermark="255,255,255" />
                     </Grid>
-                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8" IsVisible="{Binding IsIconBackgroundColorVisible}">
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8" IsVisible="{Binding PreviewSelectionState.IsIconBackgroundColorVisible}">
                         <TextBlock Grid.Column="0" Text="{Binding SvgColorPickerText}" VerticalAlignment="Top" Margin="0,6,0,0" />
                         <cp:ColorView Grid.Column="1"
                                       MinHeight="220"
@@ -427,7 +427,7 @@
                                       IsComponentSliderVisible="False"
                                       IsComponentTextInputVisible="False" />
                     </Grid>
-                    <TextBlock IsVisible="{Binding IsIconBackgroundColorVisible}" Text="{Binding SvgBackgroundColorHintText}" Classes="secondary" TextWrapping="Wrap" />
+                    <TextBlock IsVisible="{Binding PreviewSelectionState.IsIconBackgroundColorVisible}" Text="{Binding SvgBackgroundColorHintText}" Classes="secondary" TextWrapping="Wrap" />
                 </StackPanel>
             </Border>
 
@@ -450,7 +450,7 @@
                 </StackPanel>
             </Border>
 
-            <Border IsVisible="{Binding IsGifTrimRangeVisible}"
+            <Border IsVisible="{Binding PreviewSelectionState.IsGifTrimRangeVisible}"
                     Background="{DynamicResource SurfaceAltBrush}"
                     BorderBrush="{DynamicResource BorderBrush}"
                     BorderThickness="1"
@@ -463,10 +463,10 @@
                         </Border>
                         <TextBlock Text="{Binding GifTrimRangeText}" FontWeight="SemiBold" VerticalAlignment="Center" />
                     </StackPanel>
-                    <controls:GifFrameRangeSelector Minimum="{Binding GifTrimRangeMinimum}"
-                                                    Maximum="{Binding GifTrimRangeMaximum}"
-                                                    StartValue="{Binding SelectedGifTrimStartIndex, Mode=OneWay}"
-                                                    EndValue="{Binding SelectedGifTrimEndIndex, Mode=OneWay}"
+                    <controls:GifFrameRangeSelector Minimum="{Binding PreviewSelectionState.GifTrimRangeMinimum}"
+                                                    Maximum="{Binding PreviewSelectionState.GifTrimRangeMaximum}"
+                                                    StartValue="{Binding PreviewSelectionState.SelectedGifTrimStartIndex, Mode=OneWay}"
+                                                    EndValue="{Binding PreviewSelectionState.SelectedGifTrimEndIndex, Mode=OneWay}"
                                                     RangeChanged="OnGifTrimRangeChanged" />
                 </StackPanel>
             </Border>

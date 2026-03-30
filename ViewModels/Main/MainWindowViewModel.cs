@@ -73,6 +73,8 @@ namespace ImvixPro.ViewModels
         private int _gifPreviewIndex;
         private long _gifPreviewRequestId;
 
+        public PreviewSelectionState PreviewSelectionState { get; }
+
         public HistoryState HistoryState { get; }
 
         public NotificationState NotificationState { get; }
@@ -108,6 +110,7 @@ namespace ImvixPro.ViewModels
             _pdfRenderService = services.PdfRenderService ?? throw new ArgumentNullException(nameof(services.PdfRenderService));
             _psdRenderService = services.PsdRenderService ?? throw new ArgumentNullException(nameof(services.PsdRenderService));
             _logger = services.Logger ?? throw new ArgumentNullException(nameof(services.Logger));
+            PreviewSelectionState = new PreviewSelectionState();
             HistoryState = new HistoryState(_conversionHistoryService, _conversionSummaryCoordinator);
             NotificationState = new NotificationState();
             TaskAnalysisState = new TaskAnalysisState();
@@ -183,6 +186,7 @@ namespace ImvixPro.ViewModels
             RefreshLocalizedProperties();
             EnsureStartupState();
             _ = CompleteVersion3InitializationAsync();
+            RefreshPreviewSelectionState();
 
             OnPropertyChanged(nameof(IsSvgBackgroundColorVisible));
             OnPropertyChanged(nameof(IsIconTransparencyToggleVisible));
@@ -343,7 +347,6 @@ namespace ImvixPro.ViewModels
 
         partial void OnSelectedImageChanged(ImageItemViewModel? value)
         {
-            OnPropertyChanged(nameof(PreviewSelectionFileText));
             CancelPendingPdfPreviewRender();
             CancelPendingSelectedPsdPreviewRender();
             ClearSelectedPreview();
@@ -382,7 +385,6 @@ namespace ImvixPro.ViewModels
 
             OnPropertyChanged(nameof(IsGifPreviewVisible));
             OnPropertyChanged(nameof(IsGifTrimRangeVisible));
-            OnPropertyChanged(nameof(IsPreviewWindowHintVisible));
             OnPropertyChanged(nameof(IsSvgPreviewVisible));
             OnPropertyChanged(nameof(IsSvgBackgroundToggleVisible));
             OnPropertyChanged(nameof(IsSvgBackgroundToggleEnabled));
@@ -399,6 +401,7 @@ namespace ImvixPro.ViewModels
             RefreshGifTrimUiState();
 
             RefreshConversionInsights();
+            RefreshPreviewSelectionState();
         }
 
         partial void OnSelectedLanguageChanged(LanguageOption? value)
@@ -462,6 +465,8 @@ namespace ImvixPro.ViewModels
             {
                 RefreshSelectedPdfPreview(preferImmediatePreview: true);
             }
+
+            RefreshPreviewSelectionState();
         }
 
         partial void OnSelectedCompressionModeChanged(CompressionMode value)
@@ -708,6 +713,7 @@ namespace ImvixPro.ViewModels
             OnPropertyChanged(nameof(SvgBackgroundToggleValue));
             OnPropertyChanged(nameof(IsSvgBackgroundColorVisible));
             RefreshSelectedPreviewIfConfigurableSource();
+            RefreshPreviewSelectionState();
             PersistSettings();
         }
 
@@ -763,6 +769,7 @@ namespace ImvixPro.ViewModels
         {
             OnPropertyChanged(nameof(IsIconBackgroundColorVisible));
             RefreshSelectedPreviewIfConfigurableSource();
+            RefreshPreviewSelectionState();
             PersistSettings();
         }
 

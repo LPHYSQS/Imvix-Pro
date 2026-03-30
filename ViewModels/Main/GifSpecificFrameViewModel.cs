@@ -89,12 +89,15 @@ namespace ImvixPro.ViewModels
             {
                 PersistSettings();
             }
+
+            RefreshPreviewSelectionState();
         }
 
         partial void OnIsGifSpecificFramePlayingChanged(bool value)
         {
             OnPropertyChanged(nameof(IsGifSpecificFramePlaybackPaused));
             OnPropertyChanged(nameof(GifSpecificFramePlaybackButtonText));
+            RefreshPreviewSelectionState();
         }
 
         public void HandleGifSpecificFrameSliderChanged(double value)
@@ -189,6 +192,7 @@ namespace ImvixPro.ViewModels
             OnPropertyChanged(nameof(CanAdjustGifSpecificFrame));
             SetGifSpecificFrameIndex(ClampGifSpecificFrameIndex(SelectedGifSpecificFrameIndex), persist: false, refreshPreview: false, cacheSelection: false);
             OnPropertyChanged(nameof(GifSpecificFrameCountdownText));
+            RefreshPreviewSelectionState();
         }
 
         private void RestoreGifSpecificFrameSelection(ImageItemViewModel? image)

@@ -43,6 +43,7 @@ namespace ImvixPro.ViewModels
             OnPropertyChanged(nameof(IsGifHandlingSelectorVisible));
             OnPropertyChanged(nameof(IsGifPdfExportAllFramesMode));
             OnPropertyChanged(nameof(IsGifPdfExportCurrentFrameMode));
+            RefreshPreviewSelectionState();
         }
 
         private void RefreshGifPdfLocalizedProperties()

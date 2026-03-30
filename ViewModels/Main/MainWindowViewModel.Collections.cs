@@ -37,8 +37,6 @@ namespace ImvixPro.ViewModels
 
         public bool HasPresets => Presets.Count > 0;
 
-        public bool IsPreviewWindowHintVisible => SelectedImage is not null;
-
         public bool IsSvgBackgroundColorVisible =>
             IsSvgPreviewVisible &&
             (SvgUseBackground || ShouldForceBackgroundColorEditorForSelectedImage());

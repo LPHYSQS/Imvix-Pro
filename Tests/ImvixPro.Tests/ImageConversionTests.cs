@@ -465,6 +465,86 @@ public sealed class ImageConversionTests
         Assert.Empty(state.ConversionPlanHighlights);
     }
 
+    [Fact]
+    public void PreviewSelectionState_ApplySnapshot_ReplacesFlattenedPreviewBindings()
+    {
+        var state = new PreviewSelectionState();
+
+        state.Apply(new PreviewSelectionSnapshot
+        {
+            PreviewSelectionFileText = "sample.pdf",
+            IsPreviewWindowHintVisible = true,
+            IsPdfSelected = true,
+            IsPdfNavigationVisible = true,
+            CanGoToPreviousPdfPage = true,
+            CanGoToNextPdfPage = false,
+            IsSelectedPdfLocked = true,
+            IsSelectedPdfUnlocked = false,
+            PdfPageIndicatorText = "Page 2 / 9",
+            PdfPageRangeIndicatorText = "Pages 2 - 4",
+            PdfLockedPreviewTitleText = "Locked",
+            PdfLockedPreviewDescriptionText = "Need password",
+            PdfLockedActionHintText = "Unlock first",
+            IsPdfImageExportVisible = true,
+            IsPdfDocumentExportVisible = false,
+            IsPdfImageModeSelectorVisible = true,
+            IsPdfImagePageSliderVisible = true,
+            IsPdfImageCurrentPageMode = true,
+            PdfPageMinimum = 0,
+            PdfPageMaximum = 8,
+            SelectedPdfPageIndex = 1,
+            IsGifPreviewVisible = true,
+            IsGifHandlingSelectorVisible = true,
+            IsGifPdfModeSelectorVisible = false,
+            IsGifSpecificFrameControlsVisible = true,
+            GifSpecificFrameMaximum = 23,
+            GifSpecificFrameSliderValue = 7,
+            CanAdjustGifSpecificFrame = true,
+            IsGifSpecificFramePlaybackPaused = true,
+            GifSpecificFrameCountdownText = "8 / 24",
+            IsGifTrimRangeVisible = true,
+            GifTrimRangeMinimum = 0,
+            GifTrimRangeMaximum = 23,
+            SelectedGifTrimStartIndex = 2,
+            SelectedGifTrimEndIndex = 12,
+            IsSvgPreviewVisible = true,
+            IsSvgBackgroundToggleVisible = true,
+            IsSvgBackgroundToggleEnabled = true,
+            IsSvgBackgroundRequiredHintVisible = false,
+            IsSvgBackgroundColorVisible = true,
+            IsIconPreviewVisible = false,
+            IsIconTransparencyToggleVisible = false,
+            IsIconBackgroundColorVisible = false
+        });
+
+        Assert.Equal("sample.pdf", state.PreviewSelectionFileText);
+        Assert.True(state.IsPreviewWindowHintVisible);
+        Assert.True(state.IsPdfSelected);
+        Assert.True(state.IsPdfNavigationVisible);
+        Assert.True(state.CanGoToPreviousPdfPage);
+        Assert.False(state.CanGoToNextPdfPage);
+        Assert.True(state.IsSelectedPdfLocked);
+        Assert.Equal("Page 2 / 9", state.PdfPageIndicatorText);
+        Assert.True(state.IsPdfImageExportVisible);
+        Assert.Equal(8, state.PdfPageMaximum);
+        Assert.True(state.IsGifPreviewVisible);
+        Assert.True(state.IsGifSpecificFrameControlsVisible);
+        Assert.Equal(7d, state.GifSpecificFrameSliderValue);
+        Assert.True(state.IsGifTrimRangeVisible);
+        Assert.True(state.IsSvgPreviewVisible);
+        Assert.True(state.IsSvgBackgroundColorVisible);
+        Assert.False(state.IsIconPreviewVisible);
+
+        state.Apply(new PreviewSelectionSnapshot());
+
+        Assert.Equal(string.Empty, state.PreviewSelectionFileText);
+        Assert.False(state.IsPreviewWindowHintVisible);
+        Assert.False(state.IsPdfSelected);
+        Assert.False(state.IsGifPreviewVisible);
+        Assert.False(state.IsSvgPreviewVisible);
+        Assert.False(state.IsIconPreviewVisible);
+    }
+
     private static string TranslateTestText(string key)
     {
         return key switch
