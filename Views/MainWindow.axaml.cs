@@ -124,6 +124,7 @@ namespace ImvixPro.Views
                 FlowDirection = this.FlowDirection
             };
 
+            WindowScreenBoundsHelper.PrepareCenteredWindow(dialog, this);
             return await dialog.ShowDialog<bool>(this);
         }
 
@@ -140,6 +141,7 @@ namespace ImvixPro.Views
                 FlowDirection = this.FlowDirection
             };
 
+            WindowScreenBoundsHelper.PrepareCenteredWindow(dialog, this);
             await dialog.ShowDialog(this);
         }
 
@@ -156,6 +158,7 @@ namespace ImvixPro.Views
                 FlowDirection = this.FlowDirection
             };
 
+            WindowScreenBoundsHelper.PrepareCenteredWindow(dialog, this);
             await dialog.ShowDialog(this);
         }
 
@@ -208,6 +211,7 @@ namespace ImvixPro.Views
                 FlowDirection = this.FlowDirection
             };
 
+            WindowScreenBoundsHelper.PrepareCenteredWindow(dialog, this);
             await dialog.ShowDialog(this);
         }
 

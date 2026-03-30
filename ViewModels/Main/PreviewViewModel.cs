@@ -1,6 +1,7 @@
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
+using ImvixPro.AI.Inpainting.Models;
 using ImvixPro.Models;
 using ImvixPro.Services;
 using ImvixPro.Services.PsdModule;
@@ -45,6 +46,26 @@ namespace ImvixPro.ViewModels
                 }
 
                 IsPreviewAiBusy = _previewAiBusyCount > 0;
+            }
+
+            if (Dispatcher.UIThread.CheckAccess())
+            {
+                Apply();
+                return;
+            }
+
+            Dispatcher.UIThread.Post(Apply);
+        }
+
+        public void SetPreviewAiEraserBrushSize(int brushSize)
+        {
+            void Apply()
+            {
+                var normalized = AiEraserSettings.NormalizeBrushSize(brushSize);
+                if (AiEraserDefaultBrushSize != normalized)
+                {
+                    AiEraserDefaultBrushSize = normalized;
+                }
             }
 
             if (Dispatcher.UIThread.CheckAccess())

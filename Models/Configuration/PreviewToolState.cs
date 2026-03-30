@@ -1,3 +1,4 @@
+using ImvixPro.AI.Inpainting.Models;
 using ImvixPro.AI.Matting.Models;
 
 namespace ImvixPro.Models
@@ -20,6 +21,12 @@ namespace ImvixPro.Models
 
         public AiMattingResolutionMode AiMattingResolutionMode { get; set; } = AiMattingResolutionMode.Original;
 
+        public int AiEraserDefaultBrushSize { get; set; } = AiEraserSettings.DefaultBrushSize;
+
+        public int AiEraserMaskExpansionPixels { get; set; } = AiEraserSettings.DefaultMaskExpansionPixels;
+
+        public int AiEraserEdgeBlendStrength { get; set; } = AiEraserSettings.DefaultEdgeBlendStrength;
+
         public PreviewToolState Clone()
         {
             return new PreviewToolState
@@ -31,7 +38,10 @@ namespace ImvixPro.Models
                 AiMattingBackgroundColor = AiMattingBackgroundColor,
                 AiMattingEdgeOptimizationEnabled = AiMattingEdgeOptimizationEnabled,
                 AiMattingEdgeOptimizationStrength = AiMattingEdgeOptimizationStrength,
-                AiMattingResolutionMode = AiMattingResolutionMode
+                AiMattingResolutionMode = AiMattingResolutionMode,
+                AiEraserDefaultBrushSize = AiEraserDefaultBrushSize,
+                AiEraserMaskExpansionPixels = AiEraserMaskExpansionPixels,
+                AiEraserEdgeBlendStrength = AiEraserEdgeBlendStrength
             };
         }
     }

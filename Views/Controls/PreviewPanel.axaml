@@ -130,6 +130,38 @@
                                VerticalAlignment="Top" />
                 </Grid>
             </Border>
+            <Border IsVisible="{Binding PreviewSelectionState.IsPreviewWindowHintVisible}"
+                    Background="{DynamicResource SurfaceAltBrush}"
+                    BorderBrush="{DynamicResource BorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="10">
+                <Grid ColumnDefinitions="Auto,*"
+                      ColumnSpacing="8">
+                    <Border Classes="icon-badge"
+                            Grid.Column="0"
+                            Width="28"
+                            Height="28"
+                            Padding="0"
+                            VerticalAlignment="Top">
+                        <Path Classes="line-icon secondary"
+                              Width="14"
+                              Height="14"
+                              HorizontalAlignment="Center"
+                              VerticalAlignment="Center"
+                              Data="{StaticResource IconInfoGeometry}" />
+                    </Border>
+                    <StackPanel Grid.Column="1"
+                                Spacing="4">
+                        <TextBlock Text="{Binding IntelligentFeatureDisclaimerTitleText}"
+                                   FontWeight="SemiBold"
+                                   TextWrapping="Wrap" />
+                        <TextBlock Text="{Binding PreviewIntelligentFeatureDisclaimerText}"
+                                   Classes="secondary"
+                                   TextWrapping="Wrap" />
+                    </StackPanel>
+                </Grid>
+            </Border>
             <TextBlock IsVisible="{Binding PreviewSelectionState.IsPdfSelected}"
                        Text="{Binding PreviewSelectionState.PdfPageIndicatorText}"
                        Classes="secondary"

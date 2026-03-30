@@ -699,6 +699,38 @@
 
         <StackPanel Grid.Row="2"
                     Spacing="10">
+            <Border x:Name="PreviewDisclaimerCard"
+                    Background="{DynamicResource SurfaceAltBrush}"
+                    BorderBrush="{DynamicResource BorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="10">
+                <Grid ColumnDefinitions="Auto,*"
+                      ColumnSpacing="8">
+                    <Border Classes="icon-badge"
+                            Width="28"
+                            Height="28"
+                            Padding="0"
+                            VerticalAlignment="Top">
+                        <Path Classes="line-icon secondary"
+                              Width="14"
+                              Height="14"
+                              HorizontalAlignment="Center"
+                              VerticalAlignment="Center"
+                              Data="{StaticResource IconInfoGeometry}" />
+                    </Border>
+
+                    <StackPanel Grid.Column="1"
+                                Spacing="4">
+                        <TextBlock x:Name="PreviewDisclaimerTitleText"
+                                   FontWeight="SemiBold"
+                                   TextWrapping="Wrap" />
+                        <TextBlock x:Name="PreviewDisclaimerBodyText"
+                                   Classes="secondary"
+                                   TextWrapping="Wrap" />
+                    </StackPanel>
+                </Grid>
+            </Border>
             <Border x:Name="AiEraserToolbar"
                     IsVisible="False"
                     Background="{DynamicResource SurfaceAltBrush}"

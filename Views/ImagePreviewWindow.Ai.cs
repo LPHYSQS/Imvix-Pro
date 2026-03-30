@@ -29,6 +29,7 @@ namespace ImvixPro.Views
         private readonly AiPreviewComparisonService _aiPreviewComparisonService;
         private Func<PreviewSessionState>? _previewSessionStateProvider;
         private Action<bool>? _previewAiBusyChanged;
+        private Action<int>? _previewAiEraserBrushSizeChanged;
         private string? _sourceFilePath;
         private bool _sourceAiEnhancementEligible;
         private bool _sourceAiInpaintingEligible;
@@ -54,6 +55,7 @@ namespace ImvixPro.Views
             string filePath,
             Func<PreviewSessionState>? previewSessionStateProvider,
             Action<bool>? previewAiBusyChanged,
+            Action<int>? previewAiEraserBrushSizeChanged,
             bool isSourceAiEnhancementEligible,
             bool isSourceAiInpaintingEligible,
             bool isSourceAiMattingEligible)
@@ -61,6 +63,7 @@ namespace ImvixPro.Views
             _sourceFilePath = filePath;
             _previewSessionStateProvider = previewSessionStateProvider;
             _previewAiBusyChanged = previewAiBusyChanged;
+            _previewAiEraserBrushSizeChanged = previewAiEraserBrushSizeChanged;
             _sourceAiEnhancementEligible = isSourceAiEnhancementEligible;
             _sourceAiInpaintingEligible = isSourceAiInpaintingEligible;
             _sourceAiMattingEligible = isSourceAiMattingEligible;

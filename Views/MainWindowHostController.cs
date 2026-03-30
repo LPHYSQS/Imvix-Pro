@@ -337,100 +337,13 @@ namespace ImvixPro.Views
                 }
 
                 var savedPosition = new PixelPoint(settings.WindowPositionX, settings.WindowPositionY);
-                if (TryPlaceOnExistingScreen(owner, savedPosition))
+                if (WindowScreenBoundsHelper.TryPrepareSavedPlacement(owner, savedPosition))
                 {
                     return;
                 }
             }
 
-            CenterOnPrimaryScreen(owner);
-        }
-
-        private static bool TryPlaceOnExistingScreen(Window owner, PixelPoint desiredPosition)
-        {
-            var screens = owner.Screens;
-            if (screens is null)
-            {
-                return false;
-            }
-
-            var screen = screens.ScreenFromPoint(desiredPosition);
-            if (screen is null)
-            {
-                var fallbackScaling = screens.Primary?.Scaling ?? 1d;
-                var estimatedSize = GetWindowPixelSize(owner, fallbackScaling);
-                var rect = new PixelRect(desiredPosition, estimatedSize);
-                screen = screens.ScreenFromBounds(rect);
-            }
-
-            if (screen is null)
-            {
-                return false;
-            }
-
-            owner.WindowStartupLocation = WindowStartupLocation.Manual;
-            owner.Position = ClampToWorkingArea(owner, desiredPosition, screen);
-            return true;
-        }
-
-        private static void CenterOnPrimaryScreen(Window owner)
-        {
-            var screens = owner.Screens;
-            var primary = screens?.Primary
-                ?? screens?.All.FirstOrDefault(screen => screen.IsPrimary)
-                ?? screens?.All.FirstOrDefault();
-
-            if (primary is null)
-            {
-                owner.WindowStartupLocation = WindowStartupLocation.CenterScreen;
-                return;
-            }
-
-            var area = primary.WorkingArea;
-            var size = GetWindowPixelSize(owner, primary.Scaling);
-
-            var x = area.X + Math.Max(0, (area.Width - size.Width) / 2);
-            var y = area.Y + Math.Max(0, (area.Height - size.Height) / 2);
-
-            owner.WindowStartupLocation = WindowStartupLocation.Manual;
-            owner.Position = new PixelPoint(x, y);
-        }
-
-        private static PixelPoint ClampToWorkingArea(Window owner, PixelPoint desiredPosition, Screen screen)
-        {
-            var area = screen.WorkingArea;
-            var size = GetWindowPixelSize(owner, screen.Scaling);
-
-            var maxX = area.Right - size.Width;
-            var maxY = area.Bottom - size.Height;
-
-            var x = maxX < area.X
-                ? area.X
-                : Math.Clamp(desiredPosition.X, area.X, maxX);
-
-            var y = maxY < area.Y
-                ? area.Y
-                : Math.Clamp(desiredPosition.Y, area.Y, maxY);
-
-            return new PixelPoint(x, y);
-        }
-
-        private static PixelSize GetWindowPixelSize(Window owner, double scaling)
-        {
-            var safeScaling = scaling > 0 ? scaling : 1d;
-
-            var widthDip = owner.Bounds.Width > 0
-                ? owner.Bounds.Width
-                : (double.IsNaN(owner.Width) || owner.Width <= 0 ? owner.MinWidth : owner.Width);
-
-            var heightDip = owner.Bounds.Height > 0
-                ? owner.Bounds.Height
-                : (double.IsNaN(owner.Height) || owner.Height <= 0 ? owner.MinHeight : owner.Height);
-
-            var widthPx = Math.Max(1, (int)Math.Round(widthDip * safeScaling));
-            var heightPx = Math.Max(1, (int)Math.Round(heightDip * safeScaling));
-
-            return new PixelSize(widthPx, heightPx);
+            WindowScreenBoundsHelper.PrepareForPrimaryScreen(owner);
         }
     }
 }

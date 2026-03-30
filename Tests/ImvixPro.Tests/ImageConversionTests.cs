@@ -776,7 +776,7 @@ public sealed class ImageConversionTests
         Assert.Equal(
             [
                 "TryApplySelectedGifTrimPreviewRange",
-                "LoadGifPreview:C:\\preview\\animated.gif"
+                "LoadGifPreviewAsync:C:\\preview\\animated.gif"
             ],
             context.Calls);
     }
@@ -827,6 +827,7 @@ public sealed class ImageConversionTests
 
         Assert.Equal(
             [
+                "IsGifSpecificFramePlaybackActive",
                 "CanToggleGifSpecificFramePlayback",
                 "SetGifSpecificFramePlaybackActive:True",
                 "HasReadyGifSpecificFramePlaybackFrames",
@@ -917,10 +918,10 @@ public sealed class ImageConversionTests
             OutputFormat = OutputImageFormat.Webp,
             CompressionMode = CompressionMode.HighCompression,
             Quality = 78,
-            ResizeMode = ResizeMode.LongEdge,
+            ResizeMode = ResizeMode.CustomSize,
             ResizeWidth = 1920,
             ResizeHeight = 1080,
-            RenameMode = RenameMode.PrefixSuffix,
+            RenameMode = RenameMode.Prefix,
             RenamePrefix = "done_",
             RenameSuffix = "_final",
             OutputDirectory = @"C:\manual-output",
@@ -1015,7 +1016,7 @@ public sealed class ImageConversionTests
             AiMattingBackgroundColor = "#FFABCDEF",
             AiMattingEdgeOptimizationEnabled = false,
             AiMattingEdgeOptimizationStrength = 12,
-            AiMattingResolutionMode = AiMattingResolutionMode.Half
+            AiMattingResolutionMode = AiMattingResolutionMode.Max1024
         };
 
         var session = coordinator.BuildPreviewSessionState(snapshot);
@@ -1027,6 +1028,7 @@ public sealed class ImageConversionTests
         Assert.Equal("#FFABCDEF", session.PreviewToolState.AiMattingBackgroundColor);
         Assert.Equal(OutputImageFormat.Png, session.PreviewToolState.AiMattingOutputFormat);
         Assert.False(session.PreviewToolState.AiMattingEdgeOptimizationEnabled);
+        Assert.Equal(AiMattingResolutionMode.Max1024, session.PreviewToolState.AiMattingResolutionMode);
     }
 
     [Fact]

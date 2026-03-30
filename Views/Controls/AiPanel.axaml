@@ -7,6 +7,40 @@
              mc:Ignorable="d">
     <ScrollViewer Margin="8" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" AllowAutoHide="False">
         <StackPanel Spacing="10" Margin="0,0,16,0">
+            <Border Background="{DynamicResource DangerBackgroundBrush}"
+                    BorderBrush="{DynamicResource DangerBorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="10">
+                <Grid ColumnDefinitions="Auto,*"
+                      ColumnSpacing="8">
+                    <Border Classes="icon-badge"
+                            Grid.Column="0"
+                            Width="28"
+                            Height="28"
+                            Padding="0"
+                            VerticalAlignment="Top"
+                            Background="{DynamicResource DangerBackgroundBrush}"
+                            BorderBrush="{DynamicResource DangerBorderBrush}">
+                        <Path Classes="line-icon danger"
+                              Width="14"
+                              Height="14"
+                              HorizontalAlignment="Center"
+                              VerticalAlignment="Center"
+                              Data="{StaticResource IconInfoGeometry}" />
+                    </Border>
+                    <StackPanel Grid.Column="1"
+                                Spacing="4">
+                        <TextBlock Text="{Binding IntelligentFeatureDisclaimerTitleText}"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource DangerTextBrush}"
+                                   TextWrapping="Wrap" />
+                        <TextBlock Text="{Binding AiSettingsIntelligentFeatureDisclaimerText}"
+                                   Foreground="{DynamicResource DangerTextBrush}"
+                                   TextWrapping="Wrap" />
+                    </StackPanel>
+                </Grid>
+            </Border>
             <Border Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="8" Padding="10">
                 <StackPanel Spacing="8">
                     <StackPanel Classes="icon-label">
@@ -206,6 +240,77 @@
                             </DataTemplate>
                         </ComboBox.ItemTemplate>
                     </ComboBox>
+                </StackPanel>
+            </Border>
+
+            <Border Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="8" Padding="10">
+                <StackPanel Spacing="8">
+                    <StackPanel Classes="icon-label">
+                        <Border Classes="icon-badge">
+                            <Path Classes="line-icon" Data="{StaticResource IconAiGeometry}" />
+                        </Border>
+                        <TextBlock Text="{Binding AiEraserPanelTitleText}" FontWeight="SemiBold" VerticalAlignment="Center" />
+                    </StackPanel>
+
+                    <TextBlock Text="{Binding AiEraserDescriptionText}" Classes="secondary" TextWrapping="Wrap" />
+                    <TextBlock Text="{Binding AiEraserPreviewOnlyHintText}" Classes="secondary" TextWrapping="Wrap" />
+
+                    <Grid ColumnDefinitions="*,Auto"
+                          ColumnSpacing="8">
+                        <TextBlock Grid.Column="0"
+                                   Text="{Binding AiEraserDefaultBrushSizeText}"
+                                   VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="1"
+                                   Text="{Binding AiEraserDefaultBrushSizeDisplayText}"
+                                   FontWeight="SemiBold"
+                                   VerticalAlignment="Center" />
+                    </Grid>
+                    <Slider Minimum="8"
+                            Maximum="160"
+                            Value="{Binding AiEraserDefaultBrushSize}"
+                            TickFrequency="4"
+                            IsSnapToTickEnabled="True" />
+                    <TextBlock Text="{Binding AiEraserDefaultBrushSizeHintText}"
+                               Classes="secondary"
+                               TextWrapping="Wrap" />
+
+                    <Grid ColumnDefinitions="*,Auto"
+                          ColumnSpacing="8">
+                        <TextBlock Grid.Column="0"
+                                   Text="{Binding AiEraserMaskExpansionText}"
+                                   VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="1"
+                                   Text="{Binding AiEraserMaskExpansionDisplayText}"
+                                   FontWeight="SemiBold"
+                                   VerticalAlignment="Center" />
+                    </Grid>
+                    <Slider Minimum="0"
+                            Maximum="48"
+                            Value="{Binding AiEraserMaskExpansionPixels}"
+                            TickFrequency="1"
+                            IsSnapToTickEnabled="True" />
+                    <TextBlock Text="{Binding AiEraserMaskExpansionHintText}"
+                               Classes="secondary"
+                               TextWrapping="Wrap" />
+
+                    <Grid ColumnDefinitions="*,Auto"
+                          ColumnSpacing="8">
+                        <TextBlock Grid.Column="0"
+                                   Text="{Binding AiEraserEdgeBlendText}"
+                                   VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="1"
+                                   Text="{Binding AiEraserEdgeBlendDisplayText}"
+                                   FontWeight="SemiBold"
+                                   VerticalAlignment="Center" />
+                    </Grid>
+                    <Slider Minimum="0"
+                            Maximum="100"
+                            Value="{Binding AiEraserEdgeBlendStrength}"
+                            TickFrequency="1"
+                            IsSnapToTickEnabled="True" />
+                    <TextBlock Text="{Binding AiEraserEdgeBlendHintText}"
+                               Classes="secondary"
+                               TextWrapping="Wrap" />
                 </StackPanel>
             </Border>
         </StackPanel>

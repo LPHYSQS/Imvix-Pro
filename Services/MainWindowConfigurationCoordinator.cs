@@ -1,3 +1,4 @@
+using ImvixPro.AI.Inpainting.Models;
 using ImvixPro.AI.Matting.Models;
 using ImvixPro.Models;
 using System;
@@ -107,6 +108,12 @@ namespace ImvixPro.Services
 
         public AiMattingResolutionMode AiMattingResolutionMode { get; init; } = AiMattingResolutionMode.Original;
 
+        public int AiEraserDefaultBrushSize { get; init; } = AiEraserSettings.DefaultBrushSize;
+
+        public int AiEraserMaskExpansionPixels { get; init; } = AiEraserSettings.DefaultMaskExpansionPixels;
+
+        public int AiEraserEdgeBlendStrength { get; init; } = AiEraserSettings.DefaultEdgeBlendStrength;
+
         public bool WatchModeEnabled { get; init; }
 
         public string WatchInputDirectory { get; init; } = string.Empty;
@@ -183,7 +190,10 @@ namespace ImvixPro.Services
                 AiMattingBackgroundColor = snapshot.AiMattingBackgroundColor,
                 AiMattingEdgeOptimizationEnabled = snapshot.AiMattingEdgeOptimizationEnabled,
                 AiMattingEdgeOptimizationStrength = snapshot.AiMattingEdgeOptimizationStrength,
-                AiMattingResolutionMode = snapshot.AiMattingResolutionMode
+                AiMattingResolutionMode = snapshot.AiMattingResolutionMode,
+                AiEraserDefaultBrushSize = snapshot.AiEraserDefaultBrushSize,
+                AiEraserMaskExpansionPixels = snapshot.AiEraserMaskExpansionPixels,
+                AiEraserEdgeBlendStrength = snapshot.AiEraserEdgeBlendStrength
             };
         }
 

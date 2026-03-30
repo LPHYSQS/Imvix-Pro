@@ -1,6 +1,7 @@
 ﻿using Avalonia;
 using Avalonia.Media;
 using Avalonia.Styling;
+using ImvixPro.AI.Inpainting.Models;
 using ImvixPro.Models;
 using ImvixPro.Services;
 using System;
@@ -97,6 +98,9 @@ namespace ImvixPro.ViewModels
                 AiMattingEdgeOptimizationEnabled = AiMattingEdgeOptimizationEnabled,
                 AiMattingEdgeOptimizationStrength = AiMattingEdgeOptimizationStrength,
                 AiMattingResolutionMode = SelectedAiMattingResolutionMode,
+                AiEraserDefaultBrushSize = AiEraserSettings.NormalizeBrushSize(AiEraserDefaultBrushSize),
+                AiEraserMaskExpansionPixels = AiEraserSettings.NormalizeMaskExpansionPixels(AiEraserMaskExpansionPixels),
+                AiEraserEdgeBlendStrength = AiEraserSettings.NormalizeEdgeBlendStrength(AiEraserEdgeBlendStrength),
                 WatchModeEnabled = WatchModeEnabled,
                 WatchInputDirectory = WatchInputDirectory,
                 WatchOutputDirectory = WatchOutputDirectory,
@@ -367,6 +371,9 @@ namespace ImvixPro.ViewModels
             OnPropertyChanged(nameof(SettingsTabText));
             OnPropertyChanged(nameof(NoPreviewText));
             OnPropertyChanged(nameof(PreviewWindowHintText));
+            OnPropertyChanged(nameof(IntelligentFeatureDisclaimerTitleText));
+            OnPropertyChanged(nameof(PreviewIntelligentFeatureDisclaimerText));
+            OnPropertyChanged(nameof(AiSettingsIntelligentFeatureDisclaimerText));
             OnPropertyChanged(nameof(StatusLabelText));
             OnPropertyChanged(nameof(CurrentFileLabelText));
             OnPropertyChanged(nameof(RemainingLabelText));

@@ -9,6 +9,8 @@ using Avalonia.Platform;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using ImvixPro.AI.Inpainting.Inference;
+using ImvixPro.AI.Inpainting.Models;
+using ImvixPro.Models;
 using ImvixPro.Services;
 using SkiaSharp;
 using System;
@@ -22,7 +24,7 @@ namespace ImvixPro.Views
 {
     public partial class ImagePreviewWindow
     {
-        private const double DefaultAiEraserBrushSize = 36d;
+        private const double DefaultAiEraserBrushSize = AiEraserSettings.DefaultBrushSize;
         private const int AiEraserOverlayPixelStride = 4;
         private static readonly SKColor AiEraserOverlayColor = new(59, 130, 246, 112);
 
@@ -55,6 +57,7 @@ namespace ImvixPro.Views
         private bool _isAiEraserCursorVisible;
         private bool _isAiEraserCompareActive;
         private bool _isAiEraserCompareDragging;
+        private bool _isSyncingAiEraserBrushSize;
         private AiEraserToolMode _aiEraserToolMode = AiEraserToolMode.Brush;
         private double _aiEraserBrushSize = DefaultAiEraserBrushSize;
         private double _aiEraserCompareSplitRatio = 0.5d;
@@ -95,21 +98,16 @@ namespace ImvixPro.Views
                 : T("PreviewEraserBusy");
             AiEraserProcessingNoticeTitleText.Text = T("PreviewProcessingNoticeTitle");
             AiEraserProcessingNoticeBodyText.Text = T("PreviewAiProcessingNotice");
-            AiEraserSizeLabel.Text = string.Create(
-                CultureInfo.CurrentCulture,
-                $"{T("ERASER_SIZE")} ({Math.Round(_aiEraserBrushSize, MidpointRounding.AwayFromZero)})");
-
-            var sliderValue = Math.Clamp(_aiEraserBrushSize, AiEraserSizeSlider.Minimum, AiEraserSizeSlider.Maximum);
-            if (Math.Abs(AiEraserSizeSlider.Value - sliderValue) > 0.1d)
-            {
-                AiEraserSizeSlider.Value = sliderValue;
-            }
-
+            SyncAiEraserBrushSizeFromPreviewToolState();
+            RefreshAiEraserBrushSizeDisplay();
             RefreshAiEraserUi();
         }
 
         private void RefreshAiEraserUi()
         {
+            SyncAiEraserBrushSizeFromPreviewToolState();
+            RefreshAiEraserBrushSizeDisplay();
+
             var shouldShowButton = _sourceAiInpaintingEligible &&
                                    !_isAiEraserEditing &&
                                    !_isAiEraserCompareActive;
@@ -210,6 +208,50 @@ namespace ImvixPro.Views
             }
         }
 
+        private void SyncAiEraserBrushSizeFromPreviewToolState()
+        {
+            if (!_isAiEraserEditing ||
+                _isAiEraserDrawing ||
+                _previewAiEraserBrushSizeChanged is null)
+            {
+                return;
+            }
+
+            var syncedBrushSize = Math.Clamp(
+                AiEraserSettings.NormalizeBrushSize(ResolvePreviewToolState().AiEraserDefaultBrushSize),
+                AiEraserSizeSlider.Minimum,
+                AiEraserSizeSlider.Maximum);
+            if (Math.Abs(_aiEraserBrushSize - syncedBrushSize) <= 0.1d)
+            {
+                return;
+            }
+
+            _aiEraserBrushSize = syncedBrushSize;
+        }
+
+        private void RefreshAiEraserBrushSizeDisplay()
+        {
+            AiEraserSizeLabel.Text = string.Create(
+                CultureInfo.CurrentCulture,
+                $"{T("ERASER_SIZE")} ({Math.Round(_aiEraserBrushSize, MidpointRounding.AwayFromZero)})");
+
+            var sliderValue = Math.Clamp(_aiEraserBrushSize, AiEraserSizeSlider.Minimum, AiEraserSizeSlider.Maximum);
+            if (Math.Abs(AiEraserSizeSlider.Value - sliderValue) <= 0.1d)
+            {
+                return;
+            }
+
+            _isSyncingAiEraserBrushSize = true;
+            try
+            {
+                AiEraserSizeSlider.Value = sliderValue;
+            }
+            finally
+            {
+                _isSyncingAiEraserBrushSize = false;
+            }
+        }
+
         private Bitmap? ResolveAiEraserCompareSourceBitmap()
         {
             return _aiEraserCompareSourceBitmap;
@@ -260,6 +302,7 @@ namespace ImvixPro.Views
         private bool TryBeginAiEraserEditing()
         {
             var inputPath = ResolveAiEraserInputPath();
+            var previewToolState = ResolvePreviewToolState();
             if (string.IsNullOrWhiteSpace(inputPath) ||
                 !File.Exists(inputPath) ||
                 !TryReadImagePixelSize(inputPath, out _aiEraserSourcePixelSize) ||
@@ -281,7 +324,10 @@ namespace ImvixPro.Views
             _isAiEraserEditing = true;
             _isAiEraserDrawing = false;
             _isAiEraserCursorVisible = false;
-            _aiEraserBrushSize = Math.Clamp(_aiEraserBrushSize, AiEraserSizeSlider.Minimum, AiEraserSizeSlider.Maximum);
+            _aiEraserBrushSize = Math.Clamp(
+                AiEraserSettings.NormalizeBrushSize(previewToolState.AiEraserDefaultBrushSize),
+                AiEraserSizeSlider.Minimum,
+                AiEraserSizeSlider.Maximum);
             SyncAiEraserOverlayToUi();
             UpdateAiEraserCursorVisual();
             return true;
@@ -338,6 +384,21 @@ namespace ImvixPro.Views
             }
 
             return _sourceFilePath;
+        }
+
+        private PreviewToolState ResolvePreviewToolState()
+        {
+            return _previewSessionStateProvider?.Invoke()?.PreviewToolState?.Clone() ?? new PreviewToolState();
+        }
+
+        private AiInpaintingOptions BuildAiInpaintingOptions()
+        {
+            var previewToolState = ResolvePreviewToolState();
+            return new AiInpaintingOptions
+            {
+                MaskExpansionPixels = AiEraserSettings.NormalizeMaskExpansionPixels(previewToolState.AiEraserMaskExpansionPixels),
+                EdgeBlendStrength = AiEraserSettings.NormalizeEdgeBlendStrength(previewToolState.AiEraserEdgeBlendStrength)
+            };
         }
 
         private static bool TryReadImagePixelSize(string filePath, out PixelSize size)
@@ -705,7 +766,7 @@ namespace ImvixPro.Views
             try
             {
                 var result = await _aiInpaintingService
-                    .ProcessAsync(inputPath, processMaskBitmap, cancellationSource.Token)
+                    .ProcessAsync(inputPath, processMaskBitmap, BuildAiInpaintingOptions(), cancellationSource.Token)
                     .ConfigureAwait(false);
 
                 if (_isClosed || !ReferenceEquals(_aiEraserCts, cancellationSource))
@@ -867,7 +928,19 @@ namespace ImvixPro.Views
 
         private void OnAiEraserSizeChanged(object? sender, RangeBaseValueChangedEventArgs e)
         {
-            _aiEraserBrushSize = Math.Clamp(e.NewValue, AiEraserSizeSlider.Minimum, AiEraserSizeSlider.Maximum);
+            var normalizedBrushSize = Math.Clamp(e.NewValue, AiEraserSizeSlider.Minimum, AiEraserSizeSlider.Maximum);
+            if (Math.Abs(_aiEraserBrushSize - normalizedBrushSize) <= 0.1d)
+            {
+                return;
+            }
+
+            _aiEraserBrushSize = normalizedBrushSize;
+            if (!_isSyncingAiEraserBrushSize)
+            {
+                _previewAiEraserBrushSizeChanged?.Invoke(
+                    AiEraserSettings.NormalizeBrushSize((int)Math.Round(normalizedBrushSize, MidpointRounding.AwayFromZero)));
+            }
+
             RefreshAiEraserText();
         }
 

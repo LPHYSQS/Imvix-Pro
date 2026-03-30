@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using ImvixPro.AI.Inpainting.Models;
 using ImvixPro.AI.Matting.Inference;
 using ImvixPro.AI.Matting.Models;
 using ImvixPro.AI.Matting.UI;
@@ -103,6 +104,30 @@ namespace ImvixPro.ViewModels
 
         public bool IsAiMattingBackgroundColorVisible => SelectedAiMattingBackgroundMode == AiMattingBackgroundMode.SolidColor;
 
+        public string AiEraserPanelTitleText => T("AiEraserPanelTitle");
+
+        public string AiEraserDescriptionText => T("AiEraserDescription");
+
+        public string AiEraserPreviewOnlyHintText => T("AiEraserPreviewOnlyHint");
+
+        public string AiEraserDefaultBrushSizeText => T("AiEraserDefaultBrushSize");
+
+        public string AiEraserDefaultBrushSizeHintText => T("AiEraserDefaultBrushSizeHint");
+
+        public string AiEraserDefaultBrushSizeDisplayText => string.Create(CultureInfo.InvariantCulture, $"{AiEraserDefaultBrushSize}px");
+
+        public string AiEraserMaskExpansionText => T("AiEraserMaskExpansion");
+
+        public string AiEraserMaskExpansionHintText => T("AiEraserMaskExpansionHint");
+
+        public string AiEraserMaskExpansionDisplayText => string.Create(CultureInfo.InvariantCulture, $"{AiEraserMaskExpansionPixels}px");
+
+        public string AiEraserEdgeBlendText => T("AiEraserEdgeBlend");
+
+        public string AiEraserEdgeBlendHintText => T("AiEraserEdgeBlendHint");
+
+        public string AiEraserEdgeBlendDisplayText => string.Create(CultureInfo.InvariantCulture, $"{AiEraserEdgeBlendStrength}%");
+
         [ObservableProperty]
         private bool aiPanelEnabled;
 
@@ -169,6 +194,15 @@ namespace ImvixPro.ViewModels
         [ObservableProperty]
         private EnumOption<AiMattingResolutionMode>? selectedAiMattingResolutionModeOption;
 
+        [ObservableProperty]
+        private int aiEraserDefaultBrushSize = AiEraserSettings.DefaultBrushSize;
+
+        [ObservableProperty]
+        private int aiEraserMaskExpansionPixels = AiEraserSettings.DefaultMaskExpansionPixels;
+
+        [ObservableProperty]
+        private int aiEraserEdgeBlendStrength = AiEraserSettings.DefaultEdgeBlendStrength;
+
         private void InitializeAiFeatures(ApplicationPreferences preferences, PreviewToolState previewToolState)
         {
             AiPanelEnabled = true;
@@ -187,6 +221,9 @@ namespace ImvixPro.ViewModels
             AiMattingEdgeOptimizationEnabled = previewToolState.AiMattingEdgeOptimizationEnabled;
             AiMattingEdgeOptimizationStrength = Math.Clamp(previewToolState.AiMattingEdgeOptimizationStrength, 0, 100);
             SelectedAiMattingResolutionMode = previewToolState.AiMattingResolutionMode;
+            AiEraserDefaultBrushSize = AiEraserSettings.NormalizeBrushSize(previewToolState.AiEraserDefaultBrushSize);
+            AiEraserMaskExpansionPixels = AiEraserSettings.NormalizeMaskExpansionPixels(previewToolState.AiEraserMaskExpansionPixels);
+            AiEraserEdgeBlendStrength = AiEraserSettings.NormalizeEdgeBlendStrength(previewToolState.AiEraserEdgeBlendStrength);
         }
 
         [RelayCommand]
@@ -323,6 +360,18 @@ namespace ImvixPro.ViewModels
             OnPropertyChanged(nameof(HasSelectedAiMattingModelInfo));
             OnPropertyChanged(nameof(SelectedAiMattingModelDescriptionText));
             OnPropertyChanged(nameof(IsAiMattingBackgroundColorVisible));
+            OnPropertyChanged(nameof(AiEraserPanelTitleText));
+            OnPropertyChanged(nameof(AiEraserDescriptionText));
+            OnPropertyChanged(nameof(AiEraserPreviewOnlyHintText));
+            OnPropertyChanged(nameof(AiEraserDefaultBrushSizeText));
+            OnPropertyChanged(nameof(AiEraserDefaultBrushSizeHintText));
+            OnPropertyChanged(nameof(AiEraserDefaultBrushSizeDisplayText));
+            OnPropertyChanged(nameof(AiEraserMaskExpansionText));
+            OnPropertyChanged(nameof(AiEraserMaskExpansionHintText));
+            OnPropertyChanged(nameof(AiEraserMaskExpansionDisplayText));
+            OnPropertyChanged(nameof(AiEraserEdgeBlendText));
+            OnPropertyChanged(nameof(AiEraserEdgeBlendHintText));
+            OnPropertyChanged(nameof(AiEraserEdgeBlendDisplayText));
             RefreshAiOptionCollections();
         }
 
@@ -585,6 +634,54 @@ namespace ImvixPro.ViewModels
             if (value is not null && SelectedAiMattingResolutionMode != value.Value)
             {
                 SelectedAiMattingResolutionMode = value.Value;
+            }
+        }
+
+        partial void OnAiEraserDefaultBrushSizeChanged(int value)
+        {
+            var normalized = AiEraserSettings.NormalizeBrushSize(value);
+            if (value != normalized)
+            {
+                AiEraserDefaultBrushSize = normalized;
+                return;
+            }
+
+            OnPropertyChanged(nameof(AiEraserDefaultBrushSizeDisplayText));
+            if (!_isLoadingSettings)
+            {
+                PersistSettings();
+            }
+        }
+
+        partial void OnAiEraserMaskExpansionPixelsChanged(int value)
+        {
+            var normalized = AiEraserSettings.NormalizeMaskExpansionPixels(value);
+            if (value != normalized)
+            {
+                AiEraserMaskExpansionPixels = normalized;
+                return;
+            }
+
+            OnPropertyChanged(nameof(AiEraserMaskExpansionDisplayText));
+            if (!_isLoadingSettings)
+            {
+                PersistSettings();
+            }
+        }
+
+        partial void OnAiEraserEdgeBlendStrengthChanged(int value)
+        {
+            var normalized = AiEraserSettings.NormalizeEdgeBlendStrength(value);
+            if (value != normalized)
+            {
+                AiEraserEdgeBlendStrength = normalized;
+                return;
+            }
+
+            OnPropertyChanged(nameof(AiEraserEdgeBlendDisplayText));
+            if (!_isLoadingSettings)
+            {
+                PersistSettings();
             }
         }
 

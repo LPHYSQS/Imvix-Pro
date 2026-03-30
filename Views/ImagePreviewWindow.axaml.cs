@@ -135,6 +135,7 @@ namespace ImvixPro.Views
             PreviewOcrLanguageOption ocrLanguageOption = PreviewOcrLanguageOption.Auto,
             Func<PreviewSessionState>? previewSessionStateProvider = null,
             Action<bool>? previewAiBusyChanged = null,
+            Action<int>? previewAiEraserBrushSizeChanged = null,
             bool isSourceAiEnhancementEligible = false,
             bool isSourceAiInpaintingEligible = false,
             bool isSourceAiMattingEligible = false)
@@ -149,6 +150,7 @@ namespace ImvixPro.Views
                 ocrLanguageOption,
                 previewSessionStateProvider,
                 previewAiBusyChanged,
+                previewAiEraserBrushSizeChanged,
                 isSourceAiEnhancementEligible,
                 isSourceAiInpaintingEligible,
                 isSourceAiMattingEligible,
@@ -167,6 +169,7 @@ namespace ImvixPro.Views
             PreviewOcrLanguageOption ocrLanguageOption,
             Func<PreviewSessionState>? previewSessionStateProvider,
             Action<bool>? previewAiBusyChanged,
+            Action<int>? previewAiEraserBrushSizeChanged,
             bool isSourceAiEnhancementEligible,
             bool isSourceAiInpaintingEligible,
             bool isSourceAiMattingEligible,
@@ -180,6 +183,7 @@ namespace ImvixPro.Views
                 filePath,
                 previewSessionStateProvider,
                 previewAiBusyChanged,
+                previewAiEraserBrushSizeChanged,
                 isSourceAiEnhancementEligible,
                 isSourceAiInpaintingEligible,
                 isSourceAiMattingEligible);
@@ -478,6 +482,8 @@ namespace ImvixPro.Views
             PlayGifButton.Content = T("Play");
             PauseGifButton.Content = T("Pause");
             ToastText.Text = T("PreviewOcrCopied");
+            PreviewDisclaimerTitleText.Text = T("IntelligentFeatureDisclaimerTitle");
+            PreviewDisclaimerBodyText.Text = T("PreviewIntelligentFeatureDisclaimer");
             RefreshAiPreviewText();
             RefreshAiEraserText();
             RefreshAiMattingText();

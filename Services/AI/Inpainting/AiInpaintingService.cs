@@ -1,4 +1,5 @@
 using Avalonia;
+using ImvixPro.AI.Inpainting.Models;
 using ImvixPro.Models;
 using ImvixPro.Services;
 using Microsoft.ML.OnnxRuntime;
@@ -54,8 +55,18 @@ namespace ImvixPro.AI.Inpainting.Inference
             SKBitmap maskBitmap,
             CancellationToken cancellationToken)
         {
+            return await ProcessAsync(inputPath, maskBitmap, new AiInpaintingOptions(), cancellationToken).ConfigureAwait(false);
+        }
+
+        public async Task<AiInpaintingResult> ProcessAsync(
+            string inputPath,
+            SKBitmap maskBitmap,
+            AiInpaintingOptions options,
+            CancellationToken cancellationToken)
+        {
             ArgumentException.ThrowIfNullOrWhiteSpace(inputPath);
             ArgumentNullException.ThrowIfNull(maskBitmap);
+            ArgumentNullException.ThrowIfNull(options);
 
             if (!File.Exists(inputPath))
             {
@@ -82,7 +93,7 @@ namespace ImvixPro.AI.Inpainting.Inference
             try
             {
                 return await Task.Run(
-                    () => RunInpaintingCore(inputPath, maskBitmap, modelPath, workingDirectory, cancellationToken),
+                    () => RunInpaintingCore(inputPath, maskBitmap, options, modelPath, workingDirectory, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
             }
             catch
@@ -115,6 +126,7 @@ namespace ImvixPro.AI.Inpainting.Inference
         private AiInpaintingResult RunInpaintingCore(
             string inputPath,
             SKBitmap maskBitmap,
+            AiInpaintingOptions options,
             string modelPath,
             string workingDirectory,
             CancellationToken cancellationToken)
@@ -123,8 +135,11 @@ namespace ImvixPro.AI.Inpainting.Inference
 
             using var sourceBitmap = DecodeSourceBitmap(inputPath);
             using var normalizedMaskBitmap = NormalizeMaskBitmap(maskBitmap, sourceBitmap.Width, sourceBitmap.Height);
+            using var expandedMaskBitmap = ExpandMaskBitmap(
+                normalizedMaskBitmap,
+                AiEraserSettings.NormalizeMaskExpansionPixels(options.MaskExpansionPixels));
 
-            if (!HasVisibleMask(normalizedMaskBitmap))
+            if (!HasVisibleMask(expandedMaskBitmap))
             {
                 throw new InvalidOperationException("The AI eraser mask is empty.");
             }
@@ -132,12 +147,14 @@ namespace ImvixPro.AI.Inpainting.Inference
             using var session = CreateSession(modelPath);
             var modelInputSize = ResolveModelInputSize(session);
             using var preparedImageBitmap = ResizeBitmap(sourceBitmap, modelInputSize.Width, modelInputSize.Height);
-            using var preparedMaskBitmap = ResizeMaskBitmap(normalizedMaskBitmap, modelInputSize.Width, modelInputSize.Height);
+            using var preparedMaskBitmap = ResizeMaskBitmap(expandedMaskBitmap, modelInputSize.Width, modelInputSize.Height);
 
             using var results = RunInference(session, preparedImageBitmap, preparedMaskBitmap, cancellationToken);
             using var inferredBitmap = ExtractOutputBitmap(results);
             using var restoredBitmap = ResizeBitmap(inferredBitmap, sourceBitmap.Width, sourceBitmap.Height);
-            using var blendMaskBitmap = CreateBlendMaskBitmap(normalizedMaskBitmap);
+            using var blendMaskBitmap = CreateBlendMaskBitmap(
+                expandedMaskBitmap,
+                AiEraserSettings.NormalizeEdgeBlendStrength(options.EdgeBlendStrength));
             using var mergedBitmap = MergeInpaintingResult(sourceBitmap, restoredBitmap, blendMaskBitmap);
 
             var resultPath = Path.Combine(workingDirectory, "inpainting-result.png");
@@ -147,7 +164,7 @@ namespace ImvixPro.AI.Inpainting.Inference
                 workingDirectory,
                 resultPath,
                 new PixelSize(sourceBitmap.Width, sourceBitmap.Height),
-                CalculateMaskCoveragePercent(normalizedMaskBitmap));
+                CalculateMaskCoveragePercent(expandedMaskBitmap));
         }
 
         private static InferenceSession CreateSession(string modelPath)
@@ -497,14 +514,46 @@ namespace ImvixPro.AI.Inpainting.Inference
             return false;
         }
 
-        private static SKBitmap CreateBlendMaskBitmap(SKBitmap maskBitmap)
+        private static SKBitmap ExpandMaskBitmap(SKBitmap maskBitmap, int expansionPixels)
         {
+            if (expansionPixels <= 0)
+            {
+                return maskBitmap.Copy();
+            }
+
+            using var image = SKImage.FromBitmap(maskBitmap);
+            using var surface = SKSurface.Create(new SKImageInfo(maskBitmap.Width, maskBitmap.Height, SKColorType.Bgra8888, SKAlphaType.Premul));
+            using (var paint = new SKPaint
+            {
+                FilterQuality = SKFilterQuality.None,
+                ImageFilter = SKImageFilter.CreateDilate(expansionPixels, expansionPixels)
+            })
+            {
+                surface.Canvas.Clear(SKColors.Transparent);
+                surface.Canvas.DrawImage(image, 0, 0, paint);
+                surface.Canvas.Flush();
+            }
+
+            using var expanded = SKBitmap.FromImage(surface.Snapshot());
+            return ThresholdMask(expanded);
+        }
+
+        private static SKBitmap CreateBlendMaskBitmap(SKBitmap maskBitmap, int edgeBlendStrength)
+        {
+            if (edgeBlendStrength <= 0)
+            {
+                return maskBitmap.Copy();
+            }
+
+            var blurSigma = ResolveBlendBlurSigma(edgeBlendStrength);
+            var smoothMix = ResolveBlendMixWeight(edgeBlendStrength);
+            var baseMix = 1f - smoothMix;
             using var image = SKImage.FromBitmap(maskBitmap);
             using var surface = SKSurface.Create(new SKImageInfo(maskBitmap.Width, maskBitmap.Height, SKColorType.Bgra8888, SKAlphaType.Premul));
             using (var paint = new SKPaint
             {
                 FilterQuality = SKFilterQuality.High,
-                ImageFilter = SKImageFilter.CreateBlur(1.2f, 1.2f)
+                ImageFilter = SKImageFilter.CreateBlur(blurSigma, blurSigma)
             })
             {
                 surface.Canvas.Clear(SKColors.Transparent);
@@ -520,7 +569,7 @@ namespace ImvixPro.AI.Inpainting.Inference
                 {
                     var baseAlpha = maskBitmap.GetPixel(x, y).Alpha / 255f;
                     var smoothAlpha = softened.GetPixel(x, y).Alpha / 255f;
-                    var mixedAlpha = Math.Clamp((baseAlpha * 0.7f) + (smoothAlpha * 0.3f), 0f, 1f);
+                    var mixedAlpha = Math.Clamp((baseAlpha * baseMix) + (smoothAlpha * smoothMix), 0f, 1f);
                     var byteAlpha = (byte)Math.Clamp((int)Math.Round(mixedAlpha * 255d, MidpointRounding.AwayFromZero), 0, 255);
                     result.SetPixel(x, y, new SKColor(byteAlpha, byteAlpha, byteAlpha, byteAlpha));
                 }
@@ -528,6 +577,16 @@ namespace ImvixPro.AI.Inpainting.Inference
 
             softened.Dispose();
             return result;
+        }
+
+        private static float ResolveBlendBlurSigma(int edgeBlendStrength)
+        {
+            return 0.55f + ((edgeBlendStrength / 100f) * 1.85f);
+        }
+
+        private static float ResolveBlendMixWeight(int edgeBlendStrength)
+        {
+            return 0.18f + ((edgeBlendStrength / 100f) * 0.36f);
         }
 
         private static SKBitmap MergeInpaintingResult(SKBitmap sourceBitmap, SKBitmap inpaintedBitmap, SKBitmap blendMaskBitmap)

@@ -47,6 +47,12 @@ namespace ImvixPro.ViewModels
 
         public string PreviewWindowHintText => T("PreviewWindowHint");
 
+        public string IntelligentFeatureDisclaimerTitleText => T("IntelligentFeatureDisclaimerTitle");
+
+        public string PreviewIntelligentFeatureDisclaimerText => T("PreviewIntelligentFeatureDisclaimer");
+
+        public string AiSettingsIntelligentFeatureDisclaimerText => T("AiSettingsIntelligentFeatureDisclaimer");
+
         public string StatusLabelText => T("StatusLabel");
 
         public string CurrentFileLabelText => T("CurrentFile");

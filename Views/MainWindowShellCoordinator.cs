@@ -22,6 +22,7 @@ namespace ImvixPro.Views
         string UiLanguageCode,
         Func<PreviewSessionState>? PreviewSessionStateProvider,
         Action<bool>? PreviewAiBusyChanged,
+        Action<int>? PreviewAiEraserBrushSizeChanged,
         bool IsSourceAiEnhancementEligible,
         bool IsSourceAiInpaintingEligible,
         bool IsSourceAiMattingEligible);
@@ -68,6 +69,7 @@ namespace ImvixPro.Views
         {
             ArgumentNullException.ThrowIfNull(owner);
 
+            WindowScreenBoundsHelper.PrepareForCurrentPlacement(owner);
             owner.ShowInTaskbar = true;
 
             if (!owner.IsVisible)
@@ -106,6 +108,7 @@ namespace ImvixPro.Views
                 FlowDirection = owner.FlowDirection
             };
 
+            WindowScreenBoundsHelper.PrepareCenteredWindow(dialog, owner);
             _isRunningInstanceWarningVisible = true;
             try
             {
@@ -140,6 +143,7 @@ namespace ImvixPro.Views
                 FlowDirection = owner.FlowDirection
             };
 
+            WindowScreenBoundsHelper.PrepareCenteredWindow(dialog, owner);
             _isCompletionDialogVisible = true;
             try
             {
@@ -183,6 +187,7 @@ namespace ImvixPro.Views
         {
             ArgumentNullException.ThrowIfNull(owner);
 
+            WindowScreenBoundsHelper.PrepareForCurrentPlacement(owner);
             owner.ShowInTaskbar = true;
 
             if (!owner.IsVisible)
@@ -318,6 +323,7 @@ namespace ImvixPro.Views
                 FlowDirection = owner.FlowDirection
             };
 
+            WindowScreenBoundsHelper.PrepareCenteredWindow(dialog, owner);
             await dialog.ShowDialog<bool>(owner);
         }
 
@@ -392,6 +398,7 @@ namespace ImvixPro.Views
                 viewModel?.CurrentLanguageCode ?? "en-US",
                 viewModel is null ? null : new Func<PreviewSessionState>(viewModel.CreatePreviewSessionState),
                 viewModel is null ? null : new Action<bool>(viewModel.SetPreviewAiBusy),
+                viewModel is null ? null : new Action<int>(viewModel.SetPreviewAiEraserBrushSize),
                 AiImageEnhancementService.IsEligible(image),
                 AiInpaintingService.IsEligible(image),
                 AiMattingService.IsEligible(image));
@@ -440,6 +447,7 @@ namespace ImvixPro.Views
                 ocrLanguageOption: PreviewOcrLanguageOption.Auto,
                 previewSessionStateProvider: request.PreviewSessionStateProvider,
                 previewAiBusyChanged: request.PreviewAiBusyChanged,
+                previewAiEraserBrushSizeChanged: request.PreviewAiEraserBrushSizeChanged,
                 isSourceAiEnhancementEligible: request.IsSourceAiEnhancementEligible,
                 isSourceAiInpaintingEligible: request.IsSourceAiInpaintingEligible,
                 isSourceAiMattingEligible: request.IsSourceAiMattingEligible,
@@ -448,6 +456,7 @@ namespace ImvixPro.Views
                 FlowDirection = owner.FlowDirection
             };
 
+            WindowScreenBoundsHelper.PrepareCenteredWindow(previewWindow, owner);
             previewWindow.Show(owner);
         }
 
@@ -461,6 +470,7 @@ namespace ImvixPro.Views
                 FlowDirection = owner.FlowDirection
             };
 
+            WindowScreenBoundsHelper.PrepareCenteredWindow(window, owner);
             window.Show(owner);
         }
     }
