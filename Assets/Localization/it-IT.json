@@ -447,7 +447,7 @@
     "PreviewBarcodeMixedDetected":  "Rilevati {0} codici ({1} codici a barre, {2} codici QR)",
     "PreviewBarcodeItemTitle":  "Codice a barre {0}",
     "PreviewBarcodeTypeLabel":  "Tipo",
-    "PreviewAiButton":  "Anteprima AI",
+    "PreviewAiButton":  "Miglioramento IA",
     "PreviewAiBusy":  "Generazione anteprima...",
     "PreviewAiSaveAs":  "Salva con nome",
     "PreviewAiSaving":  "Salvataggio...",

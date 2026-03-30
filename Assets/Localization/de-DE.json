@@ -447,7 +447,7 @@
     "PreviewBarcodeMixedDetected":  "{0} Codes erkannt ({1} Barcodes, {2} QR-Codes)",
     "PreviewBarcodeItemTitle":  "Barcode {0}",
     "PreviewBarcodeTypeLabel":  "Typ",
-    "PreviewAiButton":  "KI-Vorschau",
+    "PreviewAiButton":  "KI-Verbesserung",
     "PreviewAiBusy":  "Vorschau wird erstellt...",
     "PreviewAiSaveAs":  "Speichern unter",
     "PreviewAiSaving":  "Speichern...",

@@ -447,7 +447,7 @@
     "PreviewBarcodeMixedDetected":  "Обнаружено {0} кодов ({1} штрихкодов, {2} QR-кодов)",
     "PreviewBarcodeItemTitle":  "Штрихкод {0}",
     "PreviewBarcodeTypeLabel":  "Тип",
-    "PreviewAiButton":  "AI-предпросмотр",
+    "PreviewAiButton":  "AI-улучшение",
     "PreviewAiBusy":  "Создание предпросмотра...",
     "PreviewAiSaveAs":  "Сохранить как",
     "PreviewAiSaving":  "Сохранение...",

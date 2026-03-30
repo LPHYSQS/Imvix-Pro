@@ -447,7 +447,7 @@
     "PreviewBarcodeMixedDetected":  "Detected {0} codes ({1} barcodes, {2} QR codes)",
     "PreviewBarcodeItemTitle":  "Barcode {0}",
     "PreviewBarcodeTypeLabel":  "Type",
-    "PreviewAiButton":  "AI Preview",
+    "PreviewAiButton":  "AI Enhance",
     "PreviewAiBusy":  "Generating preview...",
     "PreviewAiSaveAs":  "Save As",
     "PreviewAiSaving":  "Saving...",
