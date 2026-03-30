@@ -1,5 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.Media.Imaging;
+using ImvixPro.AI.Matting.Models;
 using ImvixPro.Models;
 using ImvixPro.Services;
 using ImvixPro.ViewModels;
@@ -904,6 +905,170 @@ public sealed class ImageConversionTests
         Assert.True(success);
         Assert.Same(fallbackImage, request.Image);
         Assert.Equal(ShellImageRequestOrigin.SelectedImageFallback, request.Origin);
+    }
+
+    [Fact]
+    public void MainWindowConfigurationCoordinator_BuildConversionOptions_SeparatesManualAndWatchOutputs()
+    {
+        var coordinator = new MainWindowConfigurationCoordinator();
+        var snapshot = new MainWindowConfigurationSnapshot
+        {
+            LanguageCode = "en-US",
+            OutputFormat = OutputImageFormat.Webp,
+            CompressionMode = CompressionMode.HighCompression,
+            Quality = 78,
+            ResizeMode = ResizeMode.LongEdge,
+            ResizeWidth = 1920,
+            ResizeHeight = 1080,
+            RenameMode = RenameMode.PrefixSuffix,
+            RenamePrefix = "done_",
+            RenameSuffix = "_final",
+            OutputDirectory = @"C:\manual-output",
+            UseSourceFolder = true,
+            WatchOutputDirectory = @"D:\watch-output",
+            GifHandlingMode = GifHandlingMode.SpecificFrame,
+            GifSpecificFrameIndex = 3,
+            GifSpecificFrameSelections = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase)
+            {
+                [@"C:\sample.gif"] = 5
+            },
+            GifFrameRanges = new Dictionary<string, GifFrameRangeSelection>(StringComparer.OrdinalIgnoreCase)
+            {
+                [@"C:\sample.gif"] = new GifFrameRangeSelection(1, 4)
+            },
+            PdfPageSelections = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase)
+            {
+                [@"C:\sample.pdf"] = 2
+            },
+            PdfPageRanges = new Dictionary<string, PdfPageRangeSelection>(StringComparer.OrdinalIgnoreCase)
+            {
+                [@"C:\sample.pdf"] = new PdfPageRangeSelection(0, 2)
+            },
+            PdfUnlockStates = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase)
+            {
+                [@"C:\sample.pdf"] = true
+            }
+        };
+
+        var manual = coordinator.BuildConversionOptions(snapshot);
+        var watch = coordinator.BuildConversionOptions(snapshot, forWatch: true);
+
+        Assert.Equal(OutputDirectoryRule.SourceFolder, manual.OutputDirectoryRule);
+        Assert.Equal(@"C:\manual-output", manual.OutputDirectory);
+        Assert.Equal(OutputDirectoryRule.SpecificFolder, watch.OutputDirectoryRule);
+        Assert.Equal(@"D:\watch-output", watch.OutputDirectory);
+        Assert.Equal(5, manual.GifSpecificFrameSelections[@"C:\sample.gif"]);
+        Assert.Equal(2, manual.PdfPageSelections[@"C:\sample.pdf"]);
+        Assert.True(watch.PdfUnlockStates[@"C:\sample.pdf"]);
+    }
+
+    [Fact]
+    public void MainWindowConfigurationCoordinator_BuildWatchProfile_ReusesFrozenJobDefinitionAndRefreshesOutputDirectory()
+    {
+        var coordinator = new MainWindowConfigurationCoordinator();
+        var snapshot = new MainWindowConfigurationSnapshot
+        {
+            WatchModeEnabled = true,
+            WatchInputDirectory = @"C:\watch-in",
+            WatchOutputDirectory = @"D:\watch-out",
+            WatchIncludeSubfolders = true,
+            OutputFormat = OutputImageFormat.Webp
+        };
+        var frozenDefinition = new ConversionJobDefinition
+        {
+            Name = "Frozen Watch Job",
+            Options = new ConversionOptions
+            {
+                OutputFormat = OutputImageFormat.Jpeg,
+                OutputDirectoryRule = OutputDirectoryRule.SourceFolder,
+                OutputDirectory = @"C:\legacy-output",
+                AllowOverwrite = true
+            }
+        };
+
+        var profile = coordinator.BuildWatchProfile(snapshot, frozenDefinition);
+
+        Assert.True(profile.IsEnabled);
+        Assert.Equal(@"C:\watch-in", profile.InputDirectory);
+        Assert.Equal(@"D:\watch-out", profile.OutputDirectory);
+        Assert.Equal("Frozen Watch Job", profile.JobDefinition.Name);
+        Assert.Equal(OutputImageFormat.Jpeg, profile.JobDefinition.Options.OutputFormat);
+        Assert.Equal(OutputDirectoryRule.SpecificFolder, profile.JobDefinition.Options.OutputDirectoryRule);
+        Assert.Equal(@"D:\watch-out", profile.JobDefinition.Options.OutputDirectory);
+        Assert.True(profile.JobDefinition.Options.AllowOverwrite);
+    }
+
+    [Fact]
+    public void MainWindowConfigurationCoordinator_BuildPreviewSessionState_KeepsPreviewToolStateSeparateFromTaskOptions()
+    {
+        var coordinator = new MainWindowConfigurationCoordinator();
+        var snapshot = new MainWindowConfigurationSnapshot
+        {
+            LanguageCode = "ja-JP",
+            OutputFormat = OutputImageFormat.Pdf,
+            SvgUseBackground = true,
+            SvgBackgroundColor = "#FF102030",
+            AiMattingModel = AiMattingModel.GeneralClassic,
+            AiMattingDevice = AiMattingDevice.Cpu,
+            AiMattingOutputFormat = OutputImageFormat.Png,
+            AiMattingBackgroundMode = AiMattingBackgroundMode.SolidColor,
+            AiMattingBackgroundColor = "#FFABCDEF",
+            AiMattingEdgeOptimizationEnabled = false,
+            AiMattingEdgeOptimizationStrength = 12,
+            AiMattingResolutionMode = AiMattingResolutionMode.Half
+        };
+
+        var session = coordinator.BuildPreviewSessionState(snapshot);
+
+        Assert.Equal(OutputImageFormat.Pdf, session.JobDefinition.Options.OutputFormat);
+        Assert.True(session.JobDefinition.Options.SvgUseBackground);
+        Assert.Equal("#FF102030", session.JobDefinition.Options.SvgBackgroundColor);
+        Assert.Equal(AiMattingBackgroundMode.SolidColor, session.PreviewToolState.AiMattingBackgroundMode);
+        Assert.Equal("#FFABCDEF", session.PreviewToolState.AiMattingBackgroundColor);
+        Assert.Equal(OutputImageFormat.Png, session.PreviewToolState.AiMattingOutputFormat);
+        Assert.False(session.PreviewToolState.AiMattingEdgeOptimizationEnabled);
+    }
+
+    [Fact]
+    public void MainWindowConfigurationCoordinator_BuildApplicationPreferences_PreservesExistingPreferenceMetadataAndClonesPresets()
+    {
+        var coordinator = new MainWindowConfigurationCoordinator();
+        var preset = new ConversionPreset
+        {
+            Name = "WebP",
+            OutputFormat = OutputImageFormat.Webp,
+            Quality = 80
+        };
+        var snapshot = new MainWindowConfigurationSnapshot
+        {
+            SelectedLanguageCode = "zh-CN",
+            SelectedThemeCode = "Dark",
+            OutputFormat = OutputImageFormat.Jpeg,
+            CompressionMode = CompressionMode.HighCompression,
+            Quality = 82,
+            Presets = [preset],
+            KeepRunningInTray = true,
+            RunOnStartup = true
+        };
+        var existingSettings = new AppSettings
+        {
+            ApplicationPreferences = new ApplicationPreferences
+            {
+                DefaultListSortMode = ListSortMode.SizeDescending
+            }
+        };
+
+        var preferences = coordinator.BuildApplicationPreferences(existingSettings, snapshot);
+
+        Assert.Equal("zh-CN", preferences.LanguageCode);
+        Assert.Equal("Dark", preferences.ThemeCode);
+        Assert.Equal(OutputImageFormat.Jpeg, preferences.DefaultOutputFormat);
+        Assert.Equal(ListSortMode.SizeDescending, preferences.DefaultListSortMode);
+        Assert.Single(preferences.Presets);
+        Assert.NotSame(preset, preferences.Presets[0]);
+        Assert.Equal("WebP", preferences.Presets[0].Name);
+        Assert.True(preferences.KeepRunningInTray);
+        Assert.True(preferences.RunOnStartup);
     }
 
     private static string TranslateTestText(string key)

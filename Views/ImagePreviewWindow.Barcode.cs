@@ -13,62 +13,26 @@ namespace ImvixPro.Views
 {
     public partial class ImagePreviewWindow
     {
-        private readonly PreviewBarcodeToolController _barcodeToolController = new();
         private readonly List<PreviewBarcodeToolResultItem> _barcodeResultItems = new();
 
         private bool HasBarcodeResults => _barcodeResultItems.Count > 0;
 
         private async Task RecognizeCurrentBarcodePreviewAsync(bool revealBusyPanelImmediately)
         {
-            if (_isClosed)
-            {
-                return;
-            }
-
-            CancelPendingOcr();
-            var cancellationSource = new CancellationTokenSource();
-            _ocrCts = cancellationSource;
-            _isOcrBusy = true;
-            _panelMode = PreviewRecognitionMode.Barcode;
-            ResetQrLinkState();
-            ResetQrResultState();
-            ResetBarcodeResultState();
-
-            try
-            {
-                UpdateOcrBusyUi();
-
-                if (revealBusyPanelImmediately || _isOcrPanelVisible)
+            await RunRecognitionSessionAsync(
+                PreviewRecognitionMode.Barcode,
+                revealBusyPanelImmediately,
+                async cancellationSource =>
                 {
-                    await SetOcrPanelVisibleAsync(true);
-                    await WaitForUiRenderAsync();
-                }
+                    var result = await _barcodeToolController
+                        .RecognizeAsync(CreateCurrentOcrImageBytesAsync, cancellationSource.Token);
+                    if (ShouldIgnoreRecognitionResult(cancellationSource))
+                    {
+                        return;
+                    }
 
-                var result = await _barcodeToolController
-                    .RecognizeAsync(CreateCurrentOcrImageBytesAsync, cancellationSource.Token)
-                    .ConfigureAwait(false);
-                if (_isClosed || !ReferenceEquals(_ocrCts, cancellationSource))
-                {
-                    return;
-                }
-
-                ApplyBarcodeResult(result);
-            }
-            catch (OperationCanceledException)
-            {
-                // Ignore stale barcode requests when the user switches pages or frames.
-            }
-            finally
-            {
-                if (ReferenceEquals(_ocrCts, cancellationSource))
-                {
-                    _ocrCts = null;
-                    _isOcrBusy = false;
-                    UpdateOcrBusyUi();
-                }
-
-                cancellationSource.Dispose();
-            }
+                    ApplyBarcodeResult(result);
+                });
         }
 
         private void ApplyBarcodeResult(PreviewBarcodeToolResult result)
@@ -91,9 +55,12 @@ namespace ImvixPro.Views
             }
             else
             {
-                var placeholder = string.IsNullOrWhiteSpace(result.ErrorMessage)
-                    ? T("PreviewBarcodeEmpty")
-                    : result.ErrorMessage!;
+                var placeholder = result.ErrorMessage switch
+                {
+                    PreviewBarcodeToolController.UnavailableInputErrorCode => T("PreviewBarcodeUnavailable"),
+                    null or "" => T("PreviewBarcodeEmpty"),
+                    _ => result.ErrorMessage!
+                };
 
                 OcrStatusText.Text = string.Empty;
                 SetOcrPlaceholder(placeholder);

@@ -159,48 +159,7 @@ namespace ImvixPro.ViewModels
 
         private ConversionOptions BuildCurrentConversionOptions(bool forWatch = false)
         {
-            return new ConversionOptions
-            {
-                OutputFormat = SelectedOutputFormat,
-                CompressionMode = SelectedCompressionMode,
-                Quality = Quality,
-                ResizeMode = SelectedResizeMode,
-                ResizeWidth = ResizeWidth,
-                ResizeHeight = ResizeHeight,
-                ResizePercent = ResizePercent,
-                RenameMode = SelectedRenameMode,
-                RenamePrefix = RenamePrefix,
-                RenameSuffix = RenameSuffix,
-                RenameStartNumber = RenameStartNumber,
-                RenameNumberDigits = RenameNumberDigits,
-                OutputDirectoryRule = forWatch
-                    ? OutputDirectoryRule.SpecificFolder
-                    : UseSourceFolder ? OutputDirectoryRule.SourceFolder : OutputDirectoryRule.SpecificFolder,
-                OutputDirectory = forWatch ? WatchOutputDirectory : OutputDirectory,
-                AllowOverwrite = AllowOverwrite,
-                SvgUseBackground = SvgUseBackground,
-                SvgBackgroundColor = EffectiveSvgBackgroundColor,
-                IconUseTransparency = IconUseTransparency,
-                IconBackgroundColor = EffectiveIconBackgroundColor,
-                GifHandlingMode = SelectedGifHandlingMode,
-                GifSpecificFrameIndex = SelectedGifSpecificFrameIndex,
-                AiEnhancementEnabled = AiEnhancementEnabled,
-                AiEnhancementScale = AiEnhancementScale,
-                AiEnhancementModel = SelectedAiEnhancementModel,
-                AiExecutionMode = SelectedAiExecutionMode,
-                LanguageCode = _localizationService.CurrentLanguageCode,
-                GifSpecificFrameSelections = new Dictionary<string, int>(_gifSpecificFrameSelections, StringComparer.OrdinalIgnoreCase),
-                GifFrameRanges = new Dictionary<string, GifFrameRangeSelection>(_gifTrimSelections, StringComparer.OrdinalIgnoreCase),
-                PdfImageExportMode = SelectedPdfImageExportMode,
-                PdfDocumentExportMode = SelectedPdfDocumentExportMode,
-                PdfPageIndex = SelectedPdfPageIndex,
-                PdfPageSelections = new Dictionary<string, int>(_pdfPageSelections, StringComparer.OrdinalIgnoreCase),
-                PdfPageRanges = new Dictionary<string, PdfPageRangeSelection>(_pdfPageRanges, StringComparer.OrdinalIgnoreCase),
-                PdfUnlockStates = Images
-                    .Where(static image => image.IsPdfDocument)
-                    .ToDictionary(image => image.FilePath, image => image.IsUnlocked, StringComparer.OrdinalIgnoreCase),
-                MaxDegreeOfParallelism = _maxParallelism
-            };
+            return _configurationCoordinator.BuildConversionOptions(CaptureConfigurationSnapshot(), forWatch);
         }
 
         private async Task<List<string>> BuildPreflightWarningsAsync()

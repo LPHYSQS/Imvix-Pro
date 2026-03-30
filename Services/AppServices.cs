@@ -19,6 +19,7 @@ namespace ImvixPro.Services
         private static readonly Lazy<ConversionStatusSummaryService> ConversionStatusSummaryServiceFactory = new(static () => new ConversionStatusSummaryService());
         private static readonly Lazy<ConversionTextPresenter> ConversionTextPresenterFactory = new(static () => new ConversionTextPresenter());
         private static readonly Lazy<ConversionSummaryCoordinator> ConversionSummaryCoordinatorFactory = new(static () => new ConversionSummaryCoordinator(ConversionStatusSummaryServiceFactory.Value, ConversionTextPresenterFactory.Value));
+        private static readonly Lazy<MainWindowConfigurationCoordinator> MainWindowConfigurationCoordinatorFactory = new(static () => new MainWindowConfigurationCoordinator());
         private static readonly Lazy<WatchProfilePlanningService> WatchProfilePlanningServiceFactory = new(static () => new WatchProfilePlanningService(ConversionPlanningServiceFactory.Value));
         private static readonly Lazy<AiImageEnhancementService> AiImageEnhancementServiceFactory = new(static () => new AiImageEnhancementService());
         private static readonly Lazy<AiMattingService> AiMattingServiceFactory = new(static () => new AiMattingService(LoggerFactory.Value));
@@ -54,6 +55,8 @@ namespace ImvixPro.Services
         public static ConversionTextPresenter ConversionTextPresenter => ConversionTextPresenterFactory.Value;
 
         public static ConversionSummaryCoordinator ConversionSummaryCoordinator => ConversionSummaryCoordinatorFactory.Value;
+
+        public static MainWindowConfigurationCoordinator MainWindowConfigurationCoordinator => MainWindowConfigurationCoordinatorFactory.Value;
 
         public static WatchProfilePlanningService WatchProfilePlanningService => WatchProfilePlanningServiceFactory.Value;
 
@@ -100,6 +103,7 @@ namespace ImvixPro.Services
                 ConversionStatusSummaryService,
                 ConversionTextPresenter,
                 ConversionSummaryCoordinator,
+                MainWindowConfigurationCoordinator,
                 new PreviewRenderCoordinator(),
                 WatchProfilePlanningService,
                 ConversionPipelineService,
@@ -115,11 +119,13 @@ namespace ImvixPro.Services
                 Logger);
         }
 
-        public static ImagePreviewWindowServices CreateImagePreviewWindowServices()
+        internal static ImagePreviewWindowServices CreateImagePreviewWindowServices()
         {
             return new ImagePreviewWindowServices(
                 PdfRenderService,
-                PreviewOcrService,
+                new PreviewOcrToolController(PreviewOcrService),
+                new PreviewQrToolController(),
+                new PreviewBarcodeToolController(),
                 static () => new LocalizationService(),
                 AiImageEnhancementService,
                 AiMattingService,

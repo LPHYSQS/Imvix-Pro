@@ -28,11 +28,7 @@ namespace ImvixPro.ViewModels
 
         public PreviewSessionState CreatePreviewSessionState()
         {
-            return new PreviewSessionState
-            {
-                JobDefinition = BuildCurrentJobDefinition(),
-                PreviewToolState = BuildCurrentPreviewToolState()
-            };
+            return _configurationCoordinator.BuildPreviewSessionState(CaptureConfigurationSnapshot());
         }
 
         public void SetPreviewAiBusy(bool isBusy)

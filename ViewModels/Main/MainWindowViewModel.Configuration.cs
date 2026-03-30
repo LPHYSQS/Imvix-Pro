@@ -23,10 +23,10 @@ namespace ImvixPro.ViewModels
             }
 
             var existing = _settingsService.Load();
-
-            var preferences = BuildApplicationPreferences(existing);
-            var previewToolState = BuildCurrentPreviewToolState();
-            var watchProfile = BuildConfiguredWatchProfile();
+            var snapshot = CaptureConfigurationSnapshot();
+            var preferences = _configurationCoordinator.BuildApplicationPreferences(existing, snapshot);
+            var previewToolState = _configurationCoordinator.BuildPreviewToolState(snapshot);
+            var watchProfile = _configurationCoordinator.BuildWatchProfile(snapshot, _watchJobDefinitionSnapshot);
 
             _settingsService.Save(AppSettingsStateMapper.CreateSettings(existing, preferences, previewToolState, watchProfile));
 
@@ -44,97 +44,13 @@ namespace ImvixPro.ViewModels
             return settings.UseSourceFolderByDefault;
         }
 
-        private ApplicationPreferences BuildApplicationPreferences(AppSettings existing)
+        private MainWindowConfigurationSnapshot CaptureConfigurationSnapshot()
         {
-            var existingPreferences = AppSettingsStateMapper.ResolveApplicationPreferences(existing);
-
-            return new ApplicationPreferences
+            return new MainWindowConfigurationSnapshot
             {
-                LanguageCode = SelectedLanguage?.Code ?? LanguageCodeSystem,
-                ThemeCode = SelectedTheme?.Code ?? ThemeCodeSystem,
-                DefaultOutputFormat = SelectedOutputFormat,
-                DefaultCompressionMode = SelectedCompressionMode,
-                DefaultQuality = Quality,
-                DefaultResizeMode = SelectedResizeMode,
-                DefaultResizeWidth = ResizeWidth,
-                DefaultResizeHeight = ResizeHeight,
-                DefaultResizePercent = ResizePercent,
-                DefaultRenameMode = SelectedRenameMode,
-                DefaultRenamePrefix = RenamePrefix,
-                DefaultRenameSuffix = RenameSuffix,
-                DefaultRenameStartNumber = RenameStartNumber,
-                DefaultRenameNumberDigits = RenameNumberDigits,
-                DefaultGifHandlingMode = SelectedGifHandlingMode,
-                DefaultGifSpecificFrameIndex = SelectedGifSpecificFrameIndex,
-                DefaultOutputDirectory = OutputDirectory,
-                UseSourceFolderByDefault = UseSourceFolder,
-                HasOutputDirectoryRule = true,
-                OutputDirectoryRule = UseSourceFolder ? OutputDirectoryRule.SourceFolder : OutputDirectoryRule.SpecificFolder,
-                IncludeSubfoldersOnFolderImport = IncludeSubfoldersOnFolderImport,
-                DefaultListSortMode = existingPreferences.DefaultListSortMode,
-                AutoOpenOutputDirectory = AutoOpenOutputDirectory,
-                AllowOverwrite = AllowOverwrite,
-                SvgUseBackground = SvgUseBackground,
-                SvgBackgroundColor = EffectiveSvgBackgroundColor,
-                IconUseTransparency = IconUseTransparency,
-                IconBackgroundColor = EffectiveIconBackgroundColor,
-                MaxParallelism = _maxParallelism,
-                AiEnhancementEnabled = AiEnhancementEnabled,
-                DefaultAiEnhancementScale = AiEnhancementScale,
-                DefaultAiEnhancementModel = SelectedAiEnhancementModel,
-                DefaultAiExecutionMode = SelectedAiExecutionMode,
-                Presets = Presets.Select(ClonePreset).ToList(),
-                KeepRunningInTray = KeepRunningInTray,
-                RunOnStartup = RunOnStartup
-            };
-        }
-
-        private PreviewToolState BuildCurrentPreviewToolState()
-        {
-            return new PreviewToolState
-            {
-                AiMattingModel = SelectedAiMattingModel,
-                AiMattingDevice = SelectedAiMattingDevice,
-                AiMattingOutputFormat = SelectedAiMattingOutputFormat,
-                AiMattingBackgroundMode = SelectedAiMattingBackgroundMode,
-                AiMattingBackgroundColor = AiMattingBackgroundColor,
-                AiMattingEdgeOptimizationEnabled = AiMattingEdgeOptimizationEnabled,
-                AiMattingEdgeOptimizationStrength = AiMattingEdgeOptimizationStrength,
-                AiMattingResolutionMode = SelectedAiMattingResolutionMode
-            };
-        }
-
-        private ConversionJobDefinition BuildCurrentJobDefinition(bool forWatch = false)
-        {
-            return new ConversionJobDefinition
-            {
-                Options = BuildCurrentConversionOptions(forWatch)
-            };
-        }
-
-        private WatchProfile BuildConfiguredWatchProfile()
-        {
-            var jobDefinition = _watchJobDefinitionSnapshot?.Clone() ?? BuildCurrentJobDefinition(forWatch: true);
-            var options = jobDefinition.ToConversionOptions();
-            options.OutputDirectoryRule = OutputDirectoryRule.SpecificFolder;
-            options.OutputDirectory = WatchOutputDirectory;
-            jobDefinition.Options = options;
-
-            return new WatchProfile
-            {
-                IsEnabled = WatchModeEnabled,
-                InputDirectory = WatchInputDirectory,
-                OutputDirectory = WatchOutputDirectory,
-                IncludeSubfolders = WatchIncludeSubfolders,
-                JobDefinition = jobDefinition
-            };
-        }
-
-        private ConversionPreset BuildPreset(string name)
-        {
-            return new ConversionPreset
-            {
-                Name = name,
+                LanguageCode = _localizationService.CurrentLanguageCode,
+                SelectedLanguageCode = SelectedLanguage?.Code ?? LanguageCodeSystem,
+                SelectedThemeCode = SelectedTheme?.Code ?? ThemeCodeSystem,
                 OutputFormat = SelectedOutputFormat,
                 CompressionMode = SelectedCompressionMode,
                 Quality = Quality,
@@ -147,53 +63,78 @@ namespace ImvixPro.ViewModels
                 RenameSuffix = RenameSuffix,
                 RenameStartNumber = RenameStartNumber,
                 RenameNumberDigits = RenameNumberDigits,
+                OutputDirectory = OutputDirectory,
+                UseSourceFolder = UseSourceFolder,
+                IncludeSubfoldersOnFolderImport = IncludeSubfoldersOnFolderImport,
+                AutoOpenOutputDirectory = AutoOpenOutputDirectory,
+                AllowOverwrite = AllowOverwrite,
+                SvgUseBackground = SvgUseBackground,
+                SvgBackgroundColor = EffectiveSvgBackgroundColor,
+                IconUseTransparency = IconUseTransparency,
+                IconBackgroundColor = EffectiveIconBackgroundColor,
                 GifHandlingMode = SelectedGifHandlingMode,
                 GifSpecificFrameIndex = SelectedGifSpecificFrameIndex,
                 AiEnhancementEnabled = AiEnhancementEnabled,
                 AiEnhancementScale = AiEnhancementScale,
                 AiEnhancementModel = SelectedAiEnhancementModel,
                 AiExecutionMode = SelectedAiExecutionMode,
-                OutputDirectoryRule = UseSourceFolder ? OutputDirectoryRule.SourceFolder : OutputDirectoryRule.SpecificFolder,
-                OutputDirectory = OutputDirectory,
-                AllowOverwrite = AllowOverwrite,
-                SvgUseBackground = SvgUseBackground,
-                SvgBackgroundColor = EffectiveSvgBackgroundColor,
-                IconUseTransparency = IconUseTransparency,
-                IconBackgroundColor = EffectiveIconBackgroundColor
+                PdfImageExportMode = SelectedPdfImageExportMode,
+                PdfDocumentExportMode = SelectedPdfDocumentExportMode,
+                PdfPageIndex = SelectedPdfPageIndex,
+                MaxParallelism = _maxParallelism,
+                GifSpecificFrameSelections = new Dictionary<string, int>(_gifSpecificFrameSelections, StringComparer.OrdinalIgnoreCase),
+                GifFrameRanges = new Dictionary<string, GifFrameRangeSelection>(_gifTrimSelections, StringComparer.OrdinalIgnoreCase),
+                PdfPageSelections = new Dictionary<string, int>(_pdfPageSelections, StringComparer.OrdinalIgnoreCase),
+                PdfPageRanges = new Dictionary<string, PdfPageRangeSelection>(_pdfPageRanges, StringComparer.OrdinalIgnoreCase),
+                PdfUnlockStates = Images
+                    .Where(static image => image.IsPdfDocument)
+                    .ToDictionary(image => image.FilePath, image => image.IsUnlocked, StringComparer.OrdinalIgnoreCase),
+                AiMattingModel = SelectedAiMattingModel,
+                AiMattingDevice = SelectedAiMattingDevice,
+                AiMattingOutputFormat = SelectedAiMattingOutputFormat,
+                AiMattingBackgroundMode = SelectedAiMattingBackgroundMode,
+                AiMattingBackgroundColor = AiMattingBackgroundColor,
+                AiMattingEdgeOptimizationEnabled = AiMattingEdgeOptimizationEnabled,
+                AiMattingEdgeOptimizationStrength = AiMattingEdgeOptimizationStrength,
+                AiMattingResolutionMode = SelectedAiMattingResolutionMode,
+                WatchModeEnabled = WatchModeEnabled,
+                WatchInputDirectory = WatchInputDirectory,
+                WatchOutputDirectory = WatchOutputDirectory,
+                WatchIncludeSubfolders = WatchIncludeSubfolders,
+                KeepRunningInTray = KeepRunningInTray,
+                RunOnStartup = RunOnStartup,
+                Presets = Presets.Select(MainWindowConfigurationCoordinator.ClonePreset).ToList()
             };
+        }
+
+        private ApplicationPreferences BuildApplicationPreferences(AppSettings existing)
+        {
+            return _configurationCoordinator.BuildApplicationPreferences(existing, CaptureConfigurationSnapshot());
+        }
+
+        private PreviewToolState BuildCurrentPreviewToolState()
+        {
+            return _configurationCoordinator.BuildPreviewToolState(CaptureConfigurationSnapshot());
+        }
+
+        private ConversionJobDefinition BuildCurrentJobDefinition(bool forWatch = false)
+        {
+            return _configurationCoordinator.BuildJobDefinition(CaptureConfigurationSnapshot(), forWatch);
+        }
+
+        private WatchProfile BuildConfiguredWatchProfile()
+        {
+            return _configurationCoordinator.BuildWatchProfile(CaptureConfigurationSnapshot(), _watchJobDefinitionSnapshot);
+        }
+
+        private ConversionPreset BuildPreset(string name)
+        {
+            return _configurationCoordinator.BuildPreset(CaptureConfigurationSnapshot(), name);
         }
 
         private static ConversionPreset ClonePreset(ConversionPreset source)
         {
-            return new ConversionPreset
-            {
-                Name = source.Name,
-                OutputFormat = source.OutputFormat,
-                CompressionMode = source.CompressionMode,
-                Quality = source.Quality,
-                ResizeMode = source.ResizeMode,
-                ResizeWidth = source.ResizeWidth,
-                ResizeHeight = source.ResizeHeight,
-                ResizePercent = source.ResizePercent,
-                RenameMode = source.RenameMode,
-                RenamePrefix = source.RenamePrefix,
-                RenameSuffix = source.RenameSuffix,
-                RenameStartNumber = source.RenameStartNumber,
-                RenameNumberDigits = source.RenameNumberDigits,
-                GifHandlingMode = source.GifHandlingMode,
-                GifSpecificFrameIndex = source.GifSpecificFrameIndex,
-                AiEnhancementEnabled = source.AiEnhancementEnabled,
-                AiEnhancementScale = source.AiEnhancementScale,
-                AiEnhancementModel = source.AiEnhancementModel,
-                AiExecutionMode = source.AiExecutionMode,
-                OutputDirectoryRule = source.OutputDirectoryRule,
-                OutputDirectory = source.OutputDirectory,
-                AllowOverwrite = source.AllowOverwrite,
-                SvgUseBackground = source.SvgUseBackground,
-                SvgBackgroundColor = source.SvgBackgroundColor,
-                IconUseTransparency = source.IconUseTransparency,
-                IconBackgroundColor = source.IconBackgroundColor
-            };
+            return MainWindowConfigurationCoordinator.ClonePreset(source);
         }
 
         private void RefreshEnumOptions()

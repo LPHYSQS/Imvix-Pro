@@ -53,6 +53,7 @@ namespace ImvixPro.ViewModels
         private readonly ConversionStatusSummaryService _conversionStatusSummaryService;
         private readonly ConversionTextPresenter _conversionTextPresenter;
         private readonly ConversionSummaryCoordinator _conversionSummaryCoordinator;
+        private readonly MainWindowConfigurationCoordinator _configurationCoordinator;
         private readonly PreviewRenderCoordinator _previewRenderCoordinator;
         private readonly WatchProfilePlanningService _watchProfilePlanningService;
         private readonly PdfSecurityService _pdfSecurityService;
@@ -100,6 +101,7 @@ namespace ImvixPro.ViewModels
             _conversionStatusSummaryService = services.ConversionStatusSummaryService ?? throw new ArgumentNullException(nameof(services.ConversionStatusSummaryService));
             _conversionTextPresenter = services.ConversionTextPresenter ?? throw new ArgumentNullException(nameof(services.ConversionTextPresenter));
             _conversionSummaryCoordinator = services.ConversionSummaryCoordinator ?? throw new ArgumentNullException(nameof(services.ConversionSummaryCoordinator));
+            _configurationCoordinator = services.MainWindowConfigurationCoordinator ?? throw new ArgumentNullException(nameof(services.MainWindowConfigurationCoordinator));
             _previewRenderCoordinator = services.PreviewRenderCoordinator ?? throw new ArgumentNullException(nameof(services.PreviewRenderCoordinator));
             _watchProfilePlanningService = services.WatchProfilePlanningService ?? throw new ArgumentNullException(nameof(services.WatchProfilePlanningService));
             _conversionPipelineService = services.ConversionPipelineService ?? throw new ArgumentNullException(nameof(services.ConversionPipelineService));
@@ -176,7 +178,7 @@ namespace ImvixPro.ViewModels
             Presets.Clear();
             foreach (var preset in applicationPreferences.Presets.Where(static p => !string.IsNullOrWhiteSpace(p.Name)))
             {
-                Presets.Add(ClonePreset(preset));
+                Presets.Add(MainWindowConfigurationCoordinator.ClonePreset(preset));
             }
 
             InitializeVersion3Features(applicationPreferences, watchProfile);

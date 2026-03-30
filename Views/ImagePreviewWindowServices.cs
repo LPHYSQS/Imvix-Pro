@@ -5,9 +5,11 @@ using System;
 
 namespace ImvixPro.Views
 {
-    public sealed record ImagePreviewWindowServices(
+    internal sealed record ImagePreviewWindowServices(
         PdfRenderService PdfRenderService,
-        PreviewOcrService PreviewOcrService,
+        PreviewOcrToolController PreviewOcrToolController,
+        PreviewQrToolController PreviewQrToolController,
+        PreviewBarcodeToolController PreviewBarcodeToolController,
         Func<LocalizationService> CreateLocalizationService,
         AiImageEnhancementService AiImageEnhancementService,
         AiMattingService AiMattingService,

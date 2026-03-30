@@ -35,7 +35,9 @@ namespace ImvixPro.Views
         private const double PreviewCompareFrameToleranceMilliseconds = 0.75d;
 
         private readonly PdfRenderService _pdfRenderService;
-        private readonly PreviewOcrService _previewOcrService;
+        private readonly PreviewOcrToolController _previewOcrToolController;
+        private readonly PreviewQrToolController _previewQrToolController;
+        private readonly PreviewBarcodeToolController _barcodeToolController;
         private readonly LocalizationService _localizationService;
         private readonly AiMattingService _aiMattingService;
         private readonly DisplayRefreshRateService _displayRefreshRateService;
@@ -98,7 +100,9 @@ namespace ImvixPro.Views
         {
             ArgumentNullException.ThrowIfNull(services);
             _pdfRenderService = services.PdfRenderService ?? throw new ArgumentNullException(nameof(services.PdfRenderService));
-            _previewOcrService = services.PreviewOcrService ?? throw new ArgumentNullException(nameof(services.PreviewOcrService));
+            _previewOcrToolController = services.PreviewOcrToolController ?? throw new ArgumentNullException(nameof(services.PreviewOcrToolController));
+            _previewQrToolController = services.PreviewQrToolController ?? throw new ArgumentNullException(nameof(services.PreviewQrToolController));
+            _barcodeToolController = services.PreviewBarcodeToolController ?? throw new ArgumentNullException(nameof(services.PreviewBarcodeToolController));
             _localizationService = services.CreateLocalizationService?.Invoke() ?? throw new ArgumentNullException(nameof(services.CreateLocalizationService));
             _aiImageEnhancementService = services.AiImageEnhancementService ?? throw new ArgumentNullException(nameof(services.AiImageEnhancementService));
             _aiMattingService = services.AiMattingService ?? throw new ArgumentNullException(nameof(services.AiMattingService));
@@ -1014,8 +1018,26 @@ namespace ImvixPro.Views
             });
         }
 
-        private async Task RecognizeCurrentPreviewAsync(bool revealBusyPanelImmediately)
+        private void BeginRecognitionSession(PreviewRecognitionMode mode)
         {
+            _panelMode = mode;
+            ResetQrLinkState();
+            ResetQrResultState();
+            ResetBarcodeResultState();
+        }
+
+        private bool ShouldIgnoreRecognitionResult(CancellationTokenSource cancellationSource)
+        {
+            return _isClosed || !ReferenceEquals(_ocrCts, cancellationSource);
+        }
+
+        private async Task RunRecognitionSessionAsync(
+            PreviewRecognitionMode mode,
+            bool revealBusyPanelImmediately,
+            Func<CancellationTokenSource, Task> executeAsync)
+        {
+            ArgumentNullException.ThrowIfNull(executeAsync);
+
             if (_isClosed)
             {
                 return;
@@ -1025,9 +1047,7 @@ namespace ImvixPro.Views
             var cancellationSource = new CancellationTokenSource();
             _ocrCts = cancellationSource;
             _isOcrBusy = true;
-            _panelMode = PreviewRecognitionMode.Ocr;
-            ResetQrLinkState();
-            ResetQrResultState();
+            BeginRecognitionSession(mode);
 
             try
             {
@@ -1039,24 +1059,11 @@ namespace ImvixPro.Views
                     await WaitForUiRenderAsync();
                 }
 
-                var imageBytes = await CreateCurrentOcrImageBytesAsync(cancellationSource.Token);
-                if (imageBytes is null || imageBytes.Length == 0)
-                {
-                    ApplyOcrResult(PreviewOcrRecognition.Error(GetUnavailableText(PreviewRecognitionMode.Ocr)));
-                    return;
-                }
-
-                var result = await _previewOcrService.RecognizeAsync(imageBytes, _ocrLanguageOption, cancellationSource.Token);
-                if (_isClosed || !ReferenceEquals(_ocrCts, cancellationSource))
-                {
-                    return;
-                }
-
-                ApplyOcrResult(result);
+                await executeAsync(cancellationSource);
             }
             catch (OperationCanceledException)
             {
-                // Ignore stale OCR requests when the user switches pages or frames.
+                // Ignore stale recognition requests when the user switches pages or frames.
             }
             finally
             {
@@ -1069,6 +1076,24 @@ namespace ImvixPro.Views
 
                 cancellationSource.Dispose();
             }
+        }
+
+        private async Task RecognizeCurrentPreviewAsync(bool revealBusyPanelImmediately)
+        {
+            await RunRecognitionSessionAsync(
+                PreviewRecognitionMode.Ocr,
+                revealBusyPanelImmediately,
+                async cancellationSource =>
+                {
+                    var result = await _previewOcrToolController
+                        .RecognizeAsync(CreateCurrentOcrImageBytesAsync, _ocrLanguageOption, cancellationSource.Token);
+                    if (ShouldIgnoreRecognitionResult(cancellationSource))
+                    {
+                        return;
+                    }
+
+                    ApplyOcrResult(result);
+                });
         }
 
         private void CancelPendingOcr()
@@ -1138,6 +1163,7 @@ namespace ImvixPro.Views
             {
                 var placeholder = result.ErrorMessage switch
                 {
+                    PreviewOcrToolController.UnavailableInputErrorCode => T("PreviewOcrUnavailable"),
                     PreviewOcrService.UnsupportedPlatformErrorCode => T("PreviewOcrUnsupportedPlatform"),
                     PreviewOcrService.PathErrorCode => T("PreviewOcrPathError"),
                     PreviewOcrService.EngineFilesMissingErrorCode => T("PreviewOcrEngineFilesMissing"),

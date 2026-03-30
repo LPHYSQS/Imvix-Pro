@@ -31,18 +31,8 @@ namespace ImvixPro.Views
             Barcode
         }
 
-        private sealed record PreviewQrResultItem(string Content, IReadOnlyList<PreviewToolLinkItem> Urls)
-        {
-            public bool HasUrls => Urls.Count > 0;
-
-            public bool HasSingleUrl => Urls.Count == 1;
-
-            public bool HasMultipleUrls => Urls.Count > 1;
-        }
-
-        private readonly PreviewQrService _previewQrService = new();
         private readonly List<PreviewToolLinkItem> _qrUrlItems = new();
-        private readonly List<PreviewQrResultItem> _qrResultItems = new();
+        private readonly List<PreviewQrToolResultItem> _qrResultItems = new();
         private PreviewRecognitionMode _panelMode = PreviewRecognitionMode.Ocr;
         private CancellationTokenSource? _qrLinksAnimationCts;
         private bool _isQrLinksExpanded;
@@ -171,66 +161,21 @@ namespace ImvixPro.Views
 
         private async Task RecognizeCurrentQrPreviewAsync(bool revealBusyPanelImmediately)
         {
-            if (_isClosed)
-            {
-                return;
-            }
-
-            CancelPendingOcr();
-            var cancellationSource = new CancellationTokenSource();
-            _ocrCts = cancellationSource;
-            _isOcrBusy = true;
-            _panelMode = PreviewRecognitionMode.Qr;
-            ResetQrLinkState();
-            ResetQrResultState();
-
-            try
-            {
-                UpdateOcrBusyUi();
-
-                if (revealBusyPanelImmediately || _isOcrPanelVisible)
+            await RunRecognitionSessionAsync(
+                PreviewRecognitionMode.Qr,
+                revealBusyPanelImmediately,
+                async cancellationSource =>
                 {
-                    await SetOcrPanelVisibleAsync(true);
-                    await WaitForUiRenderAsync();
-                }
+                    var result = await _previewQrToolController.RecognizeAsync(
+                        CreateCurrentOcrImageBytesAsync,
+                        cancellationSource.Token);
+                    if (ShouldIgnoreRecognitionResult(cancellationSource))
+                    {
+                        return;
+                    }
 
-                var imageBytes = await CreateCurrentOcrImageBytesAsync(cancellationSource.Token);
-                if (imageBytes is null || imageBytes.Length == 0)
-                {
-                    ApplyQrResult(PreviewQrRecognition.Error(GetUnavailableText(PreviewRecognitionMode.Qr)));
-                    return;
-                }
-
-                var result = await _previewQrService.RecognizeAllAsync(imageBytes, cancellationSource.Token);
-                if (_isClosed || !ReferenceEquals(_ocrCts, cancellationSource))
-                {
-                    return;
-                }
-
-                if (result.Results.Count > 1)
-                {
-                    ApplyMultiQrResult(result);
-                }
-                else
-                {
-                    ApplyQrResult(ToSingleQrRecognition(result));
-                }
-            }
-            catch (OperationCanceledException)
-            {
-                // Ignore stale QR requests when the user switches pages or frames.
-            }
-            finally
-            {
-                if (ReferenceEquals(_ocrCts, cancellationSource))
-                {
-                    _ocrCts = null;
-                    _isOcrBusy = false;
-                    UpdateOcrBusyUi();
-                }
-
-                cancellationSource.Dispose();
-            }
+                    ApplyQrResult(result);
+                });
         }
 
         private async Task RecognizeCurrentVisibleModeAsync(bool revealBusyPanelImmediately)
@@ -250,20 +195,28 @@ namespace ImvixPro.Views
             await RecognizeCurrentPreviewAsync(revealBusyPanelImmediately);
         }
 
-        private void ApplyQrResult(PreviewQrRecognition result)
+        private void ApplyQrResult(PreviewQrToolResult result)
         {
             _panelMode = PreviewRecognitionMode.Qr;
             ResetQrLinkState();
             ResetQrResultState();
             ResetBarcodeResultState();
 
-            _ocrText = result.HasText ? result.Text : string.Empty;
-            _copyAllText = _ocrText;
-            OcrTextBox.Text = _ocrText;
-
-            if (result.HasText)
+            if (result.HasSingleResult && result.SingleItem is { } item)
             {
-                SetStructuredQrLinks(PreviewQrService.ExtractUrls(result.Text));
+                _ocrText = item.Content;
+                _copyAllText = item.Content;
+                OcrTextBox.Text = item.Content;
+                SetStructuredQrLinks(item.Urls);
+                OcrStatusText.Text = string.Empty;
+                SetOcrPlaceholder(string.Empty);
+            }
+            else if (result.HasResults)
+            {
+                _ocrText = string.Empty;
+                _copyAllText = BuildQrResultsCopyText(result.Items);
+                OcrTextBox.Text = string.Empty;
+                SetStructuredQrResults(result.Items);
                 OcrStatusText.Text = string.Empty;
                 SetOcrPlaceholder(string.Empty);
             }
@@ -271,6 +224,7 @@ namespace ImvixPro.Views
             {
                 var placeholder = result.ErrorMessage switch
                 {
+                    PreviewQrToolController.UnavailableInputErrorCode => T("PreviewQrUnavailable"),
                     PreviewQrService.PathErrorCode => T("PreviewQrUnavailable"),
                     PreviewQrService.InitializationFailedErrorCode => T("PreviewQrInitializationFailed"),
                     null or "" => T("PreviewQrEmpty"),
@@ -279,35 +233,6 @@ namespace ImvixPro.Views
 
                 OcrStatusText.Text = string.Empty;
                 SetOcrPlaceholder(placeholder);
-            }
-
-            RefreshRecognitionContentVisibility();
-            RefreshRecognitionChrome();
-            RefreshOcrControls();
-        }
-
-        private void ApplyMultiQrResult(PreviewQrBatchRecognition result)
-        {
-            _panelMode = PreviewRecognitionMode.Qr;
-            ResetQrLinkState();
-            ResetQrResultState();
-            ResetBarcodeResultState();
-
-            _ocrText = string.Empty;
-            _copyAllText = BuildQrResultsCopyText(result.Results);
-            OcrTextBox.Text = string.Empty;
-
-            if (result.HasResults)
-            {
-                SetStructuredQrResults(result.Results);
-                OcrStatusText.Text = string.Empty;
-                SetOcrPlaceholder(string.Empty);
-            }
-            else
-            {
-                SetOcrPlaceholder(string.IsNullOrWhiteSpace(result.ErrorMessage)
-                    ? T("PreviewQrEmpty")
-                    : result.ErrorMessage!);
             }
 
             RefreshRecognitionContentVisibility();
@@ -381,16 +306,10 @@ namespace ImvixPro.Views
             RefreshQrResultsView();
         }
 
-        private void SetStructuredQrLinks(IReadOnlyList<string> urls)
+        private void SetStructuredQrLinks(IReadOnlyList<PreviewToolLinkItem> urls)
         {
             _qrUrlItems.Clear();
-
-            foreach (var url in urls)
-            {
-                _qrUrlItems.Add(new PreviewToolLinkItem(
-                    url,
-                    url.StartsWith("https://", StringComparison.OrdinalIgnoreCase)));
-            }
+            _qrUrlItems.AddRange(urls);
 
             _isQrLinksExpanded = false;
             QrLinksPanel.IsVisible = false;
@@ -399,28 +318,10 @@ namespace ImvixPro.Views
             RefreshQrLinksView();
         }
 
-        private void SetStructuredQrResults(IReadOnlyList<PreviewQrCodeResult> results)
+        private void SetStructuredQrResults(IReadOnlyList<PreviewQrToolResultItem> results)
         {
             _qrResultItems.Clear();
-
-            foreach (var result in results)
-            {
-                if (string.IsNullOrWhiteSpace(result.Content))
-                {
-                    continue;
-                }
-
-                var urlItems = new List<PreviewToolLinkItem>();
-                foreach (var url in PreviewQrService.ExtractUrls(result.Content))
-                {
-                    urlItems.Add(new PreviewToolLinkItem(
-                        url,
-                        url.StartsWith("https://", StringComparison.OrdinalIgnoreCase)));
-                }
-
-                _qrResultItems.Add(new PreviewQrResultItem(result.Content, urlItems));
-            }
-
+            _qrResultItems.AddRange(results);
             RefreshQrResultsView();
         }
 
@@ -579,18 +480,6 @@ namespace ImvixPro.Views
                 : FormatT("PreviewQrLinksSummaryMultiple", _qrUrlItems.Count);
         }
 
-        private static PreviewQrRecognition ToSingleQrRecognition(PreviewQrBatchRecognition result)
-        {
-            if (result.Results.Count > 0)
-            {
-                return new PreviewQrRecognition(result.Results[0].Content, true, result.ErrorMessage);
-            }
-
-            return string.IsNullOrWhiteSpace(result.ErrorMessage)
-                ? PreviewQrRecognition.Empty()
-                : PreviewQrRecognition.Error(result.ErrorMessage);
-        }
-
         private string GetQrResultsSummaryText()
         {
             return _qrResultItems.Count > 1
@@ -598,7 +487,7 @@ namespace ImvixPro.Views
                 : string.Empty;
         }
 
-        private string BuildQrResultsCopyText(IReadOnlyList<PreviewQrCodeResult> results)
+        private string BuildQrResultsCopyText(IReadOnlyList<PreviewQrToolResultItem> results)
         {
             var builder = new StringBuilder();
 
@@ -622,7 +511,7 @@ namespace ImvixPro.Views
             return builder.ToString();
         }
 
-        private Control BuildQrResultCard(PreviewQrResultItem item, int displayIndex)
+        private Control BuildQrResultCard(PreviewQrToolResultItem item, int displayIndex)
         {
             var border = new Border
             {

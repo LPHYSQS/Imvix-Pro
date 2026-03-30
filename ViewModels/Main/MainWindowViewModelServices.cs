@@ -13,6 +13,7 @@ namespace ImvixPro.ViewModels
         ConversionStatusSummaryService ConversionStatusSummaryService,
         ConversionTextPresenter ConversionTextPresenter,
         ConversionSummaryCoordinator ConversionSummaryCoordinator,
+        MainWindowConfigurationCoordinator MainWindowConfigurationCoordinator,
         PreviewRenderCoordinator PreviewRenderCoordinator,
         WatchProfilePlanningService WatchProfilePlanningService,
         ConversionPipelineService ConversionPipelineService,

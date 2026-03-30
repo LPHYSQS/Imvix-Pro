@@ -13,7 +13,7 @@ namespace ImvixPro.ViewModels
     {
         public void AddFiles(IEnumerable<string> paths)
         {
-            var candidates = ExpandInputPaths(paths, IncludeSubfoldersOnFolderImport)
+            var candidates = ExpandInputPaths(paths, IncludeSubfoldersOnFolderImport, _logger)
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .ToList();
 
@@ -27,7 +27,10 @@ namespace ImvixPro.ViewModels
             QueueAddFiles(candidates);
         }
 
-        private static IEnumerable<string> ExpandInputPaths(IEnumerable<string> paths, bool includeSubfolders)
+        private static IEnumerable<string> ExpandInputPaths(
+            IEnumerable<string> paths,
+            bool includeSubfolders,
+            AppLogger logger)
         {
             foreach (var rawPath in paths.Where(path => !string.IsNullOrWhiteSpace(path)))
             {
@@ -38,7 +41,7 @@ namespace ImvixPro.ViewModels
                 }
                 catch (Exception ex)
                 {
-                    AppServices.Logger.LogDebug(nameof(MainWindowViewModel), $"Ignored invalid input path '{rawPath}'.", ex);
+                    logger.LogDebug(nameof(MainWindowViewModel), $"Ignored invalid input path '{rawPath}'.", ex);
                     continue;
                 }
 
@@ -63,7 +66,7 @@ namespace ImvixPro.ViewModels
                 }
                 catch (Exception ex)
                 {
-                    AppServices.Logger.LogDebug(nameof(MainWindowViewModel), $"Failed to enumerate files under '{fullPath}'.", ex);
+                    logger.LogDebug(nameof(MainWindowViewModel), $"Failed to enumerate files under '{fullPath}'.", ex);
                     continue;
                 }
 

@@ -6,11 +6,9 @@ using System.Threading.Tasks;
 
 namespace ImvixPro.Views
 {
-    internal sealed record PreviewBarcodeToolResultItem(
-        string Content,
-        string Format,
-        bool IsQrCode,
-        IReadOnlyList<PreviewToolLinkItem> Urls)
+    internal sealed record PreviewToolLinkItem(string Url, bool UsesHttps);
+
+    internal sealed record PreviewQrToolResultItem(string Content, IReadOnlyList<PreviewToolLinkItem> Urls)
     {
         public bool HasUrls => Urls.Count > 0;
 
@@ -19,25 +17,29 @@ namespace ImvixPro.Views
         public bool HasMultipleUrls => Urls.Count > 1;
     }
 
-    internal sealed record PreviewBarcodeToolResult(
-        IReadOnlyList<PreviewBarcodeToolResultItem> Items,
+    internal sealed record PreviewQrToolResult(
+        IReadOnlyList<PreviewQrToolResultItem> Items,
         string? ErrorMessage)
     {
         public bool HasResults => Items.Count > 0;
+
+        public bool HasSingleResult => Items.Count == 1;
+
+        public PreviewQrToolResultItem? SingleItem => HasSingleResult ? Items[0] : null;
     }
 
-    internal sealed class PreviewBarcodeToolController
+    internal sealed class PreviewQrToolController
     {
-        public const string UnavailableInputErrorCode = "preview-barcode-unavailable-input";
+        public const string UnavailableInputErrorCode = "preview-qr-unavailable-input";
 
-        private readonly PreviewBarcodeService _previewBarcodeService;
+        private readonly PreviewQrService _previewQrService;
 
-        public PreviewBarcodeToolController(PreviewBarcodeService? previewBarcodeService = null)
+        public PreviewQrToolController(PreviewQrService? previewQrService = null)
         {
-            _previewBarcodeService = previewBarcodeService ?? new PreviewBarcodeService();
+            _previewQrService = previewQrService ?? new PreviewQrService();
         }
 
-        public async Task<PreviewBarcodeToolResult> RecognizeAsync(
+        public async Task<PreviewQrToolResult> RecognizeAsync(
             Func<CancellationToken, Task<byte[]?>> imageBytesFactory,
             CancellationToken cancellationToken)
         {
@@ -46,19 +48,19 @@ namespace ImvixPro.Views
             var imageBytes = await imageBytesFactory(cancellationToken).ConfigureAwait(false);
             if (imageBytes is null || imageBytes.Length == 0)
             {
-                return new PreviewBarcodeToolResult([], UnavailableInputErrorCode);
+                return new PreviewQrToolResult([], UnavailableInputErrorCode);
             }
 
-            var result = await _previewBarcodeService
+            var result = await _previewQrService
                 .RecognizeAllAsync(imageBytes, cancellationToken)
                 .ConfigureAwait(false);
 
             if (!result.HasResults)
             {
-                return new PreviewBarcodeToolResult([], result.ErrorMessage);
+                return new PreviewQrToolResult([], result.ErrorMessage);
             }
 
-            List<PreviewBarcodeToolResultItem> items = [];
+            List<PreviewQrToolResultItem> items = [];
             foreach (var recognition in result.Results)
             {
                 if (string.IsNullOrWhiteSpace(recognition.Content))
@@ -74,14 +76,10 @@ namespace ImvixPro.Views
                         url.StartsWith("https://", StringComparison.OrdinalIgnoreCase)));
                 }
 
-                items.Add(new PreviewBarcodeToolResultItem(
-                    recognition.Content,
-                    recognition.Format,
-                    recognition.IsQrCode,
-                    links));
+                items.Add(new PreviewQrToolResultItem(recognition.Content, links));
             }
 
-            return new PreviewBarcodeToolResult(items, result.ErrorMessage);
+            return new PreviewQrToolResult(items, result.ErrorMessage);
         }
     }
 }
