@@ -75,13 +75,9 @@ namespace ImvixPro.ViewModels
                 _refreshGifSpecificFramePreview &&
                 SelectedGifHandlingMode == GifHandlingMode.SpecificFrame)
             {
-                if (_gifPreviewFrames is not null && _gifPreviewFrames.Count > 0)
+                if (SelectedImage?.IsAnimatedGif == true)
                 {
-                    ApplyGifSpecificFramePreview(disposeExistingPreview: false);
-                }
-                else if (SelectedImage?.IsAnimatedGif == true)
-                {
-                    _ = LoadGifPreviewAsync(SelectedImage.FilePath);
+                    _previewRenderCoordinator.HandleGifSpecificFrameSelectionChanged(SelectedImage, _previewRenderContext);
                 }
             }
 
@@ -340,6 +336,24 @@ namespace ImvixPro.ViewModels
 
             SelectedPreview = _gifPreviewFrames[_gifPreviewIndex];
             OnPropertyChanged(nameof(GifSpecificFrameCountdownText));
+        }
+
+        private bool TryApplySelectedGifSpecificFramePreview()
+        {
+            if (!IsGifSpecificFrameControlsVisible ||
+                SelectedImage is null ||
+                !SelectedImage.IsAnimatedGif)
+            {
+                return true;
+            }
+
+            if (_gifPreviewFrames is null || _gifPreviewFrames.Count == 0)
+            {
+                return false;
+            }
+
+            ApplyGifSpecificFramePreview(disposeExistingPreview: false);
+            return true;
         }
 
         private void SetGifSpecificFrameIndex(int index, bool persist, bool refreshPreview, bool cacheSelection = true)

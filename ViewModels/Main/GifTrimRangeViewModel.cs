@@ -106,25 +106,24 @@ namespace ImvixPro.ViewModels
 
             if (updatePreview)
             {
-                ApplyGifTrimPreviewRangeIfNeeded();
+                _previewRenderCoordinator.HandleGifTrimSelectionChanged(image, _previewRenderContext);
             }
 
             RefreshPreviewSelectionState();
         }
 
-        private void ApplyGifTrimPreviewRangeIfNeeded()
+        private bool TryApplySelectedGifTrimPreviewRange()
         {
             if (!IsGifTrimRangeVisible ||
                 SelectedImage is null ||
                 !SelectedImage.IsAnimatedGif)
             {
-                return;
+                return true;
             }
 
             if (_gifPreviewFrames is null || _gifPreviewDurations is null || _gifPreviewFrames.Count == 0)
             {
-                _ = LoadGifPreviewAsync(SelectedImage.FilePath);
-                return;
+                return false;
             }
 
             var selection = GetCurrentGifTrimSelection();
@@ -141,6 +140,8 @@ namespace ImvixPro.ViewModels
             {
                 _gifPreviewTimer.Interval = ClampGifDuration(_gifPreviewDurations[_gifPreviewIndex]);
             }
+
+            return true;
         }
 
         private GifFrameRangeSelection GetCurrentGifTrimSelection()

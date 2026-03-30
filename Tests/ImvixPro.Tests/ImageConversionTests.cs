@@ -700,6 +700,81 @@ public sealed class ImageConversionTests
     }
 
     [Fact]
+    public void PreviewRenderCoordinator_PdfPageSelectionChanged_RefreshesPdfPreviewThroughCoordinator()
+    {
+        var coordinator = new PreviewRenderCoordinator();
+        var context = new FakePreviewRenderContext();
+        var image = ImageItemViewModel.CreateImported(
+            @"C:\preview\document.pdf",
+            fileSize: 2_048,
+            pixelWidth: 0,
+            pixelHeight: 0,
+            thumbnail: null,
+            gifFrameCount: 1,
+            pdfPageCount: 4,
+            isPdfDocument: true);
+
+        coordinator.HandlePdfPageSelectionChanged(image, context, preferImmediatePreview: false);
+
+        Assert.Equal(
+            [
+                "RefreshSelectedPdfPreview:False"
+            ],
+            context.Calls);
+    }
+
+    [Fact]
+    public void PreviewRenderCoordinator_GifTrimSelectionChanged_LoadsGifPreviewWhenRangeCannotBeAppliedImmediately()
+    {
+        var coordinator = new PreviewRenderCoordinator();
+        var context = new FakePreviewRenderContext
+        {
+            TryApplySelectedGifTrimPreviewRangeResult = false
+        };
+        var image = ImageItemViewModel.CreateImported(
+            @"C:\preview\animated.gif",
+            fileSize: 8_192,
+            pixelWidth: 640,
+            pixelHeight: 360,
+            thumbnail: null,
+            gifFrameCount: 24);
+
+        coordinator.HandleGifTrimSelectionChanged(image, context);
+
+        Assert.Equal(
+            [
+                "TryApplySelectedGifTrimPreviewRange",
+                "LoadGifPreview:C:\\preview\\animated.gif"
+            ],
+            context.Calls);
+    }
+
+    [Fact]
+    public void PreviewRenderCoordinator_GifSpecificFrameSelectionChanged_ReusesLoadedGifFramesWhenAvailable()
+    {
+        var coordinator = new PreviewRenderCoordinator();
+        var context = new FakePreviewRenderContext
+        {
+            TryApplySelectedGifSpecificFramePreviewResult = true
+        };
+        var image = ImageItemViewModel.CreateImported(
+            @"C:\preview\animated.gif",
+            fileSize: 8_192,
+            pixelWidth: 640,
+            pixelHeight: 360,
+            thumbnail: null,
+            gifFrameCount: 24);
+
+        coordinator.HandleGifSpecificFrameSelectionChanged(image, context);
+
+        Assert.Equal(
+            [
+                "TryApplySelectedGifSpecificFramePreview"
+            ],
+            context.Calls);
+    }
+
+    [Fact]
     public void MainWindowShellCoordinator_TryCreateImageRequestSource_PrefersSenderDataContext()
     {
         var senderImage = ImageItemViewModel.CreateImported(
@@ -792,6 +867,10 @@ public sealed class ImageConversionTests
 
         public bool ShouldLoadGifPreviewFramesResult { get; set; }
 
+        public bool TryApplySelectedGifTrimPreviewRangeResult { get; set; }
+
+        public bool TryApplySelectedGifSpecificFramePreviewResult { get; set; }
+
         public bool ShouldRefreshSelectedConfigurablePreviewResult { get; set; }
 
         public void CancelPendingPdfPreviewRender()
@@ -880,6 +959,18 @@ public sealed class ImageConversionTests
         public void RefreshSelectedAnimatedGifPreview()
         {
             Calls.Add("RefreshSelectedAnimatedGifPreview");
+        }
+
+        public bool TryApplySelectedGifTrimPreviewRange()
+        {
+            Calls.Add("TryApplySelectedGifTrimPreviewRange");
+            return TryApplySelectedGifTrimPreviewRangeResult;
+        }
+
+        public bool TryApplySelectedGifSpecificFramePreview()
+        {
+            Calls.Add("TryApplySelectedGifSpecificFramePreview");
+            return TryApplySelectedGifSpecificFramePreviewResult;
         }
 
         public bool ShouldRefreshSelectedConfigurablePreview(ImageItemViewModel image)

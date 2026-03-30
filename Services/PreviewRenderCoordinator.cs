@@ -40,6 +40,10 @@ namespace ImvixPro.Services
 
         void RefreshSelectedAnimatedGifPreview();
 
+        bool TryApplySelectedGifTrimPreviewRange();
+
+        bool TryApplySelectedGifSpecificFramePreview();
+
         bool ShouldRefreshSelectedConfigurablePreview(ImageItemViewModel image);
 
         void RefreshSelectedConfigurablePreview();
@@ -113,6 +117,51 @@ namespace ImvixPro.Services
             ArgumentNullException.ThrowIfNull(context);
 
             RefreshConfigurablePreview(image, context);
+        }
+
+        public void HandlePdfPageSelectionChanged(
+            ImageItemViewModel? image,
+            IPreviewRenderContext context,
+            bool preferImmediatePreview)
+        {
+            ArgumentNullException.ThrowIfNull(context);
+
+            if (image is null || !image.IsPdfDocument)
+            {
+                return;
+            }
+
+            context.RefreshSelectedPdfPreview(preferImmediatePreview);
+        }
+
+        public void HandleGifTrimSelectionChanged(ImageItemViewModel? image, IPreviewRenderContext context)
+        {
+            ArgumentNullException.ThrowIfNull(context);
+
+            if (image is null || !image.IsAnimatedGif)
+            {
+                return;
+            }
+
+            if (!context.TryApplySelectedGifTrimPreviewRange())
+            {
+                context.LoadGifPreview(image.FilePath);
+            }
+        }
+
+        public void HandleGifSpecificFrameSelectionChanged(ImageItemViewModel? image, IPreviewRenderContext context)
+        {
+            ArgumentNullException.ThrowIfNull(context);
+
+            if (image is null || !image.IsAnimatedGif)
+            {
+                return;
+            }
+
+            if (!context.TryApplySelectedGifSpecificFramePreview())
+            {
+                context.LoadGifPreview(image.FilePath);
+            }
         }
 
         private static void RefreshPreviewForCurrentConfiguration(

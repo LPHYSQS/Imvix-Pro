@@ -468,6 +468,16 @@ namespace ImvixPro.ViewModels
                 _owner.RefreshSelectedAnimatedGifPreview();
             }
 
+            public bool TryApplySelectedGifTrimPreviewRange()
+            {
+                return _owner.TryApplySelectedGifTrimPreviewRange();
+            }
+
+            public bool TryApplySelectedGifSpecificFramePreview()
+            {
+                return _owner.TryApplySelectedGifSpecificFramePreview();
+            }
+
             public bool ShouldRefreshSelectedConfigurablePreview(ImageItemViewModel image)
             {
                 return _owner.ShouldRefreshSelectedConfigurablePreview(image);

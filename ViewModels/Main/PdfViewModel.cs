@@ -461,7 +461,7 @@ namespace ImvixPro.ViewModels
 
             if (updatePreview && image is { IsPdfDocument: true } && isCurrentImage)
             {
-                RefreshSelectedPdfPreview(preferImmediatePreview);
+                _previewRenderCoordinator.HandlePdfPageSelectionChanged(image, _previewRenderContext, preferImmediatePreview);
             }
 
             if (isCurrentImage)
@@ -699,7 +699,7 @@ namespace ImvixPro.ViewModels
             {
                 ApplyPdfPageSelection(0, updatePreview: false, cacheSelection: true, preferImmediatePreview: true, imageOverride: image);
                 ApplyPdfRangeSelection(0, Math.Max(0, image.PdfPageCount - 1), cacheSelection: true, imageOverride: image);
-                RefreshSelectedPdfPreview(preferImmediatePreview: true);
+                _previewRenderCoordinator.HandlePdfPageSelectionChanged(image, _previewRenderContext, preferImmediatePreview: true);
             }
 
             RefreshPdfUiState();
