@@ -48,6 +48,14 @@ namespace ImvixPro.ViewModels
 
         public string RunOnStartupText => T("RunOnStartup");
 
+        public bool IsWindowsContextMenuSupported => OperatingSystem.IsWindows();
+
+        public string WindowsContextMenuToggleText => T("WindowsContextMenuToggle");
+
+        public string WindowsContextMenuHintText => T("WindowsContextMenuHint");
+
+        public bool HasWindowsContextMenuStatus => !string.IsNullOrWhiteSpace(WindowsContextMenuStatusText);
+
         public string CreateDesktopShortcutText => T("CreateDesktopShortcut");
 
         public string SaveCurrentWatchProfileText => T("SaveCurrentWatchProfile");
@@ -75,6 +83,17 @@ namespace ImvixPro.ViewModels
 
         [ObservableProperty]
         private bool runOnStartup;
+
+        [ObservableProperty]
+        private bool windowsContextMenuEnabled;
+
+        [ObservableProperty]
+        private string windowsContextMenuStatusText = string.Empty;
+
+        partial void OnWindowsContextMenuStatusTextChanged(string value)
+        {
+            OnPropertyChanged(nameof(HasWindowsContextMenuStatus));
+        }
 
         [ObservableProperty]
         private string desktopShortcutStatusText = string.Empty;
@@ -111,6 +130,7 @@ namespace ImvixPro.ViewModels
             WatchIncludeSubfolders = watchProfile.IncludeSubfolders;
             KeepRunningInTray = preferences.KeepRunningInTray;
             RunOnStartup = preferences.RunOnStartup;
+            WindowsContextMenuEnabled = preferences.WindowsContextMenuEnabled;
             ApplyWatchRuntimeStatus(_conversionStatusSummaryService.CreateStoppedWatchRuntimeStatus(0, 0));
 
             LoadRecentConversionHistory();
@@ -137,6 +157,37 @@ namespace ImvixPro.ViewModels
             }
 
             _systemIntegrationService.SetRunOnStartup(RunOnStartup);
+            RefreshWindowsContextMenuRegistration(showFailureStatus: true);
+        }
+
+        private void RefreshWindowsContextMenuRegistration(bool showFailureStatus)
+        {
+            if (!IsWindowsContextMenuSupported || !WindowsContextMenuEnabled)
+            {
+                WindowsContextMenuStatusText = string.Empty;
+                return;
+            }
+
+            var result = _systemIntegrationService.SetWindowsFileContextMenu(
+                enabled: true,
+                menuText: T("WindowsContextMenuVerb"));
+
+            WindowsContextMenuStatusText = !result.Succeeded && showFailureStatus
+                ? T("WindowsContextMenuUpdateFailed")
+                : string.Empty;
+        }
+
+        private void RestoreWindowsContextMenuSetting(bool value)
+        {
+            _isLoadingSettings = true;
+            try
+            {
+                WindowsContextMenuEnabled = value;
+            }
+            finally
+            {
+                _isLoadingSettings = false;
+            }
         }
 
         private void ApplyWatchRuntimeStatus(WatchRuntimeStatusSummary status)
@@ -496,6 +547,28 @@ namespace ImvixPro.ViewModels
             }
 
             _systemIntegrationService.SetRunOnStartup(value);
+            PersistSettings();
+        }
+
+        partial void OnWindowsContextMenuEnabledChanged(bool value)
+        {
+            if (_isLoadingSettings)
+            {
+                return;
+            }
+
+            var result = _systemIntegrationService.SetWindowsFileContextMenu(
+                enabled: value,
+                menuText: T("WindowsContextMenuVerb"));
+
+            if (!result.Succeeded)
+            {
+                RestoreWindowsContextMenuSetting(!value);
+                WindowsContextMenuStatusText = T("WindowsContextMenuUpdateFailed");
+                return;
+            }
+
+            WindowsContextMenuStatusText = string.Empty;
             PersistSettings();
         }
 

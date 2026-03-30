@@ -107,6 +107,7 @@ namespace ImvixPro.ViewModels
                 WatchIncludeSubfolders = WatchIncludeSubfolders,
                 KeepRunningInTray = KeepRunningInTray,
                 RunOnStartup = RunOnStartup,
+                WindowsContextMenuEnabled = WindowsContextMenuEnabled,
                 Presets = Presets.Select(MainWindowConfigurationCoordinator.ClonePreset).ToList()
             };
         }

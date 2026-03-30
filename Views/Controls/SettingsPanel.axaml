@@ -235,6 +235,17 @@
                         <TextBlock Text="{Binding StartupSettingsTitleText}" FontWeight="SemiBold" VerticalAlignment="Center" />
                     </StackPanel>
                     <CheckBox IsChecked="{Binding RunOnStartup}" Content="{Binding RunOnStartupText}" />
+                    <CheckBox IsChecked="{Binding WindowsContextMenuEnabled}"
+                              Content="{Binding WindowsContextMenuToggleText}"
+                              IsVisible="{Binding IsWindowsContextMenuSupported}" />
+                    <TextBlock Text="{Binding WindowsContextMenuHintText}"
+                               Classes="secondary"
+                               TextWrapping="Wrap"
+                               IsVisible="{Binding IsWindowsContextMenuSupported}" />
+                    <TextBlock Text="{Binding WindowsContextMenuStatusText}"
+                               Classes="secondary"
+                               TextWrapping="Wrap"
+                               IsVisible="{Binding HasWindowsContextMenuStatus}" />
                     <Button Command="{Binding CreateDesktopShortcutCommand}" ToolTip.Tip="{Binding CreateDesktopShortcutText}">
                         <StackPanel Classes="icon-label">
                             <Path Classes="line-icon" Data="{StaticResource IconFolderOpenGeometry}" />

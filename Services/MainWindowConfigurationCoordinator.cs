@@ -126,6 +126,8 @@ namespace ImvixPro.Services
 
         public bool RunOnStartup { get; init; }
 
+        public bool WindowsContextMenuEnabled { get; init; }
+
         public IReadOnlyList<ConversionPreset> Presets { get; init; } = [];
     }
 
@@ -266,7 +268,8 @@ namespace ImvixPro.Services
                 DefaultAiExecutionMode = snapshot.AiExecutionMode,
                 Presets = snapshot.Presets.Select(ClonePreset).ToList(),
                 KeepRunningInTray = snapshot.KeepRunningInTray,
-                RunOnStartup = snapshot.RunOnStartup
+                RunOnStartup = snapshot.RunOnStartup,
+                WindowsContextMenuEnabled = snapshot.WindowsContextMenuEnabled
             };
         }
 

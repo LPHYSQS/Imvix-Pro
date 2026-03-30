@@ -15,7 +15,7 @@ namespace ImvixPro
             using var singleInstance = new SingleInstanceService(AppIdentity.InternalName);
             if (!singleInstance.IsFirstInstance)
             {
-                singleInstance.SignalExistingInstance();
+                singleInstance.SignalExistingInstance(args);
                 return;
             }
 

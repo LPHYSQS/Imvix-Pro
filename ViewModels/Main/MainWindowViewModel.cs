@@ -563,6 +563,11 @@ namespace ImvixPro.ViewModels
             OnPropertyChanged(nameof(CurrentLanguageCode));
             OnPropertyChanged(nameof(IsSystemLanguageSelected));
             PersistSettings();
+
+            if (WindowsContextMenuEnabled)
+            {
+                RefreshWindowsContextMenuRegistration(showFailureStatus: true);
+            }
         }
 
         partial void OnSelectedThemeChanged(ThemeOption? value)

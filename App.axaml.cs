@@ -37,16 +37,17 @@ namespace ImvixPro
 
                 if (SingleInstance is not null)
                 {
-                    void HandleActivation()
+                    void HandleActivation(AppActivationRequest request)
                     {
-                        Dispatcher.UIThread.Post(() => _ = mainWindow.HandleSecondInstanceActivationAsync());
+                        Dispatcher.UIThread.Post(() => _ = mainWindow.HandleSecondInstanceActivationAsync(request.Paths));
                     }
 
                     SingleInstance.ActivationRequested += HandleActivation;
 
-                    if (SingleInstance.ConsumePendingActivation())
+                    var pendingActivation = SingleInstance.ConsumePendingActivation();
+                    if (pendingActivation.IsActivationRequested)
                     {
-                        HandleActivation();
+                        HandleActivation(pendingActivation);
                     }
                 }
             }

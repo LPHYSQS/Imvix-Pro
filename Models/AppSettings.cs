@@ -114,6 +114,8 @@ namespace ImvixPro.Models
 
         public bool RunOnStartup { get; set; }
 
+        public bool WindowsContextMenuEnabled { get; set; }
+
         public bool HasWindowPlacement { get; set; }
 
         public int WindowPositionX { get; set; }

@@ -76,5 +76,7 @@ namespace ImvixPro.Models
         public bool KeepRunningInTray { get; set; }
 
         public bool RunOnStartup { get; set; }
+
+        public bool WindowsContextMenuEnabled { get; set; }
     }
 }

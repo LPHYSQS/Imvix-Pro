@@ -1,19 +1,43 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Pipes;
+using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace ImvixPro.Services
 {
+    public readonly record struct AppActivationRequest(bool IsActivationRequested, IReadOnlyList<string> Paths)
+    {
+        public static AppActivationRequest None => new(false, Array.Empty<string>());
+
+        public static AppActivationRequest Activate(IEnumerable<string>? paths)
+        {
+            return new AppActivationRequest(true, NormalizePaths(paths));
+        }
+
+        private static IReadOnlyList<string> NormalizePaths(IEnumerable<string>? paths)
+        {
+            return paths?
+                .Where(path => !string.IsNullOrWhiteSpace(path))
+                .Select(path => path.Trim())
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToArray()
+                ?? Array.Empty<string>();
+        }
+    }
+
     public sealed class SingleInstanceService : IDisposable
     {
         private readonly string _mutexName;
         private readonly string _pipeName;
         private readonly Mutex _mutex;
         private readonly CancellationTokenSource _cts = new();
+        private readonly object _activationGate = new();
         private Task? _listenerTask;
-        private int _pendingActivations;
+        private AppActivationRequest _pendingActivation = AppActivationRequest.None;
 
         public SingleInstanceService(string appId)
         {
@@ -30,15 +54,22 @@ namespace ImvixPro.Services
 
         public bool IsFirstInstance { get; }
 
-        public event Action? ActivationRequested;
+        public event Action<AppActivationRequest>? ActivationRequested;
 
-        public bool ConsumePendingActivation()
+        public AppActivationRequest ConsumePendingActivation()
         {
-            return Interlocked.Exchange(ref _pendingActivations, 0) > 0;
+            lock (_activationGate)
+            {
+                var pending = _pendingActivation;
+                _pendingActivation = AppActivationRequest.None;
+                return pending;
+            }
         }
 
-        public void SignalExistingInstance()
+        public void SignalExistingInstance(IEnumerable<string>? startupPaths = null)
         {
+            var payload = SerializeActivationRequest(startupPaths);
+
             for (var attempt = 0; attempt < 3; attempt++)
             {
                 try
@@ -46,7 +77,7 @@ namespace ImvixPro.Services
                     using var client = new NamedPipeClientStream(".", _pipeName, PipeDirection.Out);
                     client.Connect(250);
                     using var writer = new StreamWriter(client) { AutoFlush = true };
-                    writer.WriteLine("activate");
+                    writer.WriteLine(payload);
                     return;
                 }
                 catch (Exception ex)
@@ -54,6 +85,35 @@ namespace ImvixPro.Services
                     AppServices.Logger.LogDebug(nameof(SingleInstanceService), $"Failed to signal the existing instance on attempt {attempt + 1}.", ex);
                     Thread.Sleep(150);
                 }
+            }
+        }
+
+        internal static string SerializeActivationRequest(IEnumerable<string>? startupPaths)
+        {
+            var request = AppActivationRequest.Activate(startupPaths);
+            return JsonSerializer.Serialize(new ActivationPayload
+            {
+                Paths = request.Paths.ToArray()
+            });
+        }
+
+        internal static AppActivationRequest DeserializeActivationRequest(string? payload)
+        {
+            if (string.IsNullOrWhiteSpace(payload) ||
+                string.Equals(payload.Trim(), "activate", StringComparison.OrdinalIgnoreCase))
+            {
+                return AppActivationRequest.Activate(Array.Empty<string>());
+            }
+
+            try
+            {
+                var activationPayload = JsonSerializer.Deserialize<ActivationPayload>(payload);
+                return AppActivationRequest.Activate(activationPayload?.Paths);
+            }
+            catch (Exception ex)
+            {
+                AppServices.Logger.LogDebug(nameof(SingleInstanceService), "Failed to deserialize the activation payload. Falling back to a plain activation request.", ex);
+                return AppActivationRequest.Activate(Array.Empty<string>());
             }
         }
 
@@ -73,8 +133,8 @@ namespace ImvixPro.Services
                     await server.WaitForConnectionAsync(token).ConfigureAwait(false);
 
                     using var reader = new StreamReader(server);
-                    _ = await reader.ReadLineAsync().ConfigureAwait(false);
-                    RaiseActivationRequested();
+                    var payload = await reader.ReadLineAsync().ConfigureAwait(false);
+                    RaiseActivationRequested(DeserializeActivationRequest(payload));
                 }
                 catch (OperationCanceledException)
                 {
@@ -87,16 +147,35 @@ namespace ImvixPro.Services
             }
         }
 
-        private void RaiseActivationRequested()
+        private void RaiseActivationRequested(AppActivationRequest request)
         {
             var handler = ActivationRequested;
             if (handler is null)
             {
-                Interlocked.Exchange(ref _pendingActivations, 1);
+                lock (_activationGate)
+                {
+                    _pendingActivation = MergeRequests(_pendingActivation, request);
+                }
+
                 return;
             }
 
-            handler.Invoke();
+            handler.Invoke(request);
+        }
+
+        internal static AppActivationRequest MergeRequests(AppActivationRequest existing, AppActivationRequest next)
+        {
+            if (!existing.IsActivationRequested)
+            {
+                return next;
+            }
+
+            if (!next.IsActivationRequested)
+            {
+                return existing;
+            }
+
+            return AppActivationRequest.Activate(existing.Paths.Concat(next.Paths));
         }
 
         public void Dispose()
@@ -133,6 +212,11 @@ namespace ImvixPro.Services
             }
 
             _mutex.Dispose();
+        }
+
+        private sealed class ActivationPayload
+        {
+            public string[] Paths { get; set; } = Array.Empty<string>();
         }
     }
 }

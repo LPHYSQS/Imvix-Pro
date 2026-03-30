@@ -363,6 +363,9 @@ namespace ImvixPro.ViewModels
             OnPropertyChanged(nameof(TrayExitText));
             OnPropertyChanged(nameof(StartupSettingsTitleText));
             OnPropertyChanged(nameof(RunOnStartupText));
+            OnPropertyChanged(nameof(WindowsContextMenuToggleText));
+            OnPropertyChanged(nameof(WindowsContextMenuHintText));
+            OnPropertyChanged(nameof(HasWindowsContextMenuStatus));
             OnPropertyChanged(nameof(CreateDesktopShortcutText));
             OnPropertyChanged(nameof(SaveCurrentWatchProfileText));
             OnPropertyChanged(nameof(WatchModeEnabledText));
@@ -383,6 +386,12 @@ namespace ImvixPro.ViewModels
             OnPropertyChanged(nameof(ContinueActionText));
             OnPropertyChanged(nameof(CancelActionText));
             OnPropertyChanged(nameof(WatchMetricsText));
+
+            if (HasWindowsContextMenuStatus)
+            {
+                WindowsContextMenuStatusText = T("WindowsContextMenuUpdateFailed");
+            }
+
             RefreshConversionInsights();
             HistoryState.RefreshPresentation(T);
             RefreshWatchStatus();

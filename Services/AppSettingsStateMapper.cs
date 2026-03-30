@@ -53,7 +53,8 @@ namespace ImvixPro.Services
                 DefaultAiExecutionMode = settings.DefaultAiExecutionMode,
                 Presets = ClonePresets(settings.Presets),
                 KeepRunningInTray = settings.KeepRunningInTray,
-                RunOnStartup = settings.RunOnStartup
+                RunOnStartup = settings.RunOnStartup,
+                WindowsContextMenuEnabled = settings.WindowsContextMenuEnabled
             };
         }
 
@@ -170,6 +171,7 @@ namespace ImvixPro.Services
                 WatchIncludeSubfolders = watchProfile.IncludeSubfolders,
                 KeepRunningInTray = preferences.KeepRunningInTray,
                 RunOnStartup = preferences.RunOnStartup,
+                WindowsContextMenuEnabled = preferences.WindowsContextMenuEnabled,
                 HasWindowPlacement = existing.HasWindowPlacement,
                 WindowPositionX = existing.WindowPositionX,
                 WindowPositionY = existing.WindowPositionY,
@@ -217,7 +219,8 @@ namespace ImvixPro.Services
                 DefaultAiExecutionMode = source.DefaultAiExecutionMode,
                 Presets = ClonePresets(source.Presets),
                 KeepRunningInTray = source.KeepRunningInTray,
-                RunOnStartup = source.RunOnStartup
+                RunOnStartup = source.RunOnStartup,
+                WindowsContextMenuEnabled = source.WindowsContextMenuEnabled
             };
         }
 

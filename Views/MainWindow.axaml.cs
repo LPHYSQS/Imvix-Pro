@@ -49,9 +49,23 @@ namespace ImvixPro.Views
             _hostController.SetStartupPaths(paths);
         }
 
-        public async Task HandleSecondInstanceActivationAsync()
+        public async Task HandleSecondInstanceActivationAsync(IEnumerable<string>? paths)
         {
             await _shellCoordinator.BringToFrontAsync(this);
+
+            var startupPaths = paths?
+                .Where(path => !string.IsNullOrWhiteSpace(path))
+                .Select(path => path.Trim())
+                .ToArray()
+                ?? [];
+
+            if (startupPaths.Length > 0)
+            {
+                _hostController.SetStartupPaths(startupPaths);
+                _hostController.ApplyStartupPaths(ViewModel);
+                return;
+            }
+
             await _shellCoordinator.ShowRunningInstanceWarningAsync(this, ViewModel);
         }
 
