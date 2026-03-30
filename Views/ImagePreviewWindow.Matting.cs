@@ -91,6 +91,8 @@ namespace ImvixPro.Views
                                         !_isAiMattingSaveBusy &&
                                         !_isAiEraserEditing &&
                                         !_isAiEraserBusy &&
+                                        !_isAiEraserCompareActive &&
+                                        !_isAiEraserSaveBusy &&
                                         !isBlockedByOtherPreview &&
                                         !isBlockedByRecognitionSession;
 
@@ -138,7 +140,11 @@ namespace ImvixPro.Views
             }
             else
             {
-                RestoreStandardPreviewSource();
+                if (!_isAiCompareActive && !_isAiEraserCompareActive)
+                {
+                    RestoreStandardPreviewSource();
+                }
+
                 AiMattingCompareInputLayer.Cursor = null;
             }
         }
@@ -254,6 +260,8 @@ namespace ImvixPro.Views
                 _isAiPreviewBusy ||
                 _isAiEraserEditing ||
                 _isAiEraserBusy ||
+                _isAiEraserCompareActive ||
+                _isAiEraserSaveBusy ||
                 _isAiCompareActive ||
                 _isAiSaveBusy ||
                 string.IsNullOrWhiteSpace(_sourceFilePath) ||

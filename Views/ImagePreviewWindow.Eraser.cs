@@ -6,6 +6,7 @@ using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
+using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using ImvixPro.AI.Inpainting.Inference;
 using ImvixPro.Services;
@@ -30,25 +31,43 @@ namespace ImvixPro.Views
             Eraser
         }
 
+        private enum AiEraserPreviewViewMode
+        {
+            Split,
+            OriginalOnly,
+            ResultOnly
+        }
+
         private CancellationTokenSource? _aiEraserCts;
         private AiInpaintingResult? _aiEraserActiveResult;
         private WriteableBitmap? _aiEraserOverlayBitmap;
         private SKBitmap? _aiEraserPreviewMaskBitmap;
         private SKBitmap? _aiEraserSourceMaskBitmap;
+        private Bitmap? _aiEraserCompareSourceBitmap;
         private byte[]? _aiEraserOverlayCopyBuffer;
         private Point _aiEraserCursorPoint;
         private PixelSize _aiEraserSourcePixelSize;
         private bool _isAiEraserEditing;
         private bool _isAiEraserBusy;
+        private bool _isAiEraserSaveBusy;
         private bool _isAiEraserDrawing;
         private bool _isAiEraserCursorVisible;
+        private bool _isAiEraserCompareActive;
+        private bool _isAiEraserCompareDragging;
         private AiEraserToolMode _aiEraserToolMode = AiEraserToolMode.Brush;
         private double _aiEraserBrushSize = DefaultAiEraserBrushSize;
+        private double _aiEraserCompareSplitRatio = 0.5d;
+        private AiEraserPreviewViewMode _aiEraserPreviewViewMode = AiEraserPreviewViewMode.Split;
 
         private void CleanupAiEraser()
         {
             CancelPendingAiEraser();
             ReleaseAiEraserEditorSurface();
+            HideAiEraserComparison(refreshUi: false);
+
+            _aiEraserCompareSourceBitmap?.Dispose();
+            _aiEraserCompareSourceBitmap = null;
+            _isAiEraserSaveBusy = false;
 
             if (_aiEraserActiveResult is { } result)
             {
@@ -63,7 +82,16 @@ namespace ImvixPro.Views
             SetWrappedButtonContent(AiEraserBrushButton, T("ERASER_BRUSH"));
             SetWrappedButtonContent(AiEraserEraseButton, T("ERASER_ERASE"));
             SetWrappedButtonContent(AiEraserConfirmButton, T("ERASER_CONFIRM"));
-            AiEraserBusyText.Text = T("AI_ERASER");
+            SetWrappedButtonContent(AiEraserEditCloseButton, T("PreviewAiClose"));
+            SetWrappedButtonContent(AiEraserOriginalButton, T("PreviewAiViewOriginal"));
+            SetWrappedButtonContent(AiEraserResultButton, T("PreviewEraserViewResult"));
+            SetWrappedButtonContent(AiEraserCompareButton, T("PreviewAiViewCompare"));
+            SetWrappedButtonContent(AiEraserSaveButton, T("PreviewAiSaveAs"));
+            SetWrappedButtonContent(AiEraserCloseButton, T("PreviewAiClose"));
+            AiEraserHintText.Text = T("PreviewEraserCompareHint");
+            AiEraserBusyText.Text = _isAiEraserSaveBusy
+                ? T("PreviewAiSaving")
+                : T("PreviewEraserBusy");
             AiEraserSizeLabel.Text = string.Create(
                 CultureInfo.CurrentCulture,
                 $"{T("ERASER_SIZE")} ({Math.Round(_aiEraserBrushSize, MidpointRounding.AwayFromZero)})");
@@ -79,7 +107,16 @@ namespace ImvixPro.Views
 
         private void RefreshAiEraserUi()
         {
-            var shouldShowButton = _sourceAiInpaintingEligible || _isAiEraserEditing || _isAiEraserBusy;
+            var shouldShowButton = _sourceAiInpaintingEligible &&
+                                   !_isAiEraserEditing &&
+                                   !_isAiEraserCompareActive;
+            var sourceBitmap = ResolveAiEraserCompareSourceBitmap();
+            var hasOriginalView = sourceBitmap is not null;
+            var hasResultView = _aiEraserActiveResult is not null && _previewBitmap is not null;
+            var isSplitView = _isAiEraserCompareActive &&
+                              _aiEraserPreviewViewMode == AiEraserPreviewViewMode.Split &&
+                              hasOriginalView &&
+                              hasResultView;
             var isBlockedByOtherPreview = _isAiPreviewBusy ||
                                           _isAiSaveBusy ||
                                           _isAiCompareActive ||
@@ -90,38 +127,113 @@ namespace ImvixPro.Views
 
             AiEraserButton.IsVisible = shouldShowButton;
             AiEraserButton.IsEnabled = shouldShowButton &&
-                                       !_isAiEraserEditing &&
                                        !_isAiEraserBusy &&
+                                       !_isAiEraserSaveBusy &&
                                        !isBlockedByOtherPreview &&
                                        !isBlockedByRecognitionSession;
 
             AiEraserToolbar.IsVisible = _isAiEraserEditing;
-            AiEraserToolbar.IsEnabled = _isAiEraserEditing && !_isAiEraserBusy;
+            AiEraserToolbar.IsEnabled = _isAiEraserEditing && !_isAiEraserBusy && !_isAiEraserSaveBusy;
+            AiEraserEditCloseButton.IsEnabled = _isAiEraserEditing && !_isAiEraserBusy && !_isAiEraserSaveBusy;
             AiEraserEditHost.IsVisible = _isAiEraserEditing;
             AiEraserInputLayer.IsVisible = _isAiEraserEditing;
-            AiEraserBusyOverlay.IsVisible = _isAiEraserBusy;
+            AiEraserBusyOverlay.IsVisible = _isAiEraserBusy || _isAiEraserSaveBusy;
             AiEraserMaskOverlayImage.Source = _isAiEraserEditing ? _aiEraserOverlayBitmap : null;
             AiEraserInputLayer.Cursor = _isAiEraserEditing ? new Cursor(StandardCursorType.Cross) : null;
+
+            AiEraserCompareHost.IsVisible = isSplitView;
+            AiEraserCompareInputLayer.IsVisible = isSplitView;
+            AiEraserPreviewActionBar.IsVisible = _isAiEraserCompareActive;
+            AiEraserOriginalButton.IsVisible = _isAiEraserCompareActive;
+            AiEraserResultButton.IsVisible = _isAiEraserCompareActive;
+            AiEraserCompareButton.IsVisible = _isAiEraserCompareActive;
+            AiEraserSaveButton.IsEnabled = _isAiEraserCompareActive &&
+                                           !_isAiEraserBusy &&
+                                           !_isAiEraserSaveBusy &&
+                                           ResolveAiEraserResultPath() is not null;
+            AiEraserCloseButton.IsEnabled = _isAiEraserCompareActive &&
+                                            !_isAiEraserBusy &&
+                                            !_isAiEraserSaveBusy;
 
             ApplyAiPreviewModeButtonState(
                 AiEraserBrushButton,
                 _aiEraserToolMode == AiEraserToolMode.Brush,
-                _isAiEraserEditing && !_isAiEraserBusy);
+                _isAiEraserEditing && !_isAiEraserBusy && !_isAiEraserSaveBusy);
             ApplyAiPreviewModeButtonState(
                 AiEraserEraseButton,
                 _aiEraserToolMode == AiEraserToolMode.Eraser,
-                _isAiEraserEditing && !_isAiEraserBusy);
+                _isAiEraserEditing && !_isAiEraserBusy && !_isAiEraserSaveBusy);
+            ApplyAiPreviewModeButtonState(
+                AiEraserOriginalButton,
+                _isAiEraserCompareActive && _aiEraserPreviewViewMode == AiEraserPreviewViewMode.OriginalOnly,
+                _isAiEraserCompareActive && hasOriginalView && !_isAiEraserBusy && !_isAiEraserSaveBusy);
+            ApplyAiPreviewModeButtonState(
+                AiEraserResultButton,
+                _isAiEraserCompareActive && _aiEraserPreviewViewMode == AiEraserPreviewViewMode.ResultOnly,
+                _isAiEraserCompareActive && hasResultView && !_isAiEraserBusy && !_isAiEraserSaveBusy);
+            ApplyAiPreviewModeButtonState(
+                AiEraserCompareButton,
+                _isAiEraserCompareActive && _aiEraserPreviewViewMode == AiEraserPreviewViewMode.Split,
+                _isAiEraserCompareActive && hasOriginalView && hasResultView && !_isAiEraserBusy && !_isAiEraserSaveBusy);
 
-            AiEraserConfirmButton.IsEnabled = _isAiEraserEditing && !_isAiEraserBusy;
-            AiEraserSizeSlider.IsEnabled = _isAiEraserEditing && !_isAiEraserBusy;
+            AiEraserConfirmButton.IsEnabled = _isAiEraserEditing && !_isAiEraserBusy && !_isAiEraserSaveBusy;
+            AiEraserSizeSlider.IsEnabled = _isAiEraserEditing && !_isAiEraserBusy && !_isAiEraserSaveBusy;
             AiEraserCursorCanvas.IsVisible = _isAiEraserEditing;
             UpdateAiEraserCursorVisual();
+
+            if (isSplitView)
+            {
+                AiEraserCompareBeforeImage.Source = sourceBitmap;
+                AiEraserCompareAfterImage.Source = _previewBitmap;
+                AiEraserCompareInputLayer.Cursor = new Cursor(StandardCursorType.SizeWestEast);
+                UpdateAiEraserCompareLayout();
+            }
+            else if (_isAiEraserCompareActive)
+            {
+                AiEraserCompareBeforeImage.Source = sourceBitmap;
+                AiEraserCompareAfterImage.Source = _previewBitmap;
+                PreviewImage.Source = ResolveAiEraserSingleViewBitmap();
+                AiEraserCompareInputLayer.Cursor = null;
+            }
+            else
+            {
+                if (!_isAiCompareActive && !_isAiMattingCompareActive)
+                {
+                    RestoreStandardPreviewSource();
+                }
+
+                AiEraserCompareInputLayer.Cursor = null;
+            }
+        }
+
+        private Bitmap? ResolveAiEraserCompareSourceBitmap()
+        {
+            return _aiEraserCompareSourceBitmap;
+        }
+
+        private Bitmap? ResolveAiEraserSingleViewBitmap()
+        {
+            return _aiEraserPreviewViewMode switch
+            {
+                AiEraserPreviewViewMode.OriginalOnly => ResolveAiEraserCompareSourceBitmap(),
+                AiEraserPreviewViewMode.ResultOnly => _previewBitmap,
+                _ => null
+            };
+        }
+
+        private string? ResolveAiEraserResultPath()
+        {
+            return _aiEraserActiveResult is { ResultPath: { } resultPath } && File.Exists(resultPath)
+                ? resultPath
+                : null;
         }
 
         private async void OnAiEraserClick(object? sender, RoutedEventArgs e)
         {
             if (_isAiEraserEditing ||
                 _isAiEraserBusy ||
+                _isAiEraserCompareActive ||
+                _isAiEraserSaveBusy ||
                 !_sourceAiInpaintingEligible ||
                 string.IsNullOrWhiteSpace(_sourceFilePath))
             {
@@ -134,7 +246,7 @@ namespace ImvixPro.Views
 
             if (!TryBeginAiEraserEditing())
             {
-                ShowToast("Unable to initialize AI eraser for this preview.");
+                ShowToast(T("PreviewEraserFailed"));
                 return;
             }
 
@@ -179,6 +291,7 @@ namespace ImvixPro.Views
 
             AiEraserMaskOverlayImage.Source = null;
             AiEraserCursorRing.IsVisible = false;
+            AiEraserInputLayer.Cursor = null;
 
             _aiEraserPreviewMaskBitmap?.Dispose();
             _aiEraserPreviewMaskBitmap = null;
@@ -473,9 +586,40 @@ namespace ImvixPro.Views
                    color.Blue >= 16;
         }
 
+        private void ShowAiEraserComparison()
+        {
+            if (ResolveAiEraserCompareSourceBitmap() is null || _previewBitmap is null)
+            {
+                return;
+            }
+
+            RefreshPreviewCompareRefreshRate();
+            _isAiEraserCompareActive = true;
+            _aiEraserPreviewViewMode = AiEraserPreviewViewMode.Split;
+            _aiEraserCompareSplitRatio = 0.5d;
+            RefreshPreviewActionStates();
+        }
+
+        private void HideAiEraserComparison(bool refreshUi = true)
+        {
+            _isAiEraserCompareActive = false;
+            _isAiEraserCompareDragging = false;
+            _aiEraserPreviewViewMode = AiEraserPreviewViewMode.Split;
+            _aiEraserCompareSplitRatio = 0.5d;
+            ClearPendingPreviewCompareUpdates();
+            ResetAiEraserCompareOverlayVisuals();
+            AiEraserCompareBeforeImage.Source = null;
+            AiEraserCompareAfterImage.Source = null;
+
+            if (refreshUi)
+            {
+                RefreshPreviewActionStates();
+            }
+        }
+
         private async void OnAiEraserConfirmClick(object? sender, RoutedEventArgs e)
         {
-            if (_isAiEraserBusy || !_isAiEraserEditing)
+            if (_isAiEraserBusy || _isAiEraserSaveBusy || !_isAiEraserEditing)
             {
                 return;
             }
@@ -488,9 +632,10 @@ namespace ImvixPro.Views
 
             var inputPath = ResolveAiEraserInputPath();
             using var processMaskBitmap = CreateAiEraserProcessingMaskBitmap();
-            if (string.IsNullOrWhiteSpace(inputPath) || !File.Exists(inputPath) || processMaskBitmap is null)
+            var currentPreview = _previewBitmap;
+            if (string.IsNullOrWhiteSpace(inputPath) || !File.Exists(inputPath) || processMaskBitmap is null || currentPreview is null)
             {
-                ShowToast("Unable to start AI eraser for this preview.");
+                ShowToast(T("PreviewEraserFailed"));
                 return;
             }
 
@@ -520,7 +665,7 @@ namespace ImvixPro.Views
                 if (previewBitmap is null)
                 {
                     _aiInpaintingService.TryDeleteWorkingDirectory(result.WorkingDirectory);
-                    throw new InvalidOperationException("The AI eraser result could not be rendered back into the preview.");
+                    throw new InvalidOperationException(T("PreviewEraserFailed"));
                 }
 
                 var previousResult = _aiEraserActiveResult;
@@ -536,14 +681,16 @@ namespace ImvixPro.Views
                     _aiMattingCompareSourceBitmap = null;
                     _aiMattingCompareSourcePixelSize = default;
 
-                    var oldPreview = _previewBitmap;
+                    HideAiEraserComparison(refreshUi: false);
+                    _aiEraserCompareSourceBitmap?.Dispose();
+                    _aiEraserCompareSourceBitmap = currentPreview;
+
                     _previewBitmap = previewBitmap;
                     PreviewImage.Source = previewBitmap;
-                    oldPreview?.Dispose();
 
                     _aiEraserActiveResult = result;
                     ReleaseAiEraserEditorSurface();
-                    RefreshAiEraserText();
+                    ShowAiEraserComparison();
                     RefreshPreviewActionStates();
                 });
 
@@ -578,6 +725,78 @@ namespace ImvixPro.Views
             }
         }
 
+        private async void OnSaveAiEraserClick(object? sender, RoutedEventArgs e)
+        {
+            var resultPath = ResolveAiEraserResultPath();
+            if (_isAiEraserSaveBusy ||
+                _isAiEraserBusy ||
+                string.IsNullOrWhiteSpace(resultPath))
+            {
+                return;
+            }
+
+            var options = BuildAiPreviewSaveOptions();
+            var extension = ImageConversionService.GetFileExtension(options.OutputFormat);
+            var suggestedName = string.IsNullOrWhiteSpace(_sourceFilePath)
+                ? "eraser_result"
+                : $"{Path.GetFileNameWithoutExtension(_sourceFilePath)}_eraser";
+            var fileType = new FilePickerFileType(options.OutputFormat.ToString().ToUpperInvariant())
+            {
+                Patterns = [$"*{extension}"]
+            };
+
+            var destination = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+            {
+                Title = T("PreviewAiSaveAs"),
+                SuggestedFileName = suggestedName,
+                DefaultExtension = extension.TrimStart('.'),
+                FileTypeChoices = [fileType],
+                ShowOverwritePrompt = true
+            });
+
+            var localPath = destination?.TryGetLocalPath();
+            if (string.IsNullOrWhiteSpace(localPath))
+            {
+                return;
+            }
+
+            _isAiEraserSaveBusy = true;
+            RefreshAiEraserText();
+            RefreshPreviewActionStates();
+
+            try
+            {
+                var destinationPath = EnsureOutputExtension(localPath, extension);
+                await _imageConversionService.ExportRasterToPathAsync(resultPath, destinationPath, options).ConfigureAwait(false);
+                await Dispatcher.UIThread.InvokeAsync(() => ShowToast(T("PreviewEraserSaved")));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(nameof(ImagePreviewWindow), "Saving the AI eraser output failed.", ex);
+                await Dispatcher.UIThread.InvokeAsync(() => ShowToast(ex.Message));
+            }
+            finally
+            {
+                _isAiEraserSaveBusy = false;
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    RefreshAiEraserText();
+                    RefreshPreviewActionStates();
+                });
+            }
+        }
+
+        private void OnCloseAiEraserEditClick(object? sender, RoutedEventArgs e)
+        {
+            if (!_isAiEraserEditing || _isAiEraserBusy || _isAiEraserSaveBusy)
+            {
+                return;
+            }
+
+            ReleaseAiEraserEditorSurface();
+            RefreshPreviewActionStates();
+        }
+
         private void OnAiEraserBrushClick(object? sender, RoutedEventArgs e)
         {
             _aiEraserToolMode = AiEraserToolMode.Brush;
@@ -596,10 +815,169 @@ namespace ImvixPro.Views
             RefreshAiEraserText();
         }
 
+        private void OnShowAiEraserOriginalClick(object? sender, RoutedEventArgs e)
+        {
+            if (!_isAiEraserCompareActive || ResolveAiEraserCompareSourceBitmap() is null)
+            {
+                return;
+            }
+
+            _aiEraserPreviewViewMode = AiEraserPreviewViewMode.OriginalOnly;
+            RefreshAiEraserUi();
+        }
+
+        private void OnShowAiEraserResultClick(object? sender, RoutedEventArgs e)
+        {
+            if (!_isAiEraserCompareActive || _previewBitmap is null)
+            {
+                return;
+            }
+
+            _aiEraserPreviewViewMode = AiEraserPreviewViewMode.ResultOnly;
+            RefreshAiEraserUi();
+        }
+
+        private void OnShowAiEraserCompareClick(object? sender, RoutedEventArgs e)
+        {
+            if (!_isAiEraserCompareActive || ResolveAiEraserCompareSourceBitmap() is null || _previewBitmap is null)
+            {
+                return;
+            }
+
+            _aiEraserPreviewViewMode = AiEraserPreviewViewMode.Split;
+            RefreshAiEraserUi();
+        }
+
+        private void OnCloseAiEraserClick(object? sender, RoutedEventArgs e)
+        {
+            HideAiEraserComparison();
+        }
+
+        private void OnAiEraserComparePointerPressed(object? sender, PointerPressedEventArgs e)
+        {
+            if (!_isAiEraserCompareActive ||
+                _aiEraserPreviewViewMode != AiEraserPreviewViewMode.Split ||
+                !e.GetCurrentPoint(AiEraserCompareInputLayer).Properties.IsLeftButtonPressed)
+            {
+                return;
+            }
+
+            _isAiEraserCompareDragging = true;
+            e.Pointer.Capture(AiEraserCompareInputLayer);
+            QueueAiEraserCompareFrameUpdate(e.GetPosition(AiEraserCompareInputLayer));
+            e.Handled = true;
+        }
+
+        private void OnAiEraserComparePointerMoved(object? sender, PointerEventArgs e)
+        {
+            if (!_isAiEraserCompareDragging || !_isAiEraserCompareActive || _aiEraserPreviewViewMode != AiEraserPreviewViewMode.Split)
+            {
+                return;
+            }
+
+            QueueAiEraserCompareFrameUpdate(e.GetPosition(AiEraserCompareInputLayer));
+            e.Handled = true;
+        }
+
+        private void OnAiEraserComparePointerReleased(object? sender, PointerReleasedEventArgs e)
+        {
+            if (!_isAiEraserCompareDragging)
+            {
+                return;
+            }
+
+            _isAiEraserCompareDragging = false;
+            QueueAiEraserCompareFrameUpdate(e.GetPosition(AiEraserCompareInputLayer));
+            e.Pointer.Capture(null);
+            e.Handled = true;
+        }
+
+        private void OnAiEraserComparePointerCaptureLost(object? sender, PointerCaptureLostEventArgs e)
+        {
+            _isAiEraserCompareDragging = false;
+        }
+
+        private bool ApplyAiEraserCompareSplitFromPoint(Point point)
+        {
+            var contentRect = GetAiEraserCompareContentRect();
+            if (contentRect.Width <= 0 || contentRect.Height <= 0)
+            {
+                return false;
+            }
+
+            var clampedX = Math.Clamp(point.X, contentRect.X, contentRect.Right);
+            _aiEraserCompareSplitRatio = (clampedX - contentRect.X) / contentRect.Width;
+            UpdateAiEraserCompareLayout();
+            return true;
+        }
+
+        private void UpdateAiEraserCompareLayout()
+        {
+            if (!_isAiEraserCompareActive || _aiEraserPreviewViewMode != AiEraserPreviewViewMode.Split || _previewBitmap is null)
+            {
+                ResetAiEraserCompareOverlayVisuals();
+                return;
+            }
+
+            var contentRect = GetAiEraserCompareContentRect();
+            if (contentRect.Width <= 0 || contentRect.Height <= 0)
+            {
+                ResetAiEraserCompareOverlayVisuals();
+                return;
+            }
+
+            var splitX = contentRect.X + (contentRect.Width * Math.Clamp(_aiEraserCompareSplitRatio, 0d, 1d));
+            var lineWidth = double.IsNaN(AiEraserCompareSplitterLine.Width) || AiEraserCompareSplitterLine.Width <= 0
+                ? 2d
+                : AiEraserCompareSplitterLine.Width;
+            var thumbWidth = double.IsNaN(AiEraserCompareThumb.Width) || AiEraserCompareThumb.Width <= 0
+                ? 22d
+                : AiEraserCompareThumb.Width;
+            var thumbHeight = double.IsNaN(AiEraserCompareThumb.Height) || AiEraserCompareThumb.Height <= 0
+                ? 22d
+                : AiEraserCompareThumb.Height;
+
+            AiEraserCompareAfterClipHost.Clip = new RectangleGeometry(new Rect(
+                splitX,
+                contentRect.Y,
+                Math.Max(0d, contentRect.Right - splitX),
+                contentRect.Height));
+
+            AiEraserCompareSplitterLine.Height = contentRect.Height;
+            _aiEraserCompareSplitterTransform.X = splitX - (lineWidth / 2d);
+            _aiEraserCompareSplitterTransform.Y = contentRect.Y;
+            _aiEraserCompareThumbTransform.X = splitX - (thumbWidth / 2d);
+            _aiEraserCompareThumbTransform.Y = contentRect.Center.Y - (thumbHeight / 2d);
+        }
+
+        private Rect GetAiEraserCompareContentRect()
+        {
+            var bounds = AiEraserCompareHost.Bounds;
+            if (bounds.Width <= 0 || bounds.Height <= 0 || _previewBitmap is null)
+            {
+                return default;
+            }
+
+            var pixelSize = _previewBitmap.PixelSize;
+            if (pixelSize.Width <= 0 || pixelSize.Height <= 0)
+            {
+                return default;
+            }
+
+            var scale = Math.Min(bounds.Width / pixelSize.Width, bounds.Height / pixelSize.Height);
+            var width = pixelSize.Width * scale;
+            var height = pixelSize.Height * scale;
+            var offsetX = (bounds.Width - width) / 2d;
+            var offsetY = (bounds.Height - height) / 2d;
+
+            return new Rect(offsetX, offsetY, width, height);
+        }
+
         private void OnAiEraserPointerPressed(object? sender, PointerPressedEventArgs e)
         {
             if (!_isAiEraserEditing ||
                 _isAiEraserBusy ||
+                _isAiEraserSaveBusy ||
                 !e.GetCurrentPoint(AiEraserInputLayer).Properties.IsLeftButtonPressed ||
                 !TryMapAiEraserPoint(e.GetPosition(AiEraserInputLayer), clampToContent: false, out var mappedPoint))
             {

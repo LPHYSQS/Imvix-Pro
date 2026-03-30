@@ -53,6 +53,8 @@ namespace ImvixPro.Views
         private readonly Stopwatch _previewCompareFrameStopwatch = Stopwatch.StartNew();
         private readonly TranslateTransform _aiCompareSplitterTransform = new();
         private readonly TranslateTransform _aiCompareThumbTransform = new();
+        private readonly TranslateTransform _aiEraserCompareSplitterTransform = new();
+        private readonly TranslateTransform _aiEraserCompareThumbTransform = new();
         private readonly TranslateTransform _aiMattingCompareSplitterTransform = new();
         private readonly TranslateTransform _aiMattingCompareThumbTransform = new();
 
@@ -79,6 +81,8 @@ namespace ImvixPro.Views
         private bool _isPreviewCompareFrameRequested;
         private bool _isAiComparePointPending;
         private Point _pendingAiComparePoint;
+        private bool _isAiEraserComparePointPending;
+        private Point _pendingAiEraserComparePoint;
         private bool _isAiMattingComparePointPending;
         private Point _pendingAiMattingComparePoint;
         private double _previewCompareRefreshRate = DefaultPreviewCompareRefreshRate;
@@ -264,6 +268,14 @@ namespace ImvixPro.Views
             Canvas.SetTop(AiMattingCompareThumb, 0d);
             ResetAiMattingOverlayVisuals();
 
+            AiEraserCompareSplitterLine.RenderTransform = _aiEraserCompareSplitterTransform;
+            AiEraserCompareThumb.RenderTransform = _aiEraserCompareThumbTransform;
+            Canvas.SetLeft(AiEraserCompareSplitterLine, 0d);
+            Canvas.SetTop(AiEraserCompareSplitterLine, 0d);
+            Canvas.SetLeft(AiEraserCompareThumb, 0d);
+            Canvas.SetTop(AiEraserCompareThumb, 0d);
+            ResetAiEraserCompareOverlayVisuals();
+
             Opened += OnPreviewWindowOpened;
             PositionChanged += OnPreviewWindowPositionChanged;
         }
@@ -330,6 +342,13 @@ namespace ImvixPro.Views
             RequestPreviewCompareAnimationFrame();
         }
 
+        private void QueueAiEraserCompareFrameUpdate(Point point)
+        {
+            _pendingAiEraserComparePoint = point;
+            _isAiEraserComparePointPending = true;
+            RequestPreviewCompareAnimationFrame();
+        }
+
         private void RequestPreviewCompareAnimationFrame()
         {
             if (_isClosed || _isPreviewCompareFrameRequested)
@@ -361,7 +380,7 @@ namespace ImvixPro.Views
 
         private bool HasPendingPreviewCompareUpdates()
         {
-            return _isAiComparePointPending || _isAiMattingComparePointPending;
+            return _isAiComparePointPending || _isAiEraserComparePointPending || _isAiMattingComparePointPending;
         }
 
         private bool ShouldCommitPreviewCompareFrame()
@@ -391,6 +410,12 @@ namespace ImvixPro.Views
                 applied = ApplyAiMattingCompareSplitFromPoint(_pendingAiMattingComparePoint) || applied;
             }
 
+            if (_isAiEraserComparePointPending)
+            {
+                _isAiEraserComparePointPending = false;
+                applied = ApplyAiEraserCompareSplitFromPoint(_pendingAiEraserComparePoint) || applied;
+            }
+
             if (applied)
             {
                 _lastPreviewCompareCommitTime = _previewCompareFrameStopwatch.Elapsed;
@@ -401,6 +426,7 @@ namespace ImvixPro.Views
         {
             _isPreviewCompareFrameRequested = false;
             _isAiComparePointPending = false;
+            _isAiEraserComparePointPending = false;
             _isAiMattingComparePointPending = false;
         }
 
@@ -422,6 +448,16 @@ namespace ImvixPro.Views
             _aiMattingCompareSplitterTransform.Y = 0d;
             _aiMattingCompareThumbTransform.X = 0d;
             _aiMattingCompareThumbTransform.Y = 0d;
+        }
+
+        private void ResetAiEraserCompareOverlayVisuals()
+        {
+            AiEraserCompareAfterClipHost.Clip = null;
+            AiEraserCompareSplitterLine.Height = 0d;
+            _aiEraserCompareSplitterTransform.X = 0d;
+            _aiEraserCompareSplitterTransform.Y = 0d;
+            _aiEraserCompareThumbTransform.X = 0d;
+            _aiEraserCompareThumbTransform.Y = 0d;
         }
 
         private string T(string key)
@@ -485,6 +521,8 @@ namespace ImvixPro.Views
                    _isAiSaveBusy ||
                    _isAiEraserEditing ||
                    _isAiEraserBusy ||
+                   _isAiEraserCompareActive ||
+                   _isAiEraserSaveBusy ||
                    _isAiMattingBusy ||
                    _isAiMattingCompareActive ||
                    _isAiMattingSaveBusy;
@@ -1376,6 +1414,7 @@ namespace ImvixPro.Views
             }
 
             UpdateAiCompareLayout();
+            UpdateAiEraserCompareLayout();
             UpdateAiEraserCursorVisual();
             UpdateAiMattingCompareLayout();
         }

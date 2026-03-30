@@ -233,6 +233,49 @@
                                                 BorderThickness="2" />
                                     </Canvas>
                                 </Grid>
+
+                                <Grid x:Name="AiEraserCompareHost"
+                                      IsVisible="False"
+                                      ClipToBounds="True">
+                                    <Image x:Name="AiEraserCompareBeforeImage"
+                                           HorizontalAlignment="Stretch"
+                                           VerticalAlignment="Stretch"
+                                           RenderOptions.BitmapInterpolationMode="HighQuality"
+                                           Stretch="Uniform" />
+
+                                    <Border x:Name="AiEraserCompareAfterClipHost"
+                                            ClipToBounds="True">
+                                        <Image x:Name="AiEraserCompareAfterImage"
+                                               HorizontalAlignment="Stretch"
+                                               VerticalAlignment="Stretch"
+                                               RenderOptions.BitmapInterpolationMode="HighQuality"
+                                               Stretch="Uniform" />
+                                    </Border>
+
+                                    <Border x:Name="AiEraserCompareInputLayer"
+                                            Background="Transparent"
+                                            PointerPressed="OnAiEraserComparePointerPressed"
+                                            PointerMoved="OnAiEraserComparePointerMoved"
+                                            PointerReleased="OnAiEraserComparePointerReleased"
+                                            PointerCaptureLost="OnAiEraserComparePointerCaptureLost" />
+
+                                    <Canvas x:Name="AiEraserCompareOverlayCanvas"
+                                            IsHitTestVisible="False">
+                                        <Border x:Name="AiEraserCompareSplitterLine"
+                                                Width="2"
+                                                CornerRadius="999"
+                                                Background="{DynamicResource AccentBrush}" />
+
+                                        <Border x:Name="AiEraserCompareThumb"
+                                                Width="22"
+                                                Height="22"
+                                                CornerRadius="11"
+                                                Background="{DynamicResource AccentBrush}"
+                                                BorderBrush="{DynamicResource AccentForegroundBrush}"
+                                                BorderThickness="2" />
+                                    </Canvas>
+                                </Grid>
+
                                 <Grid x:Name="AiEraserEditHost"
                                       IsVisible="False"
                                       ClipToBounds="True">
@@ -547,7 +590,7 @@
                     BorderThickness="1"
                     CornerRadius="8"
                     Padding="10">
-                <Grid ColumnDefinitions="Auto,Auto,*,Auto"
+                <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto"
                       ColumnSpacing="10">
                     <Button Grid.Column="0"
                             x:Name="AiEraserBrushButton"
@@ -576,6 +619,60 @@
                             x:Name="AiEraserConfirmButton"
                             MinWidth="132"
                             Click="OnAiEraserConfirmClick" />
+
+                    <Button Grid.Column="4"
+                            x:Name="AiEraserEditCloseButton"
+                            MinWidth="132"
+                            Click="OnCloseAiEraserEditClick" />
+                </Grid>
+            </Border>
+            <Border x:Name="AiEraserPreviewActionBar"
+                    IsVisible="False"
+                    Background="{DynamicResource SurfaceAltBrush}"
+                    BorderBrush="{DynamicResource BorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="10">
+                <Grid ColumnDefinitions="*,Auto"
+                      ColumnSpacing="16">
+                    <StackPanel Grid.Column="0"
+                                Spacing="8">
+                        <TextBlock x:Name="AiEraserHintText"
+                                   VerticalAlignment="Center"
+                                   TextWrapping="Wrap"
+                                   Classes="secondary" />
+
+                        <StackPanel Orientation="Horizontal"
+                                    Spacing="8">
+                            <Button x:Name="AiEraserOriginalButton"
+                                    MinWidth="96"
+                                    IsVisible="False"
+                                    Click="OnShowAiEraserOriginalClick" />
+
+                            <Button x:Name="AiEraserResultButton"
+                                    MinWidth="96"
+                                    IsVisible="False"
+                                    Click="OnShowAiEraserResultClick" />
+
+                            <Button x:Name="AiEraserCompareButton"
+                                    MinWidth="112"
+                                    IsVisible="False"
+                                    Click="OnShowAiEraserCompareClick" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1"
+                                Orientation="Horizontal"
+                                Spacing="10"
+                                VerticalAlignment="Center">
+                        <Button x:Name="AiEraserSaveButton"
+                                MinWidth="96"
+                                Click="OnSaveAiEraserClick" />
+
+                        <Button x:Name="AiEraserCloseButton"
+                                MinWidth="132"
+                                Click="OnCloseAiEraserClick" />
+                    </StackPanel>
                 </Grid>
             </Border>
             <Border x:Name="AiPreviewActionBar"
