@@ -32,6 +32,9 @@ publish/
 AppData/
 LocalLow/
 
+# Packaged runtime models under RuntimeAssets/ are versioned on purpose.
+# Large .onnx assets are governed through .gitattributes + Git LFS, not .gitignore.
+
 # Temporary downloads and accidental root files
 AI/downloads/
 $enc

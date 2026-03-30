@@ -519,6 +519,12 @@
     "PreviewMattingFailed":  "AI-Freistellungs-Vorschau fehlgeschlagen.",
     "PreviewMattingGpuFallback":  "DirectML ist nicht verfügbar. Es wurde auf CPU-Inferenz umgeschaltet.",
     "PreviewMattingModelFallbackTemplate":  "Modell \"{0}\" ist lokal nicht verfügbar. Es wurde auf \"{1}\" umgeschaltet.",
+    "AI_ERASER":  "KI-Radierer",
+    "ERASER_BRUSH":  "Pinsel",
+    "ERASER_ERASE":  "Radierer",
+    "ERASER_SIZE":  "Größe",
+    "ERASER_CONFIRM":  "Bestätigen",
+    "ERASER_EMPTY":  "Zeichnen Sie zuerst einen Maskenbereich, bevor Sie den KI-Radierer starten.",
     "ArchitectureAnyCpu":  "AnyCPU"
 }
 

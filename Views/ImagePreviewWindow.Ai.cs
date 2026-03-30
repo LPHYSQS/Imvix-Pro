@@ -31,6 +31,7 @@ namespace ImvixPro.Views
         private Action<bool>? _previewAiBusyChanged;
         private string? _sourceFilePath;
         private bool _sourceAiEnhancementEligible;
+        private bool _sourceAiInpaintingEligible;
         private bool _sourceAiMattingEligible;
         private CancellationTokenSource? _aiPreviewCts;
         private AiEnhancementBatchResult? _aiPreviewBatchResult;
@@ -54,12 +55,14 @@ namespace ImvixPro.Views
             Func<PreviewSessionState>? previewSessionStateProvider,
             Action<bool>? previewAiBusyChanged,
             bool isSourceAiEnhancementEligible,
+            bool isSourceAiInpaintingEligible,
             bool isSourceAiMattingEligible)
         {
             _sourceFilePath = filePath;
             _previewSessionStateProvider = previewSessionStateProvider;
             _previewAiBusyChanged = previewAiBusyChanged;
             _sourceAiEnhancementEligible = isSourceAiEnhancementEligible;
+            _sourceAiInpaintingEligible = isSourceAiInpaintingEligible;
             _sourceAiMattingEligible = isSourceAiMattingEligible;
             Activated += OnWindowActivated;
         }
@@ -113,6 +116,8 @@ namespace ImvixPro.Views
             AiPreviewButton.IsEnabled = shouldShowAiButton &&
                                         !_isAiPreviewBusy &&
                                         !_isAiSaveBusy &&
+                                        !_isAiEraserEditing &&
+                                        !_isAiEraserBusy &&
                                         !_isAiMattingBusy &&
                                         !_isAiMattingCompareActive &&
                                         !_isAiMattingSaveBusy &&
@@ -470,7 +475,14 @@ namespace ImvixPro.Views
 
         private async void OnAiPreviewClick(object? sender, RoutedEventArgs e)
         {
-            if (_isAiPreviewBusy || _isAiSaveBusy || _isAiMattingBusy || _isAiMattingCompareActive || _isAiMattingSaveBusy || string.IsNullOrWhiteSpace(_sourceFilePath))
+            if (_isAiPreviewBusy ||
+                _isAiSaveBusy ||
+                _isAiEraserEditing ||
+                _isAiEraserBusy ||
+                _isAiMattingBusy ||
+                _isAiMattingCompareActive ||
+                _isAiMattingSaveBusy ||
+                string.IsNullOrWhiteSpace(_sourceFilePath))
             {
                 return;
             }

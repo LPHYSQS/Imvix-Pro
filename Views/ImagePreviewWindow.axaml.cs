@@ -6,6 +6,7 @@ using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using Avalonia.Threading;
+using ImvixPro.AI.Inpainting.Inference;
 using ImvixPro.AI.Matting.Inference;
 using ImvixPro.Models;
 using ImvixPro.Services;
@@ -39,6 +40,7 @@ namespace ImvixPro.Views
         private readonly PreviewQrToolController _previewQrToolController;
         private readonly PreviewBarcodeToolController _barcodeToolController;
         private readonly LocalizationService _localizationService;
+        private readonly AiInpaintingService _aiInpaintingService;
         private readonly AiMattingService _aiMattingService;
         private readonly DisplayRefreshRateService _displayRefreshRateService;
         private readonly ImageConversionService _imageConversionService;
@@ -105,6 +107,7 @@ namespace ImvixPro.Views
             _barcodeToolController = services.PreviewBarcodeToolController ?? throw new ArgumentNullException(nameof(services.PreviewBarcodeToolController));
             _localizationService = services.CreateLocalizationService?.Invoke() ?? throw new ArgumentNullException(nameof(services.CreateLocalizationService));
             _aiImageEnhancementService = services.AiImageEnhancementService ?? throw new ArgumentNullException(nameof(services.AiImageEnhancementService));
+            _aiInpaintingService = services.AiInpaintingService ?? throw new ArgumentNullException(nameof(services.AiInpaintingService));
             _aiMattingService = services.AiMattingService ?? throw new ArgumentNullException(nameof(services.AiMattingService));
             _aiPreviewComparisonService = services.AiPreviewComparisonService ?? throw new ArgumentNullException(nameof(services.AiPreviewComparisonService));
             _displayRefreshRateService = services.DisplayRefreshRateService ?? throw new ArgumentNullException(nameof(services.DisplayRefreshRateService));
@@ -129,6 +132,7 @@ namespace ImvixPro.Views
             Func<PreviewSessionState>? previewSessionStateProvider = null,
             Action<bool>? previewAiBusyChanged = null,
             bool isSourceAiEnhancementEligible = false,
+            bool isSourceAiInpaintingEligible = false,
             bool isSourceAiMattingEligible = false)
             : this(
                 filePath,
@@ -142,6 +146,7 @@ namespace ImvixPro.Views
                 previewSessionStateProvider,
                 previewAiBusyChanged,
                 isSourceAiEnhancementEligible,
+                isSourceAiInpaintingEligible,
                 isSourceAiMattingEligible,
                 AppServices.CreateImagePreviewWindowServices())
         {
@@ -159,6 +164,7 @@ namespace ImvixPro.Views
             Func<PreviewSessionState>? previewSessionStateProvider,
             Action<bool>? previewAiBusyChanged,
             bool isSourceAiEnhancementEligible,
+            bool isSourceAiInpaintingEligible,
             bool isSourceAiMattingEligible,
             ImagePreviewWindowServices services)
             : this(services)
@@ -171,6 +177,7 @@ namespace ImvixPro.Views
                 previewSessionStateProvider,
                 previewAiBusyChanged,
                 isSourceAiEnhancementEligible,
+                isSourceAiInpaintingEligible,
                 isSourceAiMattingEligible);
 
             _isPdfDocument = Path.GetExtension(filePath).Equals(".pdf", StringComparison.OrdinalIgnoreCase) || pdfPageCount > 0;
@@ -229,6 +236,7 @@ namespace ImvixPro.Views
             CancelPendingOcr();
             CancelOcrAnimation();
             CleanupAiPreview();
+            CleanupAiEraser();
             CleanupAiMattingPreview();
             ClearPendingPreviewCompareUpdates();
             _toastTimer.Stop();
@@ -435,6 +443,7 @@ namespace ImvixPro.Views
             PauseGifButton.Content = T("Pause");
             ToastText.Text = T("PreviewOcrCopied");
             RefreshAiPreviewText();
+            RefreshAiEraserText();
             RefreshAiMattingText();
 
             if (_isPdfDocument)
@@ -459,6 +468,7 @@ namespace ImvixPro.Views
         private void RefreshPreviewActionStates()
         {
             RefreshAiPreviewUi();
+            RefreshAiEraserUi();
             RefreshAiMattingUi();
             RefreshOcrControls();
         }
@@ -473,6 +483,8 @@ namespace ImvixPro.Views
             return _isAiPreviewBusy ||
                    _isAiCompareActive ||
                    _isAiSaveBusy ||
+                   _isAiEraserEditing ||
+                   _isAiEraserBusy ||
                    _isAiMattingBusy ||
                    _isAiMattingCompareActive ||
                    _isAiMattingSaveBusy;
@@ -1364,6 +1376,7 @@ namespace ImvixPro.Views
             }
 
             UpdateAiCompareLayout();
+            UpdateAiEraserCursorVisual();
             UpdateAiMattingCompareLayout();
         }
 

@@ -519,6 +519,12 @@
     "PreviewMattingFailed":  "فشلت معاينة إزالة الخلفية بالذكاء الاصطناعي.",
     "PreviewMattingGpuFallback":  "تعذر استخدام DirectML، وتم التبديل تلقائيًا إلى استدلال CPU.",
     "PreviewMattingModelFallbackTemplate":  "النموذج \"{0}\" غير متوفر محليًا. تم التبديل إلى \"{1}\".",
+    "AI_ERASER":  "الممحاة الذكية بالذكاء الاصطناعي",
+    "ERASER_BRUSH":  "فرشاة",
+    "ERASER_ERASE":  "ممحاة",
+    "ERASER_SIZE":  "الحجم",
+    "ERASER_CONFIRM":  "تأكيد",
+    "ERASER_EMPTY":  "ارسم منطقة القناع أولاً قبل بدء الممحاة الذكية.",
     "ArchitectureAnyCpu":  "AnyCPU"
 }
 

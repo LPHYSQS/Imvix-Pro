@@ -519,6 +519,12 @@
     "PreviewMattingFailed":  "AI matting preview failed.",
     "PreviewMattingGpuFallback":  "DirectML is unavailable. Switched to CPU inference.",
     "PreviewMattingModelFallbackTemplate":  "Model \"{0}\" is unavailable locally. Switched to \"{1}\".",
+    "AI_ERASER":  "AI Eraser",
+    "ERASER_BRUSH":  "Brush",
+    "ERASER_ERASE":  "Eraser",
+    "ERASER_SIZE":  "Size",
+    "ERASER_CONFIRM":  "Confirm",
+    "ERASER_EMPTY":  "Draw a mask area before starting AI eraser.",
     "ArchitectureAnyCpu":  "AnyCPU"
 }
 

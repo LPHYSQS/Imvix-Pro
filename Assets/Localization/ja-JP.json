@@ -519,6 +519,12 @@
     "PreviewMattingFailed":  "AI切り抜きプレビューに失敗しました。",
     "PreviewMattingGpuFallback":  "DirectML を利用できないため、CPU 推論に切り替えました。",
     "PreviewMattingModelFallbackTemplate":  "モデル「{0}」はローカルにないため、「{1}」へ切り替えました。",
+    "AI_ERASER":  "AIスマート消去",
+    "ERASER_BRUSH":  "ブラシ",
+    "ERASER_ERASE":  "消しゴム",
+    "ERASER_SIZE":  "サイズ",
+    "ERASER_CONFIRM":  "確定",
+    "ERASER_EMPTY":  "AI消去を開始する前にマスクを描画してください。",
     "ArchitectureAnyCpu":  "AnyCPU"
 }
 

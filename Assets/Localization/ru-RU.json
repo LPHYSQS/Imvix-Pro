@@ -519,6 +519,12 @@
     "PreviewMattingFailed":  "Не удалось создать предпросмотр AI-вырезания.",
     "PreviewMattingGpuFallback":  "DirectML недоступен. Выполнено переключение на CPU-инференс.",
     "PreviewMattingModelFallbackTemplate":  "Модель \"{0}\" недоступна локально. Выполнено переключение на \"{1}\".",
+    "AI_ERASER":  "AI-ластик",
+    "ERASER_BRUSH":  "Кисть",
+    "ERASER_ERASE":  "Ластик",
+    "ERASER_SIZE":  "Размер",
+    "ERASER_CONFIRM":  "Подтвердить",
+    "ERASER_EMPTY":  "Сначала нарисуйте область маски перед запуском AI-ластика.",
     "ArchitectureAnyCpu":  "AnyCPU"
 }
 

@@ -519,6 +519,12 @@
     "PreviewMattingFailed":  "Anteprima del ritaglio AI non riuscita.",
     "PreviewMattingGpuFallback":  "DirectML non è disponibile. Passaggio automatico all'inferenza CPU.",
     "PreviewMattingModelFallbackTemplate":  "Il modello \"{0}\" non è disponibile in locale. Passaggio a \"{1}\".",
+    "AI_ERASER":  "Gomma IA",
+    "ERASER_BRUSH":  "Pennello",
+    "ERASER_ERASE":  "Gomma",
+    "ERASER_SIZE":  "Dimensione",
+    "ERASER_CONFIRM":  "Conferma",
+    "ERASER_EMPTY":  "Disegna prima un'area di maschera prima di avviare la gomma IA.",
     "ArchitectureAnyCpu":  "AnyCPU"
 }
 

@@ -84,6 +84,7 @@ foreach ($rid in $runtimes) {
     $runtimeDir = Join-Path $publishDir "runtime"
     $aiEngineDir = Join-Path $runtimeDir "ai\\enhancement\\engine"
     $aiModelsDir = Join-Path $runtimeDir "ai\\enhancement\\models"
+    $aiInpaintingDir = Join-Path $runtimeDir "ai\\inpainting\\models\\LaMa"
     $aiMattingDir = Join-Path $runtimeDir "ai\\matting\\models"
     $requiredPaths = @(
         (Join-Path $publishDir "Imvix Pro.exe"),
@@ -95,6 +96,7 @@ foreach ($rid in $runtimes) {
         (Join-Path $runtimeDir "barcode\\configs\\decoder.json"),
         (Join-Path $aiEngineDir "realesrgan-ncnn-vulkan.exe"),
         (Join-Path $aiEngineDir "vcomp140.dll"),
+        (Join-Path $aiInpaintingDir "lama.onnx"),
         (Join-Path $aiMattingDir "MODNet\\model.onnx"),
         (Join-Path $aiMattingDir "U2Net\\model.onnx")
     )

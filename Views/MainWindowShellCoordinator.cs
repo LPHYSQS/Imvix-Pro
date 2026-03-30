@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using ImvixPro.AI.Inpainting.Inference;
 using ImvixPro.AI.Matting.Inference;
 using ImvixPro.Models;
 using ImvixPro.Services;
@@ -22,6 +23,7 @@ namespace ImvixPro.Views
         Func<PreviewSessionState>? PreviewSessionStateProvider,
         Action<bool>? PreviewAiBusyChanged,
         bool IsSourceAiEnhancementEligible,
+        bool IsSourceAiInpaintingEligible,
         bool IsSourceAiMattingEligible);
 
     internal sealed record FileDetailWindowRequest(
@@ -391,6 +393,7 @@ namespace ImvixPro.Views
                 viewModel is null ? null : new Func<PreviewSessionState>(viewModel.CreatePreviewSessionState),
                 viewModel is null ? null : new Action<bool>(viewModel.SetPreviewAiBusy),
                 AiImageEnhancementService.IsEligible(image),
+                AiInpaintingService.IsEligible(image),
                 AiMattingService.IsEligible(image));
         }
 
@@ -438,6 +441,7 @@ namespace ImvixPro.Views
                 previewSessionStateProvider: request.PreviewSessionStateProvider,
                 previewAiBusyChanged: request.PreviewAiBusyChanged,
                 isSourceAiEnhancementEligible: request.IsSourceAiEnhancementEligible,
+                isSourceAiInpaintingEligible: request.IsSourceAiInpaintingEligible,
                 isSourceAiMattingEligible: request.IsSourceAiMattingEligible,
                 services: _imagePreviewWindowServices)
             {

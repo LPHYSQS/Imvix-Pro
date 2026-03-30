@@ -89,6 +89,8 @@ namespace ImvixPro.Views
             AiMattingButton.IsEnabled = shouldShowMattingButton &&
                                         !_isAiMattingBusy &&
                                         !_isAiMattingSaveBusy &&
+                                        !_isAiEraserEditing &&
+                                        !_isAiEraserBusy &&
                                         !isBlockedByOtherPreview &&
                                         !isBlockedByRecognitionSession;
 
@@ -250,6 +252,8 @@ namespace ImvixPro.Views
             if (_isAiMattingBusy ||
                 _isAiMattingSaveBusy ||
                 _isAiPreviewBusy ||
+                _isAiEraserEditing ||
+                _isAiEraserBusy ||
                 _isAiCompareActive ||
                 _isAiSaveBusy ||
                 string.IsNullOrWhiteSpace(_sourceFilePath) ||

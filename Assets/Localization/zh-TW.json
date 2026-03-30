@@ -519,6 +519,12 @@
     "PreviewMattingFailed":  "AI去背預覽失敗。",
     "PreviewMattingGpuFallback":  "DirectML 目前不可用，已自動切換為 CPU 推理。",
     "PreviewMattingModelFallbackTemplate":  "模型「{0}」本地不可用，已自動切換為「{1}」。",
+    "AI_ERASER":  "AI智慧擦除",
+    "ERASER_BRUSH":  "畫筆",
+    "ERASER_ERASE":  "橡皮擦",
+    "ERASER_SIZE":  "筆刷大小",
+    "ERASER_CONFIRM":  "確認擦除",
+    "ERASER_EMPTY":  "請先繪製需要擦除的區域。",
     "ArchitectureAnyCpu":  "AnyCPU"
 }
 

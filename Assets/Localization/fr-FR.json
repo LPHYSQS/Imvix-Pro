@@ -519,6 +519,12 @@
     "PreviewMattingFailed":  "Échec de l'aperçu du détourage IA.",
     "PreviewMattingGpuFallback":  "DirectML est indisponible. Bascule automatique vers l'inférence CPU.",
     "PreviewMattingModelFallbackTemplate":  "Le modèle \"{0}\" n'est pas disponible localement. Bascule vers \"{1}\".",
+    "AI_ERASER":  "Gomme IA",
+    "ERASER_BRUSH":  "Pinceau",
+    "ERASER_ERASE":  "Gomme",
+    "ERASER_SIZE":  "Taille",
+    "ERASER_CONFIRM":  "Confirmer",
+    "ERASER_EMPTY":  "Dessinez d'abord une zone de masque avant de lancer la gomme IA.",
     "ArchitectureAnyCpu":  "AnyCPU"
 }
 

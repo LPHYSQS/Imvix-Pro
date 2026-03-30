@@ -29,6 +29,35 @@ namespace ImvixPro.Services
 
         public static string AiMattingModelsDirectory => CombineFromRuntime("ai", "matting", "models");
 
+        public static string AiInpaintingModelsDirectory => CombineFromRuntime("ai", "inpainting", "models");
+
+        public static string AiInpaintingLaMaDirectory => Path.Combine(AiInpaintingModelsDirectory, "LaMa");
+
+        public static string AiInpaintingLaMaModelPath
+        {
+            get
+            {
+                var runtimePath = Path.Combine(AiInpaintingLaMaDirectory, "lama.onnx");
+                if (File.Exists(runtimePath))
+                {
+                    return runtimePath;
+                }
+
+                var legacyPath = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                    AppIdentity.DisplayName,
+                    "Models",
+                    "AI",
+                    "Inpainting",
+                    "LaMa",
+                    "lama.onnx");
+
+                return File.Exists(legacyPath)
+                    ? legacyPath
+                    : runtimePath;
+            }
+        }
+
         private static string CombineFromRuntime(params string[] segments)
         {
             return CombineFromBase([RuntimeRootFolderName, .. segments]);

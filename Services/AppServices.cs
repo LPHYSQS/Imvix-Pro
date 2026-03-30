@@ -1,4 +1,5 @@
-﻿using ImvixPro.AI.Matting.Inference;
+using ImvixPro.AI.Inpainting.Inference;
+using ImvixPro.AI.Matting.Inference;
 using ImvixPro.Models;
 using ImvixPro.Services.PdfModule;
 using ImvixPro.Services.PsdModule;
@@ -22,6 +23,7 @@ namespace ImvixPro.Services
         private static readonly Lazy<MainWindowConfigurationCoordinator> MainWindowConfigurationCoordinatorFactory = new(static () => new MainWindowConfigurationCoordinator());
         private static readonly Lazy<WatchProfilePlanningService> WatchProfilePlanningServiceFactory = new(static () => new WatchProfilePlanningService(ConversionPlanningServiceFactory.Value));
         private static readonly Lazy<AiImageEnhancementService> AiImageEnhancementServiceFactory = new(static () => new AiImageEnhancementService());
+        private static readonly Lazy<AiInpaintingService> AiInpaintingServiceFactory = new(static () => new AiInpaintingService(LoggerFactory.Value));
         private static readonly Lazy<AiMattingService> AiMattingServiceFactory = new(static () => new AiMattingService(LoggerFactory.Value));
         private static readonly Lazy<AiPreviewComparisonService> AiPreviewComparisonServiceFactory = new(static () => new AiPreviewComparisonService());
         private static readonly Lazy<DisplayRefreshRateService> DisplayRefreshRateServiceFactory = new(static () => new DisplayRefreshRateService());
@@ -61,6 +63,8 @@ namespace ImvixPro.Services
         public static WatchProfilePlanningService WatchProfilePlanningService => WatchProfilePlanningServiceFactory.Value;
 
         public static AiImageEnhancementService AiImageEnhancementService => AiImageEnhancementServiceFactory.Value;
+
+        public static AiInpaintingService AiInpaintingService => AiInpaintingServiceFactory.Value;
 
         public static AiMattingService AiMattingService => AiMattingServiceFactory.Value;
 
@@ -128,6 +132,7 @@ namespace ImvixPro.Services
                 new PreviewBarcodeToolController(),
                 static () => new LocalizationService(),
                 AiImageEnhancementService,
+                AiInpaintingService,
                 AiMattingService,
                 AiPreviewComparisonService,
                 DisplayRefreshRateService,
