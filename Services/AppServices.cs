@@ -89,7 +89,7 @@ namespace ImvixPro.Services
 
         public static PsdDetailService PsdDetailService => PsdDetailServiceFactory.Value;
 
-        public static MainWindowViewModelServices CreateMainWindowViewModelServices()
+        internal static MainWindowViewModelServices CreateMainWindowViewModelServices()
         {
             return new MainWindowViewModelServices(
                 SettingsService,
@@ -100,6 +100,7 @@ namespace ImvixPro.Services
                 ConversionStatusSummaryService,
                 ConversionTextPresenter,
                 ConversionSummaryCoordinator,
+                new PreviewRenderCoordinator(),
                 WatchProfilePlanningService,
                 ConversionPipelineService,
                 ConversionHistoryService,
@@ -133,13 +134,14 @@ namespace ImvixPro.Services
             return new FileDetailWindowServices(CreateFileDetailViewModel);
         }
 
-        public static MainWindowServices CreateMainWindowServices()
+        internal static MainWindowServices CreateMainWindowServices()
         {
             return new MainWindowServices(
                 SettingsService,
                 Logger,
-                CreateImagePreviewWindowServices(),
-                CreateFileDetailWindowServices());
+                new MainWindowShellCoordinator(
+                    CreateImagePreviewWindowServices(),
+                    CreateFileDetailWindowServices()));
         }
 
         public static LocalizationService CreateLocalizationService(string? languageCode = null)

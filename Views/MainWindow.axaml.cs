@@ -1,13 +1,11 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
-using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform;
 using Avalonia.Platform.Storage;
 using Avalonia.VisualTree;
-using ImvixPro.AI.Matting.Inference;
 using ImvixPro.Models;
 using ImvixPro.Services;
 using ImvixPro.ViewModels;
@@ -24,15 +22,11 @@ namespace ImvixPro.Views
     {
         private readonly SettingsService _settingsService;
         private readonly AppLogger _logger;
-        private readonly ImagePreviewWindowServices _imagePreviewWindowServices;
-        private readonly FileDetailWindowServices _fileDetailWindowServices;
+        private readonly MainWindowShellCoordinator _shellCoordinator;
         private MainWindowViewModel? _subscribedViewModel;
         private NotificationState? _subscribedNotificationState;
         private bool _windowPlacementRestored;
         private bool _startupPathsHandled;
-        private bool _isExplicitExitRequested;
-        private bool _isRunningInstanceWarningVisible;
-        private bool _isCompletionDialogVisible;
         private IReadOnlyList<string> _pendingStartupPaths = [];
         private TrayIcon? _trayIcon;
         private NativeMenuItem? _restoreTrayMenuItem;
@@ -48,8 +42,7 @@ namespace ImvixPro.Views
             ArgumentNullException.ThrowIfNull(services);
             _settingsService = services.SettingsService ?? throw new ArgumentNullException(nameof(services.SettingsService));
             _logger = services.Logger ?? throw new ArgumentNullException(nameof(services.Logger));
-            _imagePreviewWindowServices = services.ImagePreviewWindowServices ?? throw new ArgumentNullException(nameof(services.ImagePreviewWindowServices));
-            _fileDetailWindowServices = services.FileDetailWindowServices ?? throw new ArgumentNullException(nameof(services.FileDetailWindowServices));
+            _shellCoordinator = services.ShellCoordinator ?? throw new ArgumentNullException(nameof(services.ShellCoordinator));
             InitializeComponent();
             InitializeTrayIcon();
             Opened += OnWindowOpened;
@@ -86,31 +79,8 @@ namespace ImvixPro.Views
 
         public async Task HandleSecondInstanceActivationAsync()
         {
-            await BringToFrontAsync();
-
-            var vm = ViewModel;
-            if (vm is null || _isRunningInstanceWarningVisible)
-            {
-                return;
-            }
-
-            var dialog = new RunningInstanceWarningWindow(
-                vm.AlreadyRunningTitleText,
-                vm.AlreadyRunningMessageText,
-                vm.CloseText)
-            {
-                FlowDirection = this.FlowDirection
-            };
-
-            _isRunningInstanceWarningVisible = true;
-            try
-            {
-                await dialog.ShowDialog(this);
-            }
-            finally
-            {
-                _isRunningInstanceWarningVisible = false;
-            }
+            await _shellCoordinator.BringToFrontAsync(this);
+            await _shellCoordinator.ShowRunningInstanceWarningAsync(this, ViewModel);
         }
 
         private void OnDataContextChanged(object? sender, EventArgs e)
@@ -145,7 +115,7 @@ namespace ImvixPro.Views
             {
                 ViewModel?.LoadRecentConversionHistory();
                 ApplyStartupPaths();
-                _ = TryShowPendingCompletionDialogAsync();
+                _ = _shellCoordinator.ShowPendingCompletionDialogAsync(this, _subscribedNotificationState);
             }
         }
 
@@ -166,46 +136,7 @@ namespace ImvixPro.Views
             if (string.IsNullOrWhiteSpace(e.PropertyName) ||
                 e.PropertyName is nameof(NotificationState.PendingDialogRequest) or nameof(NotificationState.HasPendingDialogRequest))
             {
-                _ = TryShowPendingCompletionDialogAsync();
-            }
-        }
-
-        private async Task TryShowPendingCompletionDialogAsync()
-        {
-            if (_isCompletionDialogVisible || !IsVisible)
-            {
-                return;
-            }
-
-            var notificationState = _subscribedNotificationState;
-            var dialogRequest = notificationState?.PendingDialogRequest;
-            if (dialogRequest is null)
-            {
-                return;
-            }
-
-            var dialog = new ConversionSummaryWindow(
-                dialogRequest.Title,
-                dialogRequest.SummaryText,
-                dialogRequest.CloseButtonText)
-            {
-                FlowDirection = this.FlowDirection
-            };
-
-            _isCompletionDialogVisible = true;
-            try
-            {
-                await dialog.ShowDialog(this);
-            }
-            finally
-            {
-                notificationState?.ClearPendingDialogRequest(dialogRequest);
-                _isCompletionDialogVisible = false;
-
-                if (notificationState?.HasPendingDialogRequest == true)
-                {
-                    _ = TryShowPendingCompletionDialogAsync();
-                }
+                _ = _shellCoordinator.ShowPendingCompletionDialogAsync(this, _subscribedNotificationState);
             }
         }
 
@@ -319,17 +250,17 @@ namespace ImvixPro.Views
             ViewModel?.LoadRecentConversionHistory();
             ApplyStartupPaths();
             UpdateTrayIconState();
-            _ = TryShowPendingCompletionDialogAsync();
+            _ = _shellCoordinator.ShowPendingCompletionDialogAsync(this, _subscribedNotificationState);
         }
 
         private void OnWindowClosing(object? sender, WindowClosingEventArgs e)
         {
             SaveWindowPlacement();
 
-            if (ShouldHideToTray(e))
+            if (_shellCoordinator.ShouldHideToTray(ViewModel?.KeepRunningInTray == true, e.CloseReason))
             {
                 e.Cancel = true;
-                HideToTray();
+                _shellCoordinator.HideToTray(this, UpdateTrayIconState);
                 return;
             }
 
@@ -347,79 +278,6 @@ namespace ImvixPro.Views
                 _subscribedNotificationState.PropertyChanged -= OnNotificationStatePropertyChanged;
                 _subscribedNotificationState = null;
             }
-        }
-
-        private bool ShouldHideToTray(WindowClosingEventArgs e)
-        {
-            return ViewModel?.KeepRunningInTray == true
-                   && !_isExplicitExitRequested
-                   && e.CloseReason is WindowCloseReason.WindowClosing or WindowCloseReason.Undefined;
-        }
-
-        private void HideToTray()
-        {
-            if (WindowState == WindowState.Minimized)
-            {
-                WindowState = WindowState.Normal;
-            }
-
-            ShowInTaskbar = false;
-            Hide();
-            UpdateTrayIconState();
-        }
-
-        private void RestoreFromTray()
-        {
-            ShowInTaskbar = true;
-
-            if (!IsVisible)
-            {
-                Show();
-            }
-
-            WindowState = WindowState.Normal;
-            Activate();
-            _ = TryShowPendingCompletionDialogAsync();
-        }
-
-        private async Task BringToFrontAsync()
-        {
-            ShowInTaskbar = true;
-
-            if (!IsVisible)
-            {
-                Show();
-            }
-
-            if (WindowState == WindowState.Minimized)
-            {
-                WindowState = WindowState.Normal;
-            }
-
-            Activate();
-
-            var wasTopmost = Topmost;
-            Topmost = true;
-            Activate();
-            await Task.Delay(120);
-            Topmost = wasTopmost;
-        }
-
-        private void ExitApplication()
-        {
-            _isExplicitExitRequested = true;
-
-            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
-            {
-                if (!desktop.TryShutdown(0))
-                {
-                    _isExplicitExitRequested = false;
-                }
-
-                return;
-            }
-
-            Close();
         }
 
         private void InitializeTrayIcon()
@@ -520,17 +378,17 @@ namespace ImvixPro.Views
 
         private void OnTrayIconClicked(object? sender, EventArgs e)
         {
-            RestoreFromTray();
+            _ = _shellCoordinator.RestoreFromTrayAsync(this, _subscribedNotificationState);
         }
 
         private void OnTrayRestoreClick(object? sender, EventArgs e)
         {
-            RestoreFromTray();
+            _ = _shellCoordinator.RestoreFromTrayAsync(this, _subscribedNotificationState);
         }
 
         private void OnTrayExitClick(object? sender, EventArgs e)
         {
-            ExitApplication();
+            _shellCoordinator.ExitApplication(this);
         }
 
         private void ApplyStartupPaths()
@@ -859,40 +717,7 @@ namespace ImvixPro.Views
                 return;
             }
 
-            if (vm.SelectedImage.NeedsPdfUnlock)
-            {
-                await ShowPdfUnlockDialogAsync(vm.SelectedImage);
-                e.Handled = true;
-                return;
-            }
-
-            GifFrameRangeSelection? gifTrimRange = null;
-            if (vm.IsGifTrimRangeVisible)
-            {
-                gifTrimRange = new GifFrameRangeSelection(vm.SelectedGifTrimStartIndex, vm.SelectedGifTrimEndIndex);
-            }
-
-            var previewSettings = vm.GetPreviewRenderSettings(vm.SelectedImage.FilePath);
-
-            var previewWindow = new ImagePreviewWindow(
-                vm.SelectedImage.FilePath,
-                previewSettings.UseBackground,
-                previewSettings.BackgroundColor,
-                gifTrimRange,
-                vm.SelectedImage.IsPdfDocument ? vm.SelectedPdfPageIndex : 0,
-                vm.SelectedImage.IsPdfDocument ? vm.SelectedImage.PdfPageCount : 0,
-                uiLanguageCode: vm.CurrentLanguageCode,
-                ocrLanguageOption: PreviewOcrLanguageOption.Auto,
-                previewSessionStateProvider: vm.CreatePreviewSessionState,
-                previewAiBusyChanged: vm.SetPreviewAiBusy,
-                isSourceAiEnhancementEligible: AiImageEnhancementService.IsEligible(vm.SelectedImage),
-                isSourceAiMattingEligible: AiMattingService.IsEligible(vm.SelectedImage),
-                services: _imagePreviewWindowServices)
-            {
-                FlowDirection = this.FlowDirection
-            };
-
-            previewWindow.Show(this);
+            await _shellCoordinator.OpenPreviewAsync(this, vm, vm.SelectedImage, includeGifTrimRange: true);
             e.Handled = true;
         }
 
@@ -968,37 +793,7 @@ namespace ImvixPro.Views
                 return;
             }
 
-            if (image.NeedsPdfUnlock)
-            {
-                await ShowPdfUnlockDialogAsync(image);
-                e.Handled = true;
-                return;
-            }
-
-            var vm = ViewModel;
-            var pdfPageIndex = vm?.SelectedImage?.FilePath.Equals(image.FilePath, StringComparison.OrdinalIgnoreCase) == true
-                ? vm.SelectedPdfPageIndex
-                : 0;
-            var previewSettings = vm?.GetPreviewRenderSettings(image.FilePath) ?? (false, "#FFFFFFFF");
-            var previewWindow = new ImagePreviewWindow(
-                image.FilePath,
-                previewSettings.Item1,
-                previewSettings.Item2,
-                gifFrameRange: null,
-                initialPdfPageIndex: image.IsPdfDocument ? pdfPageIndex : 0,
-                pdfPageCount: image.IsPdfDocument ? image.PdfPageCount : 0,
-                uiLanguageCode: vm?.CurrentLanguageCode ?? "en-US",
-                ocrLanguageOption: PreviewOcrLanguageOption.Auto,
-                previewSessionStateProvider: vm is null ? null : new Func<PreviewSessionState>(vm.CreatePreviewSessionState),
-                previewAiBusyChanged: vm is null ? null : new Action<bool>(vm.SetPreviewAiBusy),
-                isSourceAiEnhancementEligible: AiImageEnhancementService.IsEligible(image),
-                isSourceAiMattingEligible: AiMattingService.IsEligible(image),
-                services: _imagePreviewWindowServices)
-            {
-                FlowDirection = this.FlowDirection
-            };
-
-            previewWindow.Show(this);
+            await _shellCoordinator.OpenPreviewAsync(this, ViewModel, image, includeGifTrimRange: false);
             e.Handled = true;
         }
 
@@ -1009,15 +804,7 @@ namespace ImvixPro.Views
                 return;
             }
 
-            var window = new FileDetailWindow(
-                image,
-                ViewModel?.CurrentLanguageCode ?? "en-US",
-                _fileDetailWindowServices)
-            {
-                FlowDirection = this.FlowDirection
-            };
-
-            window.Show(this);
+            _shellCoordinator.OpenFileDetailWindow(this, ViewModel, image);
             e.Handled = true;
         }
 
@@ -1028,40 +815,8 @@ namespace ImvixPro.Views
                 return;
             }
 
-            await ShowPdfUnlockDialogAsync(image);
+            await _shellCoordinator.ShowPdfUnlockDialogAsync(this, ViewModel, image);
             e.Handled = true;
-        }
-
-        private async Task ShowPdfUnlockDialogAsync(ImageItemViewModel image)
-        {
-            var vm = ViewModel;
-            if (vm is null || !IsVisible || !image.IsPdfDocument)
-            {
-                return;
-            }
-
-            if (!ReferenceEquals(vm.SelectedImage, image))
-            {
-                vm.SelectedImage = image;
-            }
-
-            if (!image.NeedsPdfUnlock)
-            {
-                return;
-            }
-
-            var dialog = new PdfUnlockWindow(
-                vm.TranslateText("PdfUnlockDialogTitle"),
-                string.Format(System.Globalization.CultureInfo.CurrentCulture, vm.TranslateText("PdfUnlockDialogMessageTemplate"), image.FileName),
-                vm.TranslateText("PdfUnlockPasswordPlaceholder"),
-                vm.TranslateText("PdfUnlockConfirm"),
-                vm.CancelActionText,
-                password => vm.UnlockPdfAsync(image, password))
-            {
-                FlowDirection = this.FlowDirection
-            };
-
-            await dialog.ShowDialog<bool>(this);
         }
     }
 }

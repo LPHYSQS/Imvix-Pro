@@ -1,3 +1,4 @@
+using Avalonia.Media.Imaging;
 using ImvixPro.Models;
 using ImvixPro.Services;
 using ImvixPro.ViewModels;
@@ -545,6 +546,106 @@ public sealed class ImageConversionTests
         Assert.False(state.IsIconPreviewVisible);
     }
 
+    [Fact]
+    public void PreviewRenderCoordinator_SelectedImageChanged_UsesPdfPreviewBranch()
+    {
+        var coordinator = new PreviewRenderCoordinator();
+        var context = new FakePreviewRenderContext();
+        var image = ImageItemViewModel.CreateImported(
+            @"C:\preview\document.pdf",
+            fileSize: 2_048,
+            pixelWidth: 0,
+            pixelHeight: 0,
+            thumbnail: null,
+            gifFrameCount: 1,
+            pdfPageCount: 4,
+            isPdfDocument: true);
+
+        coordinator.HandleSelectedImageChanged(image, context);
+
+        Assert.Equal(
+            [
+                "CancelPendingPdfPreviewRender",
+                "CancelPendingSelectedPsdPreviewRender",
+                "ClearSelectedPreview",
+                "RefreshGifHandlingModeOptions",
+                "RestoreGifSpecificFrameSelection:C:\\preview\\document.pdf",
+                "RestoreGifTrimSelection:C:\\preview\\document.pdf",
+                "RestorePdfSelection:C:\\preview\\document.pdf",
+                "RefreshSelectedPdfPreview:True"
+            ],
+            context.Calls);
+    }
+
+    [Fact]
+    public void PreviewRenderCoordinator_SelectedImageChanged_UsesPsdPreviewLoaderWhenCoordinatorRequestsAsyncRender()
+    {
+        var coordinator = new PreviewRenderCoordinator();
+        var context = new FakePreviewRenderContext
+        {
+            ShouldLoadSelectedPsdPreviewAsyncResult = true
+        };
+        var image = ImageItemViewModel.CreateImported(
+            @"C:\preview\layered.psd",
+            fileSize: 4_096,
+            pixelWidth: 1600,
+            pixelHeight: 900,
+            thumbnail: null,
+            gifFrameCount: 1);
+
+        coordinator.HandleSelectedImageChanged(image, context);
+
+        Assert.Equal(
+            [
+                "CancelPendingPdfPreviewRender",
+                "CancelPendingSelectedPsdPreviewRender",
+                "ClearSelectedPreview",
+                "RefreshGifHandlingModeOptions",
+                "RestoreGifSpecificFrameSelection:C:\\preview\\layered.psd",
+                "RestoreGifTrimSelection:C:\\preview\\layered.psd",
+                "RestorePdfSelection:C:\\preview\\layered.psd",
+                "ShouldLoadSelectedPsdPreviewAsync:C:\\preview\\layered.psd",
+                "RefreshSelectedPsdPreviewAsync:True:True"
+            ],
+            context.Calls);
+    }
+
+    [Fact]
+    public void PreviewRenderCoordinator_SelectedImageChanged_KeepsGifRenderFlowOutOfMainWindowViewModel()
+    {
+        var coordinator = new PreviewRenderCoordinator();
+        var context = new FakePreviewRenderContext
+        {
+            ShouldLoadGifPreviewFramesResult = false
+        };
+        var image = ImageItemViewModel.CreateImported(
+            @"C:\preview\animated.gif",
+            fileSize: 8_192,
+            pixelWidth: 640,
+            pixelHeight: 360,
+            thumbnail: null,
+            gifFrameCount: 24);
+
+        coordinator.HandleSelectedImageChanged(image, context);
+
+        Assert.Equal(
+            [
+                "CancelPendingPdfPreviewRender",
+                "CancelPendingSelectedPsdPreviewRender",
+                "ClearSelectedPreview",
+                "RefreshGifHandlingModeOptions",
+                "RestoreGifSpecificFrameSelection:C:\\preview\\animated.gif",
+                "RestoreGifTrimSelection:C:\\preview\\animated.gif",
+                "RestorePdfSelection:C:\\preview\\animated.gif",
+                "ShouldLoadSelectedPsdPreviewAsync:C:\\preview\\animated.gif",
+                "CreatePreviewBitmap:C:\\preview\\animated.gif:760",
+                "SetSelectedPreview",
+                "ShouldLoadGifPreviewFrames",
+                "IncrementGifPreviewRequestId"
+            ],
+            context.Calls);
+    }
+
     private static string TranslateTestText(string key)
     {
         return key switch
@@ -581,5 +682,92 @@ public sealed class ImageConversionTests
             "EstimatedSizeTitle" => "Estimated size",
             _ => key
         };
+    }
+
+    private sealed class FakePreviewRenderContext : IPreviewRenderContext
+    {
+        public List<string> Calls { get; } = [];
+
+        public bool ShouldLoadSelectedPsdPreviewAsyncResult { get; set; }
+
+        public bool ShouldLoadGifPreviewFramesResult { get; set; }
+
+        public void CancelPendingPdfPreviewRender()
+        {
+            Calls.Add("CancelPendingPdfPreviewRender");
+        }
+
+        public void CancelPendingSelectedPsdPreviewRender()
+        {
+            Calls.Add("CancelPendingSelectedPsdPreviewRender");
+        }
+
+        public void ClearSelectedPreview()
+        {
+            Calls.Add("ClearSelectedPreview");
+        }
+
+        public void RefreshGifHandlingModeOptions()
+        {
+            Calls.Add("RefreshGifHandlingModeOptions");
+        }
+
+        public void RestoreGifSpecificFrameSelection(ImageItemViewModel? image)
+        {
+            Calls.Add($"RestoreGifSpecificFrameSelection:{image?.FilePath}");
+        }
+
+        public void RestoreGifTrimSelection(ImageItemViewModel? image)
+        {
+            Calls.Add($"RestoreGifTrimSelection:{image?.FilePath}");
+        }
+
+        public void RestorePdfSelection(ImageItemViewModel? image)
+        {
+            Calls.Add($"RestorePdfSelection:{image?.FilePath}");
+        }
+
+        public void RefreshSelectedPdfPreview(bool preferImmediatePreview)
+        {
+            Calls.Add($"RefreshSelectedPdfPreview:{preferImmediatePreview}");
+        }
+
+        public bool ShouldLoadSelectedPsdPreviewAsync(ImageItemViewModel image)
+        {
+            Calls.Add($"ShouldLoadSelectedPsdPreviewAsync:{image.FilePath}");
+            return ShouldLoadSelectedPsdPreviewAsyncResult;
+        }
+
+        public void RefreshSelectedPsdPreviewAsync(bool preferImmediatePreview, bool useThumbnailPlaceholder)
+        {
+            Calls.Add($"RefreshSelectedPsdPreviewAsync:{preferImmediatePreview}:{useThumbnailPlaceholder}");
+        }
+
+        public Bitmap? CreatePreviewBitmap(string filePath, int maxWidth)
+        {
+            Calls.Add($"CreatePreviewBitmap:{filePath}:{maxWidth}");
+            return null;
+        }
+
+        public void SetSelectedPreview(Bitmap? preview)
+        {
+            Calls.Add("SetSelectedPreview");
+        }
+
+        public bool ShouldLoadGifPreviewFrames()
+        {
+            Calls.Add("ShouldLoadGifPreviewFrames");
+            return ShouldLoadGifPreviewFramesResult;
+        }
+
+        public void LoadGifPreview(string filePath)
+        {
+            Calls.Add($"LoadGifPreview:{filePath}");
+        }
+
+        public void IncrementGifPreviewRequestId()
+        {
+            Calls.Add("IncrementGifPreviewRequestId");
+        }
     }
 }

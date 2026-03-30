@@ -53,9 +53,11 @@ namespace ImvixPro.ViewModels
         private readonly ConversionStatusSummaryService _conversionStatusSummaryService;
         private readonly ConversionTextPresenter _conversionTextPresenter;
         private readonly ConversionSummaryCoordinator _conversionSummaryCoordinator;
+        private readonly PreviewRenderCoordinator _previewRenderCoordinator;
         private readonly WatchProfilePlanningService _watchProfilePlanningService;
         private readonly PdfSecurityService _pdfSecurityService;
         private readonly AppLogger _logger;
+        private readonly IPreviewRenderContext _previewRenderContext;
         private ConversionJobDefinition? _watchJobDefinitionSnapshot;
         private RuntimeStatusSummary _manualRuntimeStatus = new("StatusReady", string.Empty, 0, 0);
         private WatchRuntimeStatusSummary _watchRuntimeStatus = new(WatchRuntimeState.Stopped, 0, 0, string.Empty);
@@ -98,6 +100,7 @@ namespace ImvixPro.ViewModels
             _conversionStatusSummaryService = services.ConversionStatusSummaryService ?? throw new ArgumentNullException(nameof(services.ConversionStatusSummaryService));
             _conversionTextPresenter = services.ConversionTextPresenter ?? throw new ArgumentNullException(nameof(services.ConversionTextPresenter));
             _conversionSummaryCoordinator = services.ConversionSummaryCoordinator ?? throw new ArgumentNullException(nameof(services.ConversionSummaryCoordinator));
+            _previewRenderCoordinator = services.PreviewRenderCoordinator ?? throw new ArgumentNullException(nameof(services.PreviewRenderCoordinator));
             _watchProfilePlanningService = services.WatchProfilePlanningService ?? throw new ArgumentNullException(nameof(services.WatchProfilePlanningService));
             _conversionPipelineService = services.ConversionPipelineService ?? throw new ArgumentNullException(nameof(services.ConversionPipelineService));
             _conversionHistoryService = services.ConversionHistoryService ?? throw new ArgumentNullException(nameof(services.ConversionHistoryService));
@@ -110,6 +113,7 @@ namespace ImvixPro.ViewModels
             _pdfRenderService = services.PdfRenderService ?? throw new ArgumentNullException(nameof(services.PdfRenderService));
             _psdRenderService = services.PsdRenderService ?? throw new ArgumentNullException(nameof(services.PsdRenderService));
             _logger = services.Logger ?? throw new ArgumentNullException(nameof(services.Logger));
+            _previewRenderContext = new MainWindowPreviewRenderContext(this);
             PreviewSelectionState = new PreviewSelectionState();
             HistoryState = new HistoryState(_conversionHistoryService, _conversionSummaryCoordinator);
             NotificationState = new NotificationState();
@@ -347,41 +351,7 @@ namespace ImvixPro.ViewModels
 
         partial void OnSelectedImageChanged(ImageItemViewModel? value)
         {
-            CancelPendingPdfPreviewRender();
-            CancelPendingSelectedPsdPreviewRender();
-            ClearSelectedPreview();
-            RefreshGifHandlingModeOptions();
-            RestoreGifSpecificFrameSelection(value);
-            RestoreGifTrimSelection(value);
-            RestorePdfSelection(value);
-
-            if (value is not null)
-            {
-                if (value.IsPdfDocument)
-                {
-                    RefreshSelectedPdfPreview(preferImmediatePreview: true);
-                }
-                else if (ShouldLoadSelectedPsdPreviewAsync(value))
-                {
-                    RefreshSelectedPsdPreviewAsync(preferImmediatePreview: true, useThumbnailPlaceholder: true);
-                }
-                else
-                {
-                    SelectedPreview = CreatePreviewBitmap(value.FilePath, 760);
-                }
-
-                if (value.IsAnimatedGif)
-                {
-                    if (ShouldLoadGifPreviewFrames())
-                    {
-                        _ = LoadGifPreviewAsync(value.FilePath);
-                    }
-                    else
-                    {
-                        Interlocked.Increment(ref _gifPreviewRequestId);
-                    }
-                }
-            }
+            _previewRenderCoordinator.HandleSelectedImageChanged(value, _previewRenderContext);
 
             OnPropertyChanged(nameof(IsGifPreviewVisible));
             OnPropertyChanged(nameof(IsGifTrimRangeVisible));
@@ -402,6 +372,91 @@ namespace ImvixPro.ViewModels
 
             RefreshConversionInsights();
             RefreshPreviewSelectionState();
+        }
+
+        private sealed class MainWindowPreviewRenderContext : IPreviewRenderContext
+        {
+            private readonly MainWindowViewModel _owner;
+
+            public MainWindowPreviewRenderContext(MainWindowViewModel owner)
+            {
+                _owner = owner ?? throw new ArgumentNullException(nameof(owner));
+            }
+
+            public void CancelPendingPdfPreviewRender()
+            {
+                _owner.CancelPendingPdfPreviewRender();
+            }
+
+            public void CancelPendingSelectedPsdPreviewRender()
+            {
+                _owner.CancelPendingSelectedPsdPreviewRender();
+            }
+
+            public void ClearSelectedPreview()
+            {
+                _owner.ClearSelectedPreview();
+            }
+
+            public void RefreshGifHandlingModeOptions()
+            {
+                _owner.RefreshGifHandlingModeOptions();
+            }
+
+            public void RestoreGifSpecificFrameSelection(ImageItemViewModel? image)
+            {
+                _owner.RestoreGifSpecificFrameSelection(image);
+            }
+
+            public void RestoreGifTrimSelection(ImageItemViewModel? image)
+            {
+                _owner.RestoreGifTrimSelection(image);
+            }
+
+            public void RestorePdfSelection(ImageItemViewModel? image)
+            {
+                _owner.RestorePdfSelection(image);
+            }
+
+            public void RefreshSelectedPdfPreview(bool preferImmediatePreview)
+            {
+                _owner.RefreshSelectedPdfPreview(preferImmediatePreview);
+            }
+
+            public bool ShouldLoadSelectedPsdPreviewAsync(ImageItemViewModel image)
+            {
+                return _owner.ShouldLoadSelectedPsdPreviewAsync(image);
+            }
+
+            public void RefreshSelectedPsdPreviewAsync(bool preferImmediatePreview, bool useThumbnailPlaceholder)
+            {
+                _owner.RefreshSelectedPsdPreviewAsync(preferImmediatePreview, useThumbnailPlaceholder);
+            }
+
+            public Bitmap? CreatePreviewBitmap(string filePath, int maxWidth)
+            {
+                return _owner.CreatePreviewBitmap(filePath, maxWidth);
+            }
+
+            public void SetSelectedPreview(Bitmap? preview)
+            {
+                _owner.SelectedPreview = preview;
+            }
+
+            public bool ShouldLoadGifPreviewFrames()
+            {
+                return _owner.ShouldLoadGifPreviewFrames();
+            }
+
+            public void LoadGifPreview(string filePath)
+            {
+                _ = _owner.LoadGifPreviewAsync(filePath);
+            }
+
+            public void IncrementGifPreviewRequestId()
+            {
+                Interlocked.Increment(ref _owner._gifPreviewRequestId);
+            }
         }
 
         partial void OnSelectedLanguageChanged(LanguageOption? value)

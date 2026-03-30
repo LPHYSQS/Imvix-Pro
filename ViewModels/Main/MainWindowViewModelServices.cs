@@ -4,7 +4,7 @@ using ImvixPro.Services.PsdModule;
 
 namespace ImvixPro.ViewModels
 {
-    public sealed record MainWindowViewModelServices(
+    internal sealed record MainWindowViewModelServices(
         SettingsService SettingsService,
         LocalizationService LocalizationService,
         ImageConversionService ImageConversionService,
@@ -13,6 +13,7 @@ namespace ImvixPro.ViewModels
         ConversionStatusSummaryService ConversionStatusSummaryService,
         ConversionTextPresenter ConversionTextPresenter,
         ConversionSummaryCoordinator ConversionSummaryCoordinator,
+        PreviewRenderCoordinator PreviewRenderCoordinator,
         WatchProfilePlanningService WatchProfilePlanningService,
         ConversionPipelineService ConversionPipelineService,
         ConversionHistoryService ConversionHistoryService,
