@@ -4,8 +4,6 @@ using ImvixPro.Models;
 using ImvixPro.Services;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Collections.Specialized;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
@@ -30,25 +28,6 @@ namespace ImvixPro.ViewModels
         private int _maxParallelism = Math.Clamp(Environment.ProcessorCount, 1, 4);
 
         public Func<string, string, string, string, Task<bool>>? ConfirmDialogAsync { get; set; }
-
-        public ObservableCollection<string> ActiveWarnings { get; } = [];
-
-        public ObservableCollection<string> ConversionPlanHighlights { get; } = [];
-
-        public bool HasActiveWarnings => ActiveWarnings.Count > 0;
-
-        public bool HasConversionPlanHighlights => ConversionPlanHighlights.Count > 0;
-
-        public bool HasFormatRecommendation => !string.IsNullOrWhiteSpace(FormatRecommendationText);
-
-        public bool HasSizeEstimate => !string.IsNullOrWhiteSpace(OriginalSizeSummaryText) || !string.IsNullOrWhiteSpace(EstimatedSizeSummaryText);
-
-        public bool HasEstimateDisclaimer => !string.IsNullOrWhiteSpace(EstimateDisclaimerText);
-
-        public string FormatRecommendationTitleText => T("FormatRecommendationTitle");
-        public string TaskAnalysisTitleText => T("TaskAnalysisTitle");
-        public string EstimatedSizeTitleText => T("EstimatedSizeTitle");
-        public string WarningsTitleText => T("WarningsTitle");
         public string HistoryTitleText => T("HistoryTitle");
         public string HistoryEmptyText => T("HistoryEmpty");
         public string PauseText => T("Pause");
@@ -58,21 +37,6 @@ namespace ImvixPro.ViewModels
         public string ContinueActionText => T("ContinueAction");
         public string CancelActionText => T("CancelAction");
         public string ClearRecentConversionsText => T("ClearRecentConversions");
-
-        [ObservableProperty]
-        private string formatRecommendationText = string.Empty;
-
-        [ObservableProperty]
-        private string formatRecommendationReasonText = string.Empty;
-
-        [ObservableProperty]
-        private string originalSizeSummaryText = string.Empty;
-
-        [ObservableProperty]
-        private string estimatedSizeSummaryText = string.Empty;
-
-        [ObservableProperty]
-        private string estimateDisclaimerText = string.Empty;
 
         [ObservableProperty]
         private bool isConversionPaused;
@@ -254,73 +218,99 @@ namespace ImvixPro.ViewModels
         {
             var snapshot = Images.ToList();
             var options = BuildCurrentConversionOptions();
-            var plan = _conversionPlanningService.BuildPlan(snapshot, options);
-
-            if (SelectedImage is null || SelectedImage.IsPdfDocument)
-            {
-                FormatRecommendationText = string.Empty;
-                FormatRecommendationReasonText = string.Empty;
-            }
-            else
-            {
-                var analysis = _imageAnalysisService.Analyze(SelectedImage);
-                var recommendedFormats = BuildRecommendationFormatsText(analysis);
-                FormatRecommendationText = string.Format(CultureInfo.CurrentCulture, T("RecommendationFormatsTemplate"), recommendedFormats);
-                FormatRecommendationReasonText = T(GetRecommendationReasonKey(analysis.ContentKind));
-            }
-
-            RefreshConversionPlanInsights(plan, options);
-
-            var estimate = _imageAnalysisService.Estimate(snapshot, options);
-            if (!estimate.IsAvailable)
-            {
-                OriginalSizeSummaryText = string.Empty;
-                EstimatedSizeSummaryText = string.Empty;
-            }
-            else
-            {
-                OriginalSizeSummaryText = string.Format(CultureInfo.CurrentCulture, T("OriginalSizeTemplate"), FormatBytes(estimate.OriginalTotalBytes));
-                EstimatedSizeSummaryText = string.Format(CultureInfo.CurrentCulture, T("EstimatedSizeTemplate"), FormatBytesRange(estimate.EstimatedMinBytes, estimate.EstimatedMaxBytes));
-            }
-
-            RefreshActiveWarnings(plan, options);
-            OnPropertyChanged(nameof(HasFormatRecommendation));
-            OnPropertyChanged(nameof(HasSizeEstimate));
+            var taskAnalysisSnapshot = BuildTaskAnalysisSnapshot(snapshot, options);
+            TaskAnalysisState.Apply(taskAnalysisSnapshot, T);
         }
 
-        private void RefreshConversionPlanInsights(ConversionPlan plan, ConversionOptions options)
+        private TaskAnalysisSnapshot BuildTaskAnalysisSnapshot(
+            IReadOnlyList<ImageItemViewModel> snapshot,
+            ConversionOptions options)
         {
-            ConversionPlanHighlights.Clear();
+            ArgumentNullException.ThrowIfNull(snapshot);
+            ArgumentNullException.ThrowIfNull(options);
+
+            var plan = _conversionPlanningService.BuildPlan(snapshot, options);
+            var (formatRecommendationText, formatRecommendationReasonText) = BuildFormatRecommendationTexts();
+            var (originalSizeSummaryText, estimatedSizeSummaryText) = BuildSizeEstimateSummaryTexts(snapshot, options);
 
             if (plan.TotalInputCount <= 0)
             {
-                EstimateDisclaimerText = string.Empty;
-                return;
+                return new TaskAnalysisSnapshot(
+                    BuildActiveWarnings(plan, options),
+                    [],
+                    formatRecommendationText,
+                    formatRecommendationReasonText,
+                    originalSizeSummaryText,
+                    estimatedSizeSummaryText,
+                    string.Empty);
             }
 
-            ConversionPlanHighlights.Add(BuildPipelineSummaryText(plan.RuleSummary, options));
+            var highlights = BuildConversionPlanHighlights(plan, options);
+
+            return new TaskAnalysisSnapshot(
+                BuildActiveWarnings(plan, options),
+                highlights,
+                formatRecommendationText,
+                formatRecommendationReasonText,
+                originalSizeSummaryText,
+                estimatedSizeSummaryText,
+                BuildEstimateDisclaimerText(plan.Diagnostics));
+        }
+
+        private (string FormatRecommendationText, string FormatRecommendationReasonText) BuildFormatRecommendationTexts()
+        {
+            if (SelectedImage is null || SelectedImage.IsPdfDocument)
+            {
+                return (string.Empty, string.Empty);
+            }
+
+            var analysis = _imageAnalysisService.Analyze(SelectedImage);
+            var recommendedFormats = BuildRecommendationFormatsText(analysis);
+            return (
+                string.Format(CultureInfo.CurrentCulture, T("RecommendationFormatsTemplate"), recommendedFormats),
+                T(GetRecommendationReasonKey(analysis.ContentKind)));
+        }
+
+        private (string OriginalSizeSummaryText, string EstimatedSizeSummaryText) BuildSizeEstimateSummaryTexts(
+            IReadOnlyList<ImageItemViewModel> snapshot,
+            ConversionOptions options)
+        {
+            var estimate = _imageAnalysisService.Estimate(snapshot, options);
+            if (!estimate.IsAvailable)
+            {
+                return (string.Empty, string.Empty);
+            }
+
+            return (
+                string.Format(CultureInfo.CurrentCulture, T("OriginalSizeTemplate"), FormatBytes(estimate.OriginalTotalBytes)),
+                string.Format(CultureInfo.CurrentCulture, T("EstimatedSizeTemplate"), FormatBytesRange(estimate.EstimatedMinBytes, estimate.EstimatedMaxBytes)));
+        }
+
+        private IReadOnlyList<string> BuildConversionPlanHighlights(ConversionPlan plan, ConversionOptions options)
+        {
+            List<string> highlights = [BuildPipelineSummaryText(plan.RuleSummary, options)];
 
             if (BuildForcedBackgroundFillText(plan.RuleSummary) is { } backgroundFillSummary)
             {
-                ConversionPlanHighlights.Add(backgroundFillSummary);
+                highlights.Add(backgroundFillSummary);
             }
 
             if (BuildAiRuleText(plan.RuleSummary) is { } aiRuleSummary)
             {
-                ConversionPlanHighlights.Add(aiRuleSummary);
+                highlights.Add(aiRuleSummary);
             }
 
             if (BuildGifExpansionSummaryText(plan.RuleSummary) is { } gifExpansionSummary)
             {
-                ConversionPlanHighlights.Add(gifExpansionSummary);
+                highlights.Add(gifExpansionSummary);
             }
 
             if (BuildPdfExpansionSummaryText(plan.RuleSummary) is { } pdfExpansionSummary)
             {
-                ConversionPlanHighlights.Add(pdfExpansionSummary);
+                highlights.Add(pdfExpansionSummary);
             }
 
-            ConversionPlanHighlights.Add(plan.TotalEstimatedWorkItems == plan.TotalEstimatedOutputItems
+            highlights.Add(plan.TotalEstimatedWorkItems == plan.TotalEstimatedOutputItems
                 ? string.Format(
                     CultureInfo.CurrentCulture,
                     T("TaskAnalysisWorkloadTemplate"),
@@ -331,10 +321,10 @@ namespace ImvixPro.ViewModels
                     plan.TotalEstimatedOutputItems,
                     plan.TotalEstimatedWorkItems));
 
-            EstimateDisclaimerText = BuildEstimateDisclaimerText(plan.Diagnostics);
+            return highlights;
         }
 
-        private void RefreshActiveWarnings(ConversionPlan currentPlan, ConversionOptions options)
+        private IReadOnlyList<string> BuildActiveWarnings(ConversionPlan currentPlan, ConversionOptions options)
         {
             ArgumentNullException.ThrowIfNull(currentPlan);
             ArgumentNullException.ThrowIfNull(options);
@@ -343,10 +333,11 @@ namespace ImvixPro.ViewModels
                 ? currentPlan
                 : _conversionPlanningService.BuildPlan([SelectedImage], options);
 
-            ReplaceTextCollection(
-                ActiveWarnings,
-                EnumeratePlanWarningTexts(warningPlan)
-                    .Concat(EnumerateRuntimeWarningTexts(includePerformanceHint: true)));
+            return EnumeratePlanWarningTexts(warningPlan)
+                .Concat(EnumerateRuntimeWarningTexts(includePerformanceHint: true))
+                .Where(static value => !string.IsNullOrWhiteSpace(value))
+                .Distinct(StringComparer.Ordinal)
+                .ToArray();
         }
 
         private void ApplyManualRuntimeStatus(RuntimeStatusSummary status)
@@ -402,10 +393,6 @@ namespace ImvixPro.ViewModels
 
         private void RefreshLocalizedPropertiesV3()
         {
-            OnPropertyChanged(nameof(FormatRecommendationTitleText));
-            OnPropertyChanged(nameof(TaskAnalysisTitleText));
-            OnPropertyChanged(nameof(EstimatedSizeTitleText));
-            OnPropertyChanged(nameof(WarningsTitleText));
             OnPropertyChanged(nameof(HistoryTitleText));
             OnPropertyChanged(nameof(HistoryEmptyText));
             OnPropertyChanged(nameof(ClearRecentConversionsText));
@@ -483,21 +470,6 @@ namespace ImvixPro.ViewModels
         {
             PauseConversionCommand.NotifyCanExecuteChanged();
             ResumeConversionCommand.NotifyCanExecuteChanged();
-        }
-
-        partial void OnEstimateDisclaimerTextChanged(string value)
-        {
-            OnPropertyChanged(nameof(HasEstimateDisclaimer));
-        }
-
-        private void OnActiveWarningsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
-        {
-            OnPropertyChanged(nameof(HasActiveWarnings));
-        }
-
-        private void OnConversionPlanHighlightsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
-        {
-            OnPropertyChanged(nameof(HasConversionPlanHighlights));
         }
 
         private static string FormatBytes(long bytes)

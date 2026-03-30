@@ -101,8 +101,6 @@ namespace ImvixPro.ViewModels
 
         private void InitializeVersion3Features(ApplicationPreferences preferences, WatchProfile watchProfile)
         {
-            ActiveWarnings.CollectionChanged += OnActiveWarningsCollectionChanged;
-            ConversionPlanHighlights.CollectionChanged += OnConversionPlanHighlightsCollectionChanged;
             _folderWatchService.FileReady += OnWatchedFileReady;
 
             _maxParallelism = Math.Clamp(Math.Max(1, preferences.MaxParallelism), 1, 4);

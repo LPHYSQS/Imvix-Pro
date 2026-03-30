@@ -139,7 +139,8 @@
                        Classes="secondary"
                        TextWrapping="Wrap" />
 
-            <Border IsVisible="{Binding HasActiveWarnings}"
+            <Border DataContext="{Binding TaskAnalysisState}"
+                    IsVisible="{Binding HasActiveWarnings}"
                     Background="{DynamicResource DangerBackgroundBrush}"
                     BorderBrush="{DynamicResource DangerBorderBrush}"
                     BorderThickness="1"
@@ -430,7 +431,8 @@
                 </StackPanel>
             </Border>
 
-            <Border IsVisible="{Binding HasConversionPlanHighlights}"
+            <Border DataContext="{Binding TaskAnalysisState}"
+                    IsVisible="{Binding HasConversionPlanHighlights}"
                     Background="{DynamicResource SurfaceAltBrush}"
                     BorderBrush="{DynamicResource BorderBrush}"
                     BorderThickness="1"
@@ -469,7 +471,8 @@
                 </StackPanel>
             </Border>
 
-            <Border IsVisible="{Binding HasFormatRecommendation}"
+            <Border DataContext="{Binding TaskAnalysisState}"
+                    IsVisible="{Binding HasFormatRecommendation}"
                     Background="{DynamicResource SurfaceAltBrush}"
                     BorderBrush="{DynamicResource BorderBrush}"
                     BorderThickness="1"
@@ -482,7 +485,8 @@
                 </StackPanel>
             </Border>
 
-            <Border IsVisible="{Binding HasSizeEstimate}"
+            <Border DataContext="{Binding TaskAnalysisState}"
+                    IsVisible="{Binding HasSizeEstimate}"
                     Background="{DynamicResource SurfaceAltBrush}"
                     BorderBrush="{DynamicResource BorderBrush}"
                     BorderThickness="1"

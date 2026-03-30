@@ -77,6 +77,8 @@ namespace ImvixPro.ViewModels
 
         public NotificationState NotificationState { get; }
 
+        public TaskAnalysisState TaskAnalysisState { get; }
+
         public MainWindowViewModel()
             : this(AppServices.CreateMainWindowViewModelServices())
         {
@@ -108,6 +110,7 @@ namespace ImvixPro.ViewModels
             _logger = services.Logger ?? throw new ArgumentNullException(nameof(services.Logger));
             HistoryState = new HistoryState(_conversionHistoryService, _conversionSummaryCoordinator);
             NotificationState = new NotificationState();
+            TaskAnalysisState = new TaskAnalysisState();
 
             Images.CollectionChanged += OnImagesCollectionChanged;
             FailedConversions.CollectionChanged += OnFailedConversionsCollectionChanged;

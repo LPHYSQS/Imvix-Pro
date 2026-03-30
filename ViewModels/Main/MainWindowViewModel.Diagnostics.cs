@@ -1,9 +1,7 @@
 using ImvixPro.Models;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Globalization;
-using System.Linq;
 
 namespace ImvixPro.ViewModels
 {
@@ -55,21 +53,6 @@ namespace ImvixPro.ViewModels
             if (includePerformanceHint && HasAiEnhancementPerformanceHint)
             {
                 yield return AiEnhancementPerformanceHintText;
-            }
-        }
-
-        private static void ReplaceTextCollection(ObservableCollection<string> target, IEnumerable<string> values)
-        {
-            ArgumentNullException.ThrowIfNull(target);
-            ArgumentNullException.ThrowIfNull(values);
-
-            target.Clear();
-
-            foreach (var value in values
-                         .Where(static value => !string.IsNullOrWhiteSpace(value))
-                         .Distinct(StringComparer.Ordinal))
-            {
-                target.Add(value);
             }
         }
 

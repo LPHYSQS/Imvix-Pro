@@ -417,6 +417,54 @@ public sealed class ImageConversionTests
         Assert.Same(dialogRequest, state.PendingDialogRequest);
     }
 
+    [Fact]
+    public void TaskAnalysisState_ApplySnapshot_ReplacesFlattenedSidebarState()
+    {
+        var state = new TaskAnalysisState();
+
+        state.Apply(
+            new TaskAnalysisSnapshot(
+                activeWarnings: ["warning-a", "warning-b"],
+                conversionPlanHighlights: ["plan-a", "plan-b"],
+                formatRecommendationText: "WEBP / JPEG",
+                formatRecommendationReasonText: "photo",
+                originalSizeSummaryText: "Input 2.0 KB",
+                estimatedSizeSummaryText: "Estimate 1.0 KB - 1.5 KB",
+                estimateDisclaimerText: "AI disclaimer"),
+            TranslateTestText);
+
+        Assert.Equal("Warnings", state.WarningsTitleText);
+        Assert.Equal("Task analysis", state.TaskAnalysisTitleText);
+        Assert.Equal("Recommended format", state.FormatRecommendationTitleText);
+        Assert.Equal("Estimated size", state.EstimatedSizeTitleText);
+        Assert.True(state.HasActiveWarnings);
+        Assert.True(state.HasConversionPlanHighlights);
+        Assert.True(state.HasFormatRecommendation);
+        Assert.True(state.HasSizeEstimate);
+        Assert.True(state.HasEstimateDisclaimer);
+        Assert.Equal(2, state.ActiveWarnings.Count);
+        Assert.Equal(2, state.ConversionPlanHighlights.Count);
+
+        state.Apply(
+            new TaskAnalysisSnapshot(
+                activeWarnings: [],
+                conversionPlanHighlights: [],
+                formatRecommendationText: string.Empty,
+                formatRecommendationReasonText: string.Empty,
+                originalSizeSummaryText: string.Empty,
+                estimatedSizeSummaryText: string.Empty,
+                estimateDisclaimerText: string.Empty),
+            TranslateTestText);
+
+        Assert.False(state.HasActiveWarnings);
+        Assert.False(state.HasConversionPlanHighlights);
+        Assert.False(state.HasFormatRecommendation);
+        Assert.False(state.HasSizeEstimate);
+        Assert.False(state.HasEstimateDisclaimer);
+        Assert.Empty(state.ActiveWarnings);
+        Assert.Empty(state.ConversionPlanHighlights);
+    }
+
     private static string TranslateTestText(string key)
     {
         return key switch
@@ -447,6 +495,10 @@ public sealed class ImageConversionTests
             "WatchMetricsTemplate" => "Processed: {0}  Failed: {1}",
             "StatusCompletedWithFailures" => "Completed with failures",
             "StatusCanceled" => "Canceled",
+            "WarningsTitle" => "Warnings",
+            "TaskAnalysisTitle" => "Task analysis",
+            "FormatRecommendationTitle" => "Recommended format",
+            "EstimatedSizeTitle" => "Estimated size",
             _ => key
         };
     }
