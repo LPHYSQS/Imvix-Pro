@@ -54,6 +54,10 @@ namespace ImvixPro.ViewModels
 
         public string WindowsContextMenuHintText => T("WindowsContextMenuHint");
 
+        public string WindowsContextMenuCompatibilityTitleText => T("WindowsContextMenuCompatibilityTitle");
+
+        public string WindowsContextMenuCompatibilityNoticeText => T("WindowsContextMenuCompatibilityNotice");
+
         public bool HasWindowsContextMenuStatus => !string.IsNullOrWhiteSpace(WindowsContextMenuStatusText);
 
         public string CreateDesktopShortcutText => T("CreateDesktopShortcut");

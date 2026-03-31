@@ -365,6 +365,8 @@ namespace ImvixPro.ViewModels
             OnPropertyChanged(nameof(RunOnStartupText));
             OnPropertyChanged(nameof(WindowsContextMenuToggleText));
             OnPropertyChanged(nameof(WindowsContextMenuHintText));
+            OnPropertyChanged(nameof(WindowsContextMenuCompatibilityTitleText));
+            OnPropertyChanged(nameof(WindowsContextMenuCompatibilityNoticeText));
             OnPropertyChanged(nameof(HasWindowsContextMenuStatus));
             OnPropertyChanged(nameof(CreateDesktopShortcutText));
             OnPropertyChanged(nameof(SaveCurrentWatchProfileText));

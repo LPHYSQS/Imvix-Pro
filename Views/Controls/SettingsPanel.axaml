@@ -242,6 +242,41 @@
                                Classes="secondary"
                                TextWrapping="Wrap"
                                IsVisible="{Binding IsWindowsContextMenuSupported}" />
+                    <Border Background="{DynamicResource DangerBackgroundBrush}"
+                            BorderBrush="{DynamicResource DangerBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="8"
+                            Padding="10"
+                            IsVisible="{Binding IsWindowsContextMenuSupported}">
+                        <Grid ColumnDefinitions="Auto,*"
+                              ColumnSpacing="8">
+                            <Border Classes="icon-badge"
+                                    Grid.Column="0"
+                                    Width="28"
+                                    Height="28"
+                                    Padding="0"
+                                    VerticalAlignment="Top"
+                                    Background="{DynamicResource DangerBackgroundBrush}"
+                                    BorderBrush="{DynamicResource DangerBorderBrush}">
+                                <Path Classes="line-icon danger"
+                                      Width="14"
+                                      Height="14"
+                                      HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"
+                                      Data="{StaticResource IconInfoGeometry}" />
+                            </Border>
+                            <StackPanel Grid.Column="1"
+                                        Spacing="4">
+                                <TextBlock Text="{Binding WindowsContextMenuCompatibilityTitleText}"
+                                           FontWeight="SemiBold"
+                                           Foreground="{DynamicResource DangerTextBrush}"
+                                           TextWrapping="Wrap" />
+                                <TextBlock Text="{Binding WindowsContextMenuCompatibilityNoticeText}"
+                                           Foreground="{DynamicResource DangerTextBrush}"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
                     <TextBlock Text="{Binding WindowsContextMenuStatusText}"
                                Classes="secondary"
                                TextWrapping="Wrap"

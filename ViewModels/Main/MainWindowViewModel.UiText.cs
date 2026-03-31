@@ -242,7 +242,7 @@ namespace ImvixPro.ViewModels
 
         public string AboutAuthorNameText => "\u5DF2\u901D\u60C5\u6B87";
 
-        public string AppVersionText => $"v{typeof(MainWindowViewModel).Assembly.GetName().Version?.ToString(3) ?? "1.3.3"}";
+        public string AppVersionText => $"v{typeof(MainWindowViewModel).Assembly.GetName().Version?.ToString(3) ?? "2.0.0"}";
 
         public string VersionBadgeHoverText => T("VersionBadgeHover");
 

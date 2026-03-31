@@ -26,7 +26,7 @@
 
 ## Overview
 
-Imvix Pro is a Windows-first desktop conversion tool, and the current repository version is `1.3.3`.  
+Imvix Pro is a Windows-first desktop conversion tool, and the current repository version is `2.0.0`.  
 It combines format conversion, batch compression, resizing, intelligent analysis, PDF/PSD handling, offline AI tools, recent history, failure logs, and folder watch workflows in one desktop application.
 
 Compared with the older standard-edition README, the current Pro build has clearly expanded into:
@@ -174,6 +174,23 @@ Additional notes:
 - The UI uses Avalonia, but the published target and integration layer are clearly Windows-focused in the current repository.
 - OCR, EXE/LNK icon handling, run-on-startup, Explorer context menus, some codec paths, and some AI acceleration paths are Windows-dependent.
 
+### Recommended Runtime Environment for the current `win-x64` release
+
+| Item | Recommendation |
+| --- | --- |
+| Release architecture | The current package is intended for `win-x64` only |
+| Operating system | Use `Windows 10 22H2 x64 (Build 19045)` as the minimum baseline, or a newer `Windows 11 x64` release. For new devices or new deployments, `Windows 11 x64` is preferred. Additional note: `Windows 10 22H2` reached Microsoft's end of support on `2025-10-14` |
+| CPU | `4 cores / 8 threads` on an x64 processor is a practical starting point for batch conversion, PDF/PSD preview, and OCR/QR/barcode workflows. For smoother large-batch work, `6 cores / 12 threads` or better is recommended, such as Intel Core i5 10th Gen / AMD Ryzen 5 3600-class CPUs or newer |
+| Memory | `8 GB` works for lighter tasks; `16 GB` is the more suitable baseline for the current Pro build; `32 GB` is recommended if you regularly handle large PDF/PSD jobs or keep AI preview tools active |
+| GPU | A discrete GPU is not required for standard conversion, preview, OCR, QR, barcode, or Windows integration. For smoother `AI Batch Image Enhancement`, use a GPU that supports both `DirectX 12` and `Vulkan`, with `4 GB` VRAM as a practical floor and `6 GB+` preferred, such as GTX 1650 / RTX 2050, RX 6400 / 6500 XT, Arc A380, or newer |
+
+Additional assessment:
+
+- The repository targets `.NET 10`, and both the project file and publish setup are already narrowed to `win-x64`, so `Windows 10 22H2 x64` is the most appropriate minimum recommendation for the current release line.
+- `AI Batch Image Enhancement` uses the bundled `realesrgan-ncnn-vulkan.exe`, so it is best suited to systems with a Vulkan-capable GPU. CPU-only machines are better matched to the standard conversion pipeline, or to AI features with noticeably slower performance.
+- `AI Matting` tries DirectML first and automatically falls back to CPU when DirectML is unavailable, so it can still run without a discrete GPU, but usually with a clear speed penalty.
+- These recommendations are aimed at smooth all-around use of the current Pro build, not only the lightest single-image conversion scenario.
+
 ## Configuration and Data
 
 On Windows, Imvix Pro stores app data under `%AppData%\Imvix Pro`.
@@ -221,6 +238,6 @@ This repository ships with a custom source-available license in [`LICENSE`](LICE
 
 - The author / copyright holder retains the right to use, license, sell, distribute, and operate Imvix Pro commercially
 - Any other individual or organization must contact the author and obtain prior written permission before using the project in a commercial product, paid service, revenue-generating workflow, internal business operation, or any other commercial scenario
-- Current commercial licensing contact email: `3261296352@qq.com`
+- Current commercial licensing contact email: `339106817@qq.com`
 - Because commercial use is restricted, this project is `source-available`, not an OSI-approved open source project
 - Bundled third-party runtimes, models, or assets may have their own license terms, and you must still comply with them

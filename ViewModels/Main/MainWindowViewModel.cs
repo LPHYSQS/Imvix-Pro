@@ -30,7 +30,7 @@ namespace ImvixPro.ViewModels
         private const string ThemeCodeSystem = "System";
         private const string LanguageCodeSystem = "System";
         private const string FallbackLanguageCode = "en-US";
-        private const string ContactAuthorEmail = "3261296352@qq.com";
+        private const string ContactAuthorEmail = "339106817@qq.com";
 
         private static readonly (string Code, string DisplayName)[] SupportedLanguageSeeds =
         [
