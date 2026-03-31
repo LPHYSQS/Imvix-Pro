@@ -5,113 +5,157 @@
 <h1 align="center">Imvix Pro</h1>
 
 <p align="center">
-  A modern desktop image converter built for batch processing, smart format guidance, and controlled output quality.
+  A professional desktop conversion tool for batch workflows, local AI assistance, mixed document/image inputs, and Windows integration.
 </p>
 
 <p align="center">
-  <a href="README.md">Chinese</a> |
-  <a href="#highlights">Highlights</a> |
-  <a href="#build-and-run">Build</a> |
-  <a href="#license">License</a>
+  <a href="README.md">简体中文</a> | English
 </p>
 
 <p align="center">
-  <a href="https://get.microsoft.com/installer/download/9n3ztwz2f3z9?referrer=appbadge" target="_self" >
-	<img src="https://get.microsoft.com/images/zh-cn%20dark.svg" width="200"/>
+  <a href="https://get.microsoft.com/installer/download/9n3ztwz2f3z9?referrer=appbadge" target="_self">
+    <img src="https://get.microsoft.com/images/zh-cn%20dark.svg" width="200" alt="Get Imvix Pro from Microsoft Store" />
   </a>
 </p>
 
 <p align="center">
-  .NET 10 | Avalonia 11 | MVVM | Batch Workflows | Folder Watch
+  .NET 10 | Avalonia 11 | MVVM | Local AI Runtime | PDF / PSD / GIF / OCR / QR / Barcode
 </p>
 
-> Imvix Pro focuses on repetitive image conversion work: import files or folders, preview results, tune compression and resizing, save presets, and optionally watch a folder for new files.
+> Imvix Pro is no longer just a simple “change the file extension” image converter. The current Pro build is closer to a desktop workstation for images, documents, icon assets, and automation workflows, with batch conversion, PDF and GIF expansion, PSD preview, offline AI features, intelligent preview tools, folder watch automation, and Windows integration.
 
 ## Overview
 
-Imvix Pro is a desktop image converter for people who need more control than a one-click converter but still want a clean, fast interface. The app combines format conversion, batch compression, resizing, rename rules, smart recommendations, history tracking, and failure logging in a single UI.
+Imvix Pro is a Windows-first desktop conversion tool, and the current repository version is `1.3.3`.  
+It combines format conversion, batch compression, resizing, intelligent analysis, PDF/PSD handling, offline AI tools, recent history, failure logs, and folder watch workflows in one desktop application.
 
-Current repository version: `1.3.3`
+Compared with the older standard-edition README, the current Pro build has clearly expanded into:
+
+- mixed image, vector, PDF, PSD, EXE icon, and desktop shortcut icon intake
+- first-class `PDF` output with page, range, and split strategies
+- local offline AI batch enhancement plus preview-window AI enhancement, AI matting, and AI erasing
+- OCR, QR recognition, barcode recognition, file-detail inspection, and Windows integration features
+- reusable workflows through presets and saved folder-watch profiles
 
 ## Highlights
 
-| Area | What Imvix Pro provides |
+| Area | What the current Pro build provides |
 | --- | --- |
-| Batch intake | Multi-file import, folder import, drag-and-drop, and optional recursive folder expansion |
-| Output control | PNG, JPEG, WEBP, BMP, GIF, TIFF, ICO, and SVG output with source-folder or custom-folder routing |
-| Quality tuning | Compression presets, custom quality, resize modes, SVG background fill, and overwrite control |
-| Workflow tools | Presets, pause/resume/cancel, recent history, failure logs, and automatic folder watch mode |
-| Smart assistance | Format recommendations, size estimation, transparency warnings, and high-compression warnings |
-| UX | Preview pane, double-click full preview, light/dark themes, window placement restore, and multilingual UI |
+| Mixed intake | Multi-file import, folder import, drag-and-drop, with support for PNG, JPG, JPEG, WEBP, BMP, GIF, TIFF, TIF, ICO, SVG, PDF, PSD, EXE, and LNK |
+| Conversion output | PNG, JPEG, WEBP, BMP, GIF, TIFF, ICO, SVG, and PDF output with source-folder or custom-folder routing |
+| Batch rules | Compression quality, resize strategies, rename rules, overwrite control, transparency handling, and ICO/SVG background settings |
+| PDF / GIF workflows | PDF current-page, all-pages, page-range, and split-single-page export; GIF first-frame, specific-frame, and all-frame export |
+| AI batch enhancement | Local offline AI image enhancement that runs before the regular conversion pipeline continues |
+| Intelligent preview tools | Preview-window AI enhancement compare, AI matting, AI erasing, OCR text recognition, QR scanning, and barcode scanning |
+| Workflow tools | Presets, pause/resume/cancel, recent history, failure logs, auto-open output folder, and saved folder-watch profiles |
+| Windows integration | System tray support, run on startup, desktop shortcuts, and Windows “Open with Imvix Pro” context menu integration |
+| UX and localization | 10 UI languages, light/dark/system theme modes, window placement restore, and PDF lock / unlock flow |
 
-## Supported Formats
+## Supported Scope
 
-| Type | Formats |
+| Type | Scope |
 | --- | --- |
-| Input | PNG, JPG, JPEG, WEBP, BMP, GIF, TIFF, TIF, ICO, SVG |
-| Output | PNG, JPEG, WEBP, BMP, GIF, TIFF, ICO, SVG |
+| Batch import / open | PNG, JPG, JPEG, WEBP, BMP, GIF, TIFF, TIF, ICO, SVG, PDF, PSD, EXE, LNK |
+| Batch output | PNG, JPEG, WEBP, BMP, GIF, TIFF, ICO, SVG, PDF |
+| AI batch enhancement input | PNG, JPG, JPEG, WEBP, BMP, static TIFF, and single-frame GIF |
+| Preview AI matting / erasing | Supported static raster images |
+| Preview OCR / QR / barcode | Previewable image content, including rendered previews of PDF and PSD sources |
 
-`GIF` and `TIFF` export are Windows-only in the current build because they rely on `System.Drawing.Common` for encoding.
+Notes:
 
-## Conversion Flow
+- When a batch contains `PDF`, `PSD`, `SVG`, animated `GIF`, or other inputs that are not suitable for AI batch enhancement, those files skip AI enhancement and continue through the standard conversion path.
+- `PDF` input can be exported as images or exported back out as `PDF`, with all-page, current-page, page-range, and split-single-page strategies.
+- `GIF` input supports first-frame, specific-frame, and all-frame strategies. When the output format is not `GIF`, the app can expand frames into separate outputs.
+- `EXE` and `LNK` inputs are primarily used as icon-extraction sources.
+
+## AI and Intelligent Tools
+
+### 1. AI batch image enhancement
+
+- Fully local and offline
+- Based on Real-ESRGAN and Upscayl model families
+- Supports requested upscale targets from `2x` to `16x`
+- Supports `Auto` and `Force CPU` execution modes
+- Enhanced results continue through the existing compression, resize, output, and naming rules
+- The UI explicitly marks third-party models that carry extra non-commercial notices
+
+### 2. Preview-window AI tools
+
+- `AI enhancement preview`: generate an enhanced preview for the current item, compare original/result/split view, and save the result
+- `AI matting`: local ONNX background removal with `U2Net`, `ISNet`, `MODNet`, `AnimeSeg`, transparent output, or solid-color background output
+- `AI eraser`: local `LaMa`-based erase-and-repair tool with brush size, mask expansion, and edge blend controls
+
+Note: `AI matting` and `AI eraser` are currently preview tools only. They do not participate in batch conversion or folder-watch tasks.
+
+### 3. Recognition and analysis
+
+- `OCR text recognition`: offline Paddle OCR v5 runtime
+- `QR scanning`: detect QR content and extract links
+- `Barcode scanning`: detect common 1D and 2D barcodes
+- `Content analysis`: format suggestions, transparency-risk warnings, compression-risk warnings, and output size estimation
+
+## File and Document Handling
+
+- `PDF`
+  - first-page preview, page navigation, and page-range selection
+  - export to images or export to new PDF files
+  - password unlock flow and locked-file skip behavior
+- `PSD`
+  - import and rendered composite preview
+  - PSD canvas, layer, channel, and color detail inspection
+- `EXE / LNK`
+  - extract application icons or shortcut icons as conversion sources
+- `File detail viewer`
+  - inspect image, PDF, PSD, EXE, and LNK metadata and derived information
+
+## Workflow and Integration
+
+- Presets: save, apply, overwrite, and delete conversion presets
+- History: record recent conversions, trigger source, duration, estimated size, and output summary
+- Logging: generate failure logs only when a task contains failed items
+- Folder watch: save the current rules as a watch profile and process new files automatically
+- System tray: keep the app available after closing the main window
+- Run on startup: use a Windows startup shortcut
+- Explorer context menu: show “Open with Imvix Pro” for supported image, PDF, PSD, EXE, and LNK files
+
+## Processing Flow
 
 ```mermaid
 flowchart LR
-    A["Import files or folders"] --> B["Analyze content and size"]
-    B --> C["Show warnings and format recommendations"]
-    C --> D["Apply format, compression, resize, rename, and output rules"]
-    D --> E["Write converted files"]
-    E --> F["Store history and failure logs"]
+    A["Import files / folders / drag and drop"] --> B["Analyze content, size, and risk"]
+    B --> C["Optional AI batch enhancement"]
+    C --> D["Apply format, page/frame handling, resize, compression, rename, and output rules"]
+    D --> E["Write output files"]
+    E --> F["Store history, failure logs, and watch status"]
 ```
 
-## Feature Detail
-
-- Smart format recommendation based on detected content type such as photo, transparent graphic, icon, or vector art.
-- Estimated output size range before running a batch.
-- Preflight warnings for transparency loss when exporting to JPEG and for high-compression settings.
-- Folder watch mode with debounced file readiness checks to process newly added images automatically.
-- Recent conversion history limited to the latest 12 jobs.
-- Failure log generation only when a batch contains errors.
-- JSON-based settings and localization dictionaries for easier maintenance.
-
-## Repository Layout
+## Current Architecture
 
 ```text
 Imvix Pro/
-|-- Assets/                  # logo, icons, localization dictionaries
-|-- Dependencies/Svg/        # bundled SVG-related assemblies
-|-- Models/                  # options, presets, history, summaries, enums
-|-- Services/                # conversion, analysis, watch, settings, logs, localization
-|-- ViewModels/              # primary MVVM logic and advanced workflows
-|-- Views/                   # main window and dialog windows
-|-- App.axaml                # theme resources, icons, global styles
-|-- App.axaml.cs             # app startup and main window wiring
-`-- Imvix Pro.csproj             # .NET 10 desktop project definition
+|-- Assets/Localization/         # 10 language resources
+|-- RuntimeAssets/AI/            # AI enhancement, matting, erasing models and runtimes
+|-- RuntimeAssets/Ocr/           # OCR runtime assets
+|-- RuntimeAssets/Qr/            # QR runtime configuration
+|-- RuntimeAssets/Barcode/       # barcode runtime configuration
+|-- Services/AI/                 # AI enhancement, matting, and erasing services
+|-- Services/ImageConversion/    # core conversion, encoding, saving, and format handling
+|-- Services/PdfModule/          # PDF import, render, security, and export
+|-- Services/PsdModule/          # PSD import, render, and detail analysis
+|-- ViewModels/Main/             # main window state, AI, PDF, preview, and watch logic
+|-- Views/                       # main UI, preview window, detail window, dialogs, and summaries
+`-- Imvix Pro.csproj             # main desktop project
 ```
-
-### Key Implementation Pieces
-
-| Path | Responsibility |
-| --- | --- |
-| `ViewModels/MainWindowViewModel.cs` | Primary UI state, presets, settings synchronization, preview state, localization, and manual conversion entry points |
-| `ViewModels/MainWindowViewModel.V3.cs` | Advanced workflow layer: watch mode, warnings, history, failure logs, pause/resume/cancel, and conversion insights |
-| `Services/ImageConversionService.cs` | Core conversion pipeline, preview generation, resize logic, format encoding, naming, and output routing |
-| `Services/ImageAnalysisService.cs` | Content classification, transparency detection, recommendation logic, and size estimation |
-| `Services/FolderWatchService.cs` | Debounced file-system monitoring for watch mode |
-| `Services/SettingsService.cs` | Persistent user settings |
-| `Services/ConversionHistoryService.cs` | Recent-job history persistence |
-| `Services/ConversionLogService.cs` | Failure log writing |
-| `Assets/Localization/*.json` | UI translations |
 
 ## Build and Run
 
 ### Requirements
 
-- Windows is the primary tested target in this repository.
+- Windows is the primary validated and published target for this repository
 - `.NET 10 SDK`
 - A desktop environment supported by Avalonia
 
-### Run Locally
+### Run locally
 
 ```bash
 dotnet restore
@@ -119,27 +163,32 @@ dotnet build "Imvix Pro.csproj"
 dotnet run --project "Imvix Pro.csproj"
 ```
 
-### Publish a Windows Single-File Build
+### Publish a Windows single-file build
 
 ```bash
 dotnet publish "Imvix Pro.csproj" -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true
 ```
 
-The repository already includes a Windows publish profile at `Properties/PublishProfiles/FolderProfile.pubxml`.
+Additional notes:
+
+- The UI uses Avalonia, but the published target and integration layer are clearly Windows-focused in the current repository.
+- OCR, EXE/LNK icon handling, run-on-startup, Explorer context menus, some codec paths, and some AI acceleration paths are Windows-dependent.
 
 ## Configuration and Data
 
-On Windows, Imvix Pro stores application data under `%AppData%\Imvix Pro`:
+On Windows, Imvix Pro stores app data under `%AppData%\Imvix Pro`.
 
 | File or folder | Purpose |
 | --- | --- |
-| `settings.json` | UI preferences, default conversion options, presets, watch configuration, and window placement |
+| `settings.json` | Language, theme, default output rules, presets, watch configuration, preview-tool settings, and window state |
 | `history.json` | Recent conversion history |
-| `Logs/conversion-*.log` | Failure logs for batches that contain errors |
+| `Logs/conversion-*.log` | Batch failure logs |
+
+If an older `%AppData%\Imvix` folder exists, the application attempts to migrate it to `%AppData%\Imvix Pro`.
 
 ## Localization
 
-The app includes built-in localization assets for:
+Built-in UI resources are available for:
 
 - `zh-CN`
 - `zh-TW`
@@ -152,7 +201,7 @@ The app includes built-in localization assets for:
 - `ru-RU`
 - `ar-SA`
 
-Arabic uses right-to-left layout support in the UI.
+`ar-SA` uses right-to-left layout support.
 
 ## Tech Stack
 
@@ -160,17 +209,18 @@ Arabic uses right-to-left layout support in the UI.
 - `Avalonia UI 11`
 - `CommunityToolkit.Mvvm`
 - `SkiaSharp`
-- `Svg.Skia`
-- `System.Drawing.Common` for the current Windows-specific GIF/TIFF encoding path
+- `Docnet.Core`
+- `Magick.NET`
+- `Microsoft.ML.OnnxRuntime` / `DirectML`
+- `RapidOCR.Net`
+- `ZXing.Net`
 
-## License
+## License and Commercial Use
 
-This repository ships with a custom non-commercial license in [`LICENSE`](LICENSE).
+This repository ships with a custom source-available license in [`LICENSE`](LICENSE).
 
-You may use, study, modify, and redistribute the software for personal, educational, research, evaluation, and other non-commercial purposes. Any commercial use is prohibited unless you first obtain written permission from the author or other copyright holder.
-
-Important: because commercial use is restricted, this license is source-available, not an OSI-approved open source license.
-
-## Commercial Use
-
-If you want to use Imvix Pro in a commercial product, paid service, revenue-generating workflow, or internal business operation, you must obtain prior written permission from the author or other copyright holder first.
+- The author / copyright holder retains the right to use, license, sell, distribute, and operate Imvix Pro commercially
+- Any other individual or organization must contact the author and obtain prior written permission before using the project in a commercial product, paid service, revenue-generating workflow, internal business operation, or any other commercial scenario
+- Current commercial licensing contact email: `3261296352@qq.com`
+- Because commercial use is restricted, this project is `source-available`, not an OSI-approved open source project
+- Bundled third-party runtimes, models, or assets may have their own license terms, and you must still comply with them
