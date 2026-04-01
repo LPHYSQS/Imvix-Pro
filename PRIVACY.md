@@ -1,142 +1,125 @@
-﻿# Privacy Policy for Imvix
+# Imvix Pro 隐私政策
 
-**Last Updated: March 2026**
+**最后更新：2026-04-01**
+**适用产品：Imvix Pro（Pro 版）**
 
-**Version: 2.0.0**
+## 1. 核心声明
 
----
+Imvix Pro 是一款面向专业工作流的 Pro 版桌面软件，采用专有、闭源方式发布，并非开源软件。
 
-## Introduction
+需要特别说明的是，**闭源并不意味着云端处理**。Imvix Pro 采取的是**本地优先（local-first）**的数据处理设计：图像转换、PDF/PSD/GIF 处理、OCR 识别、二维码/条码识别、本地 AI 增强、AI 抠图、AI 擦除等能力，默认均在您的设备本地完成，不依赖将待处理文件上传到开发者服务器或第三方云端进行运算。
 
-Imvix ("we", "our", or "the Application") is a desktop image conversion utility developed by LPHYSQS. This Privacy Policy explains how our Application handles information when you use it.
+除非您主动点击外部链接、主动通过邮件等方式联系我们，或由您的操作系统/浏览器在您明确触发后发起外部连接，否则 Imvix Pro 不会主动向开发者服务器或第三方服务传输您的文件内容、处理结果或本地配置数据。
 
-**TL;DR: Imvix is a privacy-first, offline desktop application. We do not collect, transmit, or store any of your personal data on external servers. All processing happens locally on your device.**
+## 2. 本政策说明的范围
 
----
+本政策用于说明 Imvix Pro 在运行过程中如何处理与隐私相关的数据，包括：
 
-## Information We Collect
+- 软件是否收集或上传用户数据
+- 软件在本地设备上会保存哪些数据
+- 软件何时可能触发外部网络行为
+- 用户对本地数据享有的控制权
 
-### We Do NOT Collect:
+本政策不适用于您在浏览器、邮箱、应用商店或其他第三方平台中主动提交的信息；该类信息受相应第三方平台或服务提供方的隐私政策约束。
 
-- Personal identification information
-- Usage analytics or telemetry data
-- Crash reports or error logs
-- Device or system information
-- IP addresses or location data
-- Cookies or tracking identifiers
+## 3. 我们默认不会收集或上传的内容
 
-### Local Data Storage
+在 Imvix Pro 的常规使用过程中，我们默认**不会**通过软件自动收集、上传、出售、出租或共享以下信息：
 
-Imvix stores the following data **locally on your device** in the `%AppData%\Imvix` directory:
+- 您的原始文件内容、图像、文档或其处理结果
+- 您的 OCR 识别文本、二维码内容、条码内容
+- 您的个人身份信息，例如姓名、手机号、地址、身份证件信息
+- 您的账号信息，因为 Imvix Pro 的核心功能不要求注册账号
+- 您的设备标识符、广告标识符、IP 地址、地理位置
+- 您的使用行为遥测、埋点分析、广告跟踪数据
+- 您的崩溃报告或诊断数据的自动远程提交副本
 
-| File | Purpose |
-|------|---------|
-| `settings.json` | Your application preferences, conversion settings, presets, and window configuration |
-| `history.json` | Recent conversion history (last 12 entries) for your convenience |
-| `Logs/conversion-*.log` | Error logs generated only when batch conversions fail |
+换言之，Imvix Pro 不以内置云端分析、远程推理或后台遥测作为产品运行前提。
 
-**Important:** This data never leaves your computer. It is used solely to provide application functionality and improve your user experience.
+## 4. 本地设备上可能保存的数据
 
----
+为了提供配置记忆、历史记录、失败排查和临时处理能力，Imvix Pro 可能在您的设备本地保存以下数据：
 
-## Image Files
+| 本地位置 | 可能包含的内容 | 主要用途 |
+| --- | --- | --- |
+| `%AppData%\Imvix Pro\settings.json` | 语言、主题、默认输出规则、预设、预览工具参数、监听文件夹配置、窗口状态等设置 | 保存您的软件偏好与工作流配置 |
+| `%AppData%\Imvix Pro\history.json` | 最近转换历史记录（当前实现最多保留最近 12 条） | 便于您查看最近任务结果 |
+| `%AppData%\Imvix Pro\Logs\conversion-*.log` | 失败任务时间、输出参数、所选文件路径、失败原因等 | 仅在批量任务发生失败时用于本地排查 |
+| `%LocalAppData%\ImvixPro\Logs\*.log` | 本地运行日志、警告信息、异常堆栈、部分文件路径或状态信息 | 用于本地诊断与运行问题排查 |
+| `%TEMP%\ImvixPro\...`、`%TEMP%\Imvix_Gif_*` 等临时目录 | 处理中间文件、临时导出帧、AI 工作目录、临时解锁或渲染结果 | 支持本地处理流程，通常在任务结束后清理 |
 
-### How We Handle Your Images
+上述数据默认仅保存在您的设备本地，不会因 Imvix Pro 的常规处理流程而自动上传到外部服务器。
 
-- **Local Processing Only:** All image conversion operations are performed entirely on your local device. Your images are never uploaded to any external server or cloud service.
-- **No Image Retention:** Imvix does not retain copies of your original or converted images beyond the duration of the conversion process.
-- **User-Controlled Output:** Converted images are saved only to the output directory you specify. You have full control over where your files are stored.
-- **Temporary Files:** Any temporary files created during processing (e.g., for GIF encoding) are stored in your system's temporary folder and are cleaned up after the conversion completes.
+如您的设备上存在旧版本目录 `%AppData%\Imvix`，软件可能在本地尝试迁移到 `%AppData%\Imvix Pro`。该迁移行为同样发生在您的设备本地。
 
----
+## 5. 文件与内容的处理方式
 
-## Network Connectivity
+Imvix Pro 仅在您主动选择文件、拖放文件、导入文件夹，或启用了您自己配置的本地监听文件夹时，访问相应的本地内容。
 
-Imvix operates entirely offline. The Application does not require an internet connection to perform its core functionality.
+在此过程中：
 
-The only network-related features are:
+- 输入文件由您自行指定，软件不会主动扫描无关个人目录用于远程上传
+- 输出文件仅写入您指定的输出目录或当前规则对应的本地目录
+- 图像、文档、OCR、二维码、条码、AI 相关处理均在本地执行
+- 为完成 GIF、PDF、AI 等处理流程，软件可能创建本地临时文件，任务结束后会尽力清理
+- 软件不会在开发者服务器上留存您的原文件、输出文件或处理结果
 
-- **Links in About Window:** The Application contains links to our official website and GitHub repository. These links are only activated when you explicitly click them, opening in your default web browser.
+## 6. 网络连接、外部链接与联网边界
 
-No data is transmitted through these links.
+Imvix Pro 的核心处理能力在设计上**不要求持续联网**，核心转换、识别与本地 AI 功能可在本地环境中完成。
 
----
+在以下有限场景下，可能出现由您主动触发的外部连接行为：
 
-## Third-Party Services
+- 您点击“官方网站”等外部链接，系统默认浏览器会打开相应网页
+- 您点击软件中识别出的二维码或条码 URL，系统可能调用默认浏览器打开该链接
+- 您主动通过邮箱、网站或其他外部渠道联系开发者
 
-Imvix does not integrate with any third-party analytics, advertising, or data collection services.
+前述网络行为并非 Imvix Pro 在后台自动上传处理数据，而是由您明确操作后，交由操作系统、浏览器或第三方站点处理。相关站点如何处理您的访问数据，适用其各自的隐私政策。
 
-The Application uses the following libraries for local processing:
+## 7. 第三方组件与本地运行时
 
-- **SkiaSharp** - Image processing
-- **Svg.Skia** - SVG rendering
-- **System.Drawing.Common** - GIF and TIFF encoding
+Imvix Pro 可能集成本地运行的第三方库、模型和运行时，用于完成图像处理、PDF/PSD 渲染、OCR、二维码/条码识别及本地 AI 能力。这些组件在 Imvix Pro 的既有设计中用于**本地执行**，并不因其为第三方组件而当然产生远程数据上传行为。
 
-These libraries operate entirely locally and do not transmit any data externally.
+同时，Imvix Pro 不内置第三方广告 SDK、统计 SDK 或自动化用户画像跟踪服务作为核心产品组成部分。
 
----
+## 8. 数据共享与对外披露
 
-## Children's Privacy
+由于 Imvix Pro 默认不接收您的文件内容或处理结果，因此在常规产品流程中，我们不存在出售、出租或向第三方共享您的待处理文件、输出文件或识别结果的业务流程。
 
-Since Imvix does not collect any personal information, it is safe for users of all ages, including children under the age of 13. However, we recommend parental guidance for younger users when installing and configuring the Application.
+如适用法律另有强制要求，或您主动通过外部渠道向我们提交信息，相关处理将以适用法律要求或您主动提交时的具体场景为准。
 
----
+## 9. 您对本地数据的控制权
 
-## Data Security
+由于相关数据主要保存在您的设备本地，您通常可以直接行使以下控制权：
 
-Since all data is stored locally on your device, the security of your data depends on the security measures you have in place on your computer. We recommend:
+- 查看或备份 `%AppData%\Imvix Pro` 下的本地配置与历史文件
+- 删除 `%AppData%\Imvix Pro\history.json` 以清除最近历史
+- 删除 `%AppData%\Imvix Pro\Logs\` 与 `%LocalAppData%\ImvixPro\Logs\` 下的日志文件
+- 清理系统临时目录中的 Imvix Pro 临时文件
+- 卸载软件并手动删除剩余本地数据目录
 
-- Keeping your operating system up to date
-- Using appropriate security software
-- Protecting your user account with a strong password
+请注意，删除上述文件可能导致您的预设、监听配置、历史记录或部分运行诊断信息不可恢复。
 
----
+## 10. 安全说明
 
-## Your Rights
+Imvix Pro 采取本地处理架构，有助于降低文件在互联网传输过程中的暴露风险；但本地数据的安全性仍取决于您设备本身的安全状况。我们建议您：
 
-Because Imvix does not collect or transmit any personal data, there is no data to access, modify, or delete from our servers. You have full control over your locally stored data:
+- 为操作系统账户设置强密码并妥善管理设备访问权限
+- 保持操作系统和安全补丁为最新状态
+- 在共享设备环境中谨慎保存历史记录、日志和输出文件
+- 对重要文件和配置进行必要的本地备份
 
-- **View:** You can view your settings and history files in `%AppData%\Imvix`
-- **Delete:** You can delete these files at any time to reset the Application
-- **Export:** You can copy these files to backup your settings
+## 11. 政策更新
 
----
+我们可能根据产品功能、合规要求或文档维护需要更新本隐私政策。更新版本将以本文件顶部载明的“最后更新”日期为准。
 
-## Changes to This Privacy Policy
+## 12. 联系方式
 
-We may update this Privacy Policy from time to time. Any changes will be reflected in the "Last Updated" date at the top of this document. We encourage you to review this Privacy Policy periodically.
+如您对本隐私政策有疑问，或希望就商业授权、产品合规或隐私边界进行沟通，可通过以下方式联系：
 
----
-
-## Open Source
-
-Imvix is source-available software. You can review the complete source code on our GitHub repository:
-
-**https://github.com/LPHYSQS/Imvix**
-
-The source code transparency allows you to independently verify our privacy claims.
-
----
-
-## Contact Us
-
-If you have questions or concerns about this Privacy Policy, you may contact us through:
-
-- **GitHub Issues:** https://github.com/LPHYSQS/Imvix/issues
-- **Official Website:** https://lphysqs.github.io/ImvixWeb/
+- 邮箱：`339106817@qq.com`
+- 官方网站：[https://lphysqs.github.io/ImvixWeb/](https://lphysqs.github.io/ImvixWeb/)
 
 ---
 
-## Summary
-
-| Aspect | Our Practice |
-|--------|--------------|
-| Data Collection | None |
-| Telemetry | None |
-| Analytics | None |
-| Cloud Processing | None |
-| Internet Required | No |
-| Data Storage | Local only |
-| Third-Party Sharing | None |
-
-**Imvix is designed with privacy as a core principle. Your images and data remain yours.**
+**简要总结：Imvix Pro 是一款闭源的 Pro 版专业桌面软件，其所有关键数据处理默认在本地完成，不依赖云端处理，也不内置后台遥测上传。**
