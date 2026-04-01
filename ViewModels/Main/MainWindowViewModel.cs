@@ -280,7 +280,7 @@ namespace ImvixPro.ViewModels
         private bool allowOverwrite;
 
         [ObservableProperty]
-        private int quality = 90;
+        private int quality = 100;
 
         [ObservableProperty]
         private bool svgUseBackground;

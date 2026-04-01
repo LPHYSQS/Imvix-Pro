@@ -9,7 +9,7 @@ namespace ImvixPro.Models
 
         public CompressionMode CompressionMode { get; set; } = CompressionMode.Custom;
 
-        public int Quality { get; set; } = 90;
+        public int Quality { get; set; } = 100;
 
         public ResizeMode ResizeMode { get; set; } = ResizeMode.None;
 
@@ -55,7 +55,7 @@ namespace ImvixPro.Models
 
         public int AiEnhancementScale { get; set; } = 2;
 
-        public AiEnhancementModel AiEnhancementModel { get; set; } = AiEnhancementModel.General;
+        public AiEnhancementModel AiEnhancementModel { get; set; } = AiEnhancementModel.UpscaylStandard;
 
         public AiExecutionMode AiExecutionMode { get; set; } = AiExecutionMode.Auto;
 

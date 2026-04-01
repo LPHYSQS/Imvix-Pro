@@ -138,7 +138,7 @@ namespace ImvixPro.ViewModels
         private int aiEnhancementScale = 2;
 
         [ObservableProperty]
-        private AiEnhancementModel selectedAiEnhancementModel = AiEnhancementModel.General;
+        private AiEnhancementModel selectedAiEnhancementModel = AiEnhancementModel.UpscaylStandard;
 
         [ObservableProperty]
         private AiExecutionMode selectedAiExecutionMode = AiExecutionMode.Auto;

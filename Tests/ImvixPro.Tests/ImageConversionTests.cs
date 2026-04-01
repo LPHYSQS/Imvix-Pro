@@ -1073,6 +1073,36 @@ public sealed class ImageConversionTests
         Assert.True(preferences.RunOnStartup);
     }
 
+    [Fact]
+    public void FreshStateDefaults_UseFullQualityAndUpscaylStandardModel()
+    {
+        var settings = new AppSettings();
+        var preferences = AppSettingsStateMapper.ResolveApplicationPreferences(settings);
+        var options = new ConversionOptions();
+        var preset = new ConversionPreset();
+        var snapshot = new MainWindowConfigurationSnapshot();
+        var coordinator = new MainWindowConfigurationCoordinator();
+        var snapshotOptions = coordinator.BuildConversionOptions(snapshot);
+
+        Assert.Equal(100, settings.DefaultQuality);
+        Assert.Equal(AiEnhancementModel.UpscaylStandard, settings.DefaultAiEnhancementModel);
+
+        Assert.Equal(100, preferences.DefaultQuality);
+        Assert.Equal(AiEnhancementModel.UpscaylStandard, preferences.DefaultAiEnhancementModel);
+
+        Assert.Equal(100, options.Quality);
+        Assert.Equal(AiEnhancementModel.UpscaylStandard, options.AiEnhancementModel);
+
+        Assert.Equal(100, preset.Quality);
+        Assert.Equal(AiEnhancementModel.UpscaylStandard, preset.AiEnhancementModel);
+
+        Assert.Equal(100, snapshot.Quality);
+        Assert.Equal(AiEnhancementModel.UpscaylStandard, snapshot.AiEnhancementModel);
+
+        Assert.Equal(100, snapshotOptions.Quality);
+        Assert.Equal(AiEnhancementModel.UpscaylStandard, snapshotOptions.AiEnhancementModel);
+    }
+
     private static string TranslateTestText(string key)
     {
         return key switch
