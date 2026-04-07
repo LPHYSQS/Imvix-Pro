@@ -13,8 +13,8 @@
 </p>
 
 <p align="center">
-  <a href="https://get.microsoft.com/installer/download/9n3ztwz2f3z9?referrer=appbadge" target="_self">
-    <img src="https://get.microsoft.com/images/zh-cn%20dark.svg" width="200" alt="Get Imvix Pro from Microsoft Store" />
+  <a href="https://get.microsoft.com/installer/download/9p0nzsf11cs6?referrer=appbadge" target="_self" >
+    <img src="https://get.microsoft.com/images/en-us%20dark.svg" width="200"/>
   </a>
 </p>
 
