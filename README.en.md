@@ -26,7 +26,8 @@
 
 ## Overview
 
-Imvix Pro is a Windows-first desktop conversion tool, and the current repository version is `2.0.0`.  
+Imvix Pro is a Windows-first desktop conversion tool, and the current repository version is `2.0.1`.
+`2.0.1` is a UI and copy synchronization update that mainly adds Vietnamese (`vi-VN`) and Thai (`th-TH`) support while aligning the version display, release notes, and multilingual documentation.
 It combines format conversion, batch compression, resizing, intelligent analysis, PDF/PSD handling, offline AI tools, recent history, failure logs, and folder watch workflows in one desktop application.
 
 Compared with the older standard-edition README, the current Pro build has clearly expanded into:
@@ -205,7 +206,7 @@ If an older `%AppData%\Imvix` folder exists, the application attempts to migrate
 
 ## Localization
 
-Built-in UI resources are available for:
+Built-in UI resources are available for the following 12 languages (with `vi-VN` and `th-TH` added in `2.0.1`):
 
 - `zh-CN`
 - `zh-TW`
