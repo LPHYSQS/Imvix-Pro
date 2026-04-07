@@ -8,16 +8,21 @@ namespace ImvixPro.Services
 {
     public static class AiEnhancementModelCatalog
     {
-        public const string DefaultRealEsrganModelName = "realesrgan-x4plus";
+        public const string DefaultRealEsrganModelName = "everyday-photo-4x";
         public const int MinRequestedOutputScale = 2;
         public const int MaxRequestedOutputScale = 16;
         public const int FixedInferenceScale = 4;
         public const int DoublePassOutputScale = FixedInferenceScale * FixedInferenceScale;
 
-        private const string AnimeRealEsrganModelName = "realesrgan-x4plus-anime";
-        private const string LightweightRealEsrganModelName = "realesr-general-x4v3";
-        private const string LightweightAnimeVideoModelAlias = "realesr-animevideov3";
-        private const string UpscaylRootFolderName = "UPSCAYL";
+        private const string LegacyDefaultRealEsrganModelName = "realesrgan-x4plus";
+        private const string AnimeRealEsrganModelName = "anime-illustration-4x";
+        private const string LegacyAnimeRealEsrganModelName = "realesrgan-x4plus-anime";
+        private const string LightweightRealEsrganModelName = "fast-lightweight-4x";
+        private const string LegacyLightweightRealEsrganModelName = "realesr-general-x4v3";
+        private const string LightweightAnimeVideoModelAlias = "fast-lightweight";
+        private const string LegacyLightweightAnimeVideoModelAlias = "realesr-animevideov3";
+        private const string FriendlyUpscaylRootFolderName = "SCENE-TUNED";
+        private const string LegacyUpscaylRootFolderNameUpper = "UPSCAYL";
         private const string LegacyUpscaylRootFolderName = "Upscayl";
 
         public static IReadOnlyList<AiEnhancementModelDefinition> Definitions { get; } =
@@ -37,6 +42,28 @@ namespace ImvixPro.Services
         public static AiEnhancementModelDefinition GetDefinition(AiEnhancementModel model)
         {
             return Definitions.First(definition => definition.Model == model);
+        }
+
+        public static void MigrateFriendlyModelNames(string modelsDirectory)
+        {
+            if (string.IsNullOrWhiteSpace(modelsDirectory) || !Directory.Exists(modelsDirectory))
+            {
+                return;
+            }
+
+            TryRenameModelPair(modelsDirectory, LegacyDefaultRealEsrganModelName, DefaultRealEsrganModelName);
+            TryRenameModelPair(modelsDirectory, LegacyAnimeRealEsrganModelName, AnimeRealEsrganModelName);
+            TryRenameModelPair(modelsDirectory, LegacyLightweightRealEsrganModelName, LightweightRealEsrganModelName);
+
+            foreach (var scale in new[] { 2, 3, 4 })
+            {
+                TryRenameModelPair(
+                    modelsDirectory,
+                    $"{LegacyLightweightAnimeVideoModelAlias}-x{scale}",
+                    $"{LightweightAnimeVideoModelAlias}-x{scale}");
+            }
+
+            MigrateUpscaylModelNames(modelsDirectory);
         }
 
         public static int NormalizeRequestedOutputScale(int requestedScale)
@@ -110,49 +137,99 @@ namespace ImvixPro.Services
             switch (model)
             {
                 case AiEnhancementModel.General:
-                    return TryResolveFlatModel(modelsDirectory, DefaultRealEsrganModelName, out resolvedModel);
+                    return TryResolveFlatModel(
+                        modelsDirectory,
+                        [DefaultRealEsrganModelName, LegacyDefaultRealEsrganModelName],
+                        out resolvedModel);
                 case AiEnhancementModel.Anime:
-                    return TryResolveFlatModel(modelsDirectory, AnimeRealEsrganModelName, out resolvedModel);
+                    return TryResolveFlatModel(
+                        modelsDirectory,
+                        [AnimeRealEsrganModelName, LegacyAnimeRealEsrganModelName],
+                        out resolvedModel);
                 case AiEnhancementModel.Lightweight:
-                    if (TryResolveFlatModel(modelsDirectory, LightweightRealEsrganModelName, out resolvedModel))
+                    if (TryResolveFlatModel(
+                            modelsDirectory,
+                            [LightweightRealEsrganModelName, LegacyLightweightRealEsrganModelName],
+                            out resolvedModel))
                     {
                         return true;
                     }
 
-                    var lightweightVariantName = $"{LightweightAnimeVideoModelAlias}-x{Math.Clamp(inferenceScale, 2, 4)}";
-                    if (HasModelPair(modelsDirectory, lightweightVariantName))
+                    foreach (var lightweightVariantAlias in new[]
+                             {
+                                 LightweightAnimeVideoModelAlias,
+                                 LegacyLightweightAnimeVideoModelAlias
+                             })
                     {
-                        resolvedModel = new ResolvedAiModel(modelsDirectory, LightweightAnimeVideoModelAlias);
-                        return true;
+                        var lightweightVariantName = $"{lightweightVariantAlias}-x{Math.Clamp(inferenceScale, 2, 4)}";
+                        if (HasModelPair(modelsDirectory, lightweightVariantName))
+                        {
+                            resolvedModel = new ResolvedAiModel(modelsDirectory, lightweightVariantAlias);
+                            return true;
+                        }
                     }
 
                     break;
                 case AiEnhancementModel.UpscaylStandard:
-                    return TryResolveUpscaylModel(modelsDirectory, ["UPSCAYL-STANDARD-4X"], ["upscayl-standard-4x"], out resolvedModel);
+                    return TryResolveUpscaylModel(
+                        modelsDirectory,
+                        ["BALANCED-QUALITY-4X", "UPSCAYL-STANDARD-4X"],
+                        ["balanced-quality-4x", "upscayl-standard-4x"],
+                        out resolvedModel);
                 case AiEnhancementModel.UpscaylLite:
-                    return TryResolveUpscaylModel(modelsDirectory, ["UPSCAYL-LITE-4X"], ["upscayl-lite-4x"], out resolvedModel);
+                    return TryResolveUpscaylModel(
+                        modelsDirectory,
+                        ["FAST-QUALITY-4X", "UPSCAYL-LITE-4X"],
+                        ["fast-quality-4x", "upscayl-lite-4x"],
+                        out resolvedModel);
                 case AiEnhancementModel.UpscaylHighFidelity:
-                    return TryResolveUpscaylModel(modelsDirectory, ["HIGH-FIDELITY-4X"], ["high-fidelity-4x"], out resolvedModel);
+                    return TryResolveUpscaylModel(
+                        modelsDirectory,
+                        ["DETAIL-PRESERVE-4X", "HIGH-FIDELITY-4X"],
+                        ["detail-preserve-4x", "high-fidelity-4x"],
+                        out resolvedModel);
                 case AiEnhancementModel.UpscaylDigitalArt:
-                    return TryResolveUpscaylModel(modelsDirectory, ["DIGITAL-ART"], ["digital-art-4x"], out resolvedModel);
+                    return TryResolveUpscaylModel(
+                        modelsDirectory,
+                        ["ILLUSTRATION-ART-4X", "DIGITAL-ART"],
+                        ["illustration-art-4x", "digital-art-4x"],
+                        out resolvedModel);
                 case AiEnhancementModel.UpscaylRemacri:
-                    return TryResolveUpscaylModel(modelsDirectory, ["REMACRI-4X"], ["remacri-4x"], out resolvedModel);
+                    return TryResolveUpscaylModel(
+                        modelsDirectory,
+                        ["NATURAL-DETAIL-NC-4X", "REMACRI-4X"],
+                        ["natural-detail-nc-4x", "remacri-4x"],
+                        out resolvedModel);
                 case AiEnhancementModel.UpscaylUltramix:
-                    return TryResolveUpscaylModel(modelsDirectory, ["ULTRAMIX-BALANCED-4X"], ["ultramix-balanced-4x"], out resolvedModel);
+                    return TryResolveUpscaylModel(
+                        modelsDirectory,
+                        ["NATURAL-BALANCED-NC-4X", "ULTRAMIX-BALANCED-4X"],
+                        ["natural-balanced-nc-4x", "ultramix-balanced-4x"],
+                        out resolvedModel);
                 case AiEnhancementModel.UpscaylUltrasharp:
-                    return TryResolveUpscaylModel(modelsDirectory, ["ULTRASHARP-4X"], ["ultrasharp-4x"], out resolvedModel);
+                    return TryResolveUpscaylModel(
+                        modelsDirectory,
+                        ["EXTRA-SHARP-NC-4X", "ULTRASHARP-4X"],
+                        ["extra-sharp-nc-4x", "ultrasharp-4x"],
+                        out resolvedModel);
             }
 
             resolvedModel = default;
             return false;
         }
 
-        private static bool TryResolveFlatModel(string directoryPath, string modelName, out ResolvedAiModel resolvedModel)
+        private static bool TryResolveFlatModel(
+            string directoryPath,
+            IReadOnlyList<string> candidateModelNames,
+            out ResolvedAiModel resolvedModel)
         {
-            if (HasModelPair(directoryPath, modelName))
+            foreach (var candidateModelName in candidateModelNames)
             {
-                resolvedModel = new ResolvedAiModel(directoryPath, modelName);
-                return true;
+                if (HasModelPair(directoryPath, candidateModelName))
+                {
+                    resolvedModel = new ResolvedAiModel(directoryPath, candidateModelName);
+                    return true;
+                }
             }
 
             resolvedModel = default;
@@ -191,7 +268,12 @@ namespace ImvixPro.Services
         private static IEnumerable<string> EnumerateUpscaylRoots(string modelsDirectory)
         {
             var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            foreach (var folderName in new[] { UpscaylRootFolderName, LegacyUpscaylRootFolderName })
+            foreach (var folderName in new[]
+                     {
+                         FriendlyUpscaylRootFolderName,
+                         LegacyUpscaylRootFolderNameUpper,
+                         LegacyUpscaylRootFolderName
+                     })
             {
                 var candidatePath = Path.Combine(modelsDirectory, folderName);
                 if (!Directory.Exists(candidatePath))
@@ -264,6 +346,173 @@ namespace ImvixPro.Services
         {
             return File.Exists(Path.Combine(directoryPath, $"{modelName}.param")) &&
                    File.Exists(Path.Combine(directoryPath, $"{modelName}.bin"));
+        }
+
+        private static void MigrateUpscaylModelNames(string modelsDirectory)
+        {
+            var rootDirectory = EnsureFriendlyUpscaylRoot(modelsDirectory);
+            if (string.IsNullOrWhiteSpace(rootDirectory) || !Directory.Exists(rootDirectory))
+            {
+                return;
+            }
+
+            TryRenameUpscaylPackage(
+                rootDirectory,
+                "UPSCAYL-STANDARD-4X",
+                "BALANCED-QUALITY-4X",
+                "upscayl-standard-4x",
+                "balanced-quality-4x");
+            TryRenameUpscaylPackage(
+                rootDirectory,
+                "UPSCAYL-LITE-4X",
+                "FAST-QUALITY-4X",
+                "upscayl-lite-4x",
+                "fast-quality-4x");
+            TryRenameUpscaylPackage(
+                rootDirectory,
+                "HIGH-FIDELITY-4X",
+                "DETAIL-PRESERVE-4X",
+                "high-fidelity-4x",
+                "detail-preserve-4x");
+            TryRenameUpscaylPackage(
+                rootDirectory,
+                "DIGITAL-ART",
+                "ILLUSTRATION-ART-4X",
+                "digital-art-4x",
+                "illustration-art-4x");
+            TryRenameUpscaylPackage(
+                rootDirectory,
+                "REMACRI-4X",
+                "NATURAL-DETAIL-NC-4X",
+                "remacri-4x",
+                "natural-detail-nc-4x");
+            TryRenameUpscaylPackage(
+                rootDirectory,
+                "ULTRAMIX-BALANCED-4X",
+                "NATURAL-BALANCED-NC-4X",
+                "ultramix-balanced-4x",
+                "natural-balanced-nc-4x");
+            TryRenameUpscaylPackage(
+                rootDirectory,
+                "ULTRASHARP-4X",
+                "EXTRA-SHARP-NC-4X",
+                "ultrasharp-4x",
+                "extra-sharp-nc-4x");
+        }
+
+        private static string EnsureFriendlyUpscaylRoot(string modelsDirectory)
+        {
+            var friendlyRootDirectory = Path.Combine(modelsDirectory, FriendlyUpscaylRootFolderName);
+            if (Directory.Exists(friendlyRootDirectory))
+            {
+                return friendlyRootDirectory;
+            }
+
+            foreach (var legacyRootFolderName in new[] { LegacyUpscaylRootFolderNameUpper, LegacyUpscaylRootFolderName })
+            {
+                var legacyRootDirectory = Path.Combine(modelsDirectory, legacyRootFolderName);
+                if (!Directory.Exists(legacyRootDirectory))
+                {
+                    continue;
+                }
+
+                TryRenameDirectory(legacyRootDirectory, friendlyRootDirectory);
+                return Directory.Exists(friendlyRootDirectory)
+                    ? friendlyRootDirectory
+                    : legacyRootDirectory;
+            }
+
+            return friendlyRootDirectory;
+        }
+
+        private static void TryRenameUpscaylPackage(
+            string rootDirectory,
+            string legacyDirectoryName,
+            string friendlyDirectoryName,
+            string legacyBaseName,
+            string friendlyBaseName)
+        {
+            var friendlyDirectoryPath = Path.Combine(rootDirectory, friendlyDirectoryName);
+            var legacyDirectoryPath = Path.Combine(rootDirectory, legacyDirectoryName);
+
+            TryRenameDirectory(legacyDirectoryPath, friendlyDirectoryPath);
+
+            if (Directory.Exists(friendlyDirectoryPath))
+            {
+                TryRenameModelPair(friendlyDirectoryPath, legacyBaseName, friendlyBaseName);
+                return;
+            }
+
+            if (Directory.Exists(legacyDirectoryPath))
+            {
+                TryRenameModelPair(legacyDirectoryPath, legacyBaseName, friendlyBaseName);
+            }
+        }
+
+        private static void TryRenameDirectory(string sourceDirectoryPath, string targetDirectoryPath)
+        {
+            if (!Directory.Exists(sourceDirectoryPath) || Directory.Exists(targetDirectoryPath))
+            {
+                return;
+            }
+
+            var parentDirectory = Path.GetDirectoryName(targetDirectoryPath);
+            if (!string.IsNullOrWhiteSpace(parentDirectory))
+            {
+                Directory.CreateDirectory(parentDirectory);
+            }
+
+            try
+            {
+                Directory.Move(sourceDirectoryPath, targetDirectoryPath);
+            }
+            catch
+            {
+                // Keep legacy names in place when best-effort migration cannot complete.
+            }
+        }
+
+        private static void TryRenameModelPair(string directoryPath, string legacyBaseName, string friendlyBaseName)
+        {
+            if (string.Equals(legacyBaseName, friendlyBaseName, StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            var legacyParamPath = Path.Combine(directoryPath, $"{legacyBaseName}.param");
+            var legacyBinPath = Path.Combine(directoryPath, $"{legacyBaseName}.bin");
+            var friendlyParamPath = Path.Combine(directoryPath, $"{friendlyBaseName}.param");
+            var friendlyBinPath = Path.Combine(directoryPath, $"{friendlyBaseName}.bin");
+
+            if (!File.Exists(legacyParamPath) ||
+                !File.Exists(legacyBinPath) ||
+                File.Exists(friendlyParamPath) ||
+                File.Exists(friendlyBinPath))
+            {
+                return;
+            }
+
+            var paramMoved = false;
+            try
+            {
+                File.Move(legacyParamPath, friendlyParamPath);
+                paramMoved = true;
+                File.Move(legacyBinPath, friendlyBinPath);
+            }
+            catch
+            {
+                if (paramMoved && File.Exists(friendlyParamPath) && !File.Exists(legacyParamPath))
+                {
+                    try
+                    {
+                        File.Move(friendlyParamPath, legacyParamPath);
+                    }
+                    catch
+                    {
+                        // Ignore rollback failures; future resolution still checks legacy names.
+                    }
+                }
+            }
         }
     }
 

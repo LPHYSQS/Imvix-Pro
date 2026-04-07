@@ -27,9 +27,9 @@ $requiredOcrAssets = @(
     "ppocrv5_arabic_dict.txt"
 )
 $requiredAiModels = @(
-    "realesrgan-x4plus",
-    "realesrgan-x4plus-anime",
-    "realesr-animevideov3-x4"
+    "everyday-photo-4x",
+    "anime-illustration-4x",
+    "fast-lightweight-x4"
 )
 
 $runtimes = @($Runtime)

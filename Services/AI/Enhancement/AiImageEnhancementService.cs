@@ -615,6 +615,8 @@ namespace ImvixPro.Services
                 throw new InvalidOperationException(messages.RuntimeExecutableMissing());
             }
 
+            AiEnhancementModelCatalog.MigrateFriendlyModelNames(modelsDirectory);
+
             if (!AiEnhancementModelCatalog.TryResolveModelSelection(
                     modelsDirectory,
                     options.AiEnhancementModel,

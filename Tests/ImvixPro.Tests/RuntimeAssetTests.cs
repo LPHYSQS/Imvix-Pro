@@ -2,6 +2,7 @@ using ImvixPro.AI.Matting.Inference;
 using ImvixPro.AI.Matting.Models;
 using ImvixPro.Models;
 using ImvixPro.Services;
+using System;
 using System.IO;
 
 namespace ImvixPro.Tests;
@@ -40,6 +41,12 @@ public sealed class RuntimeAssetTests
     [InlineData(AiEnhancementModel.Anime, 4)]
     [InlineData(AiEnhancementModel.Lightweight, 4)]
     [InlineData(AiEnhancementModel.UpscaylStandard, 4)]
+    [InlineData(AiEnhancementModel.UpscaylLite, 4)]
+    [InlineData(AiEnhancementModel.UpscaylHighFidelity, 4)]
+    [InlineData(AiEnhancementModel.UpscaylDigitalArt, 4)]
+    [InlineData(AiEnhancementModel.UpscaylRemacri, 4)]
+    [InlineData(AiEnhancementModel.UpscaylUltramix, 4)]
+    [InlineData(AiEnhancementModel.UpscaylUltrasharp, 4)]
     public void AiEnhancementCatalog_ResolvesBundledOfflineModels(AiEnhancementModel model, int scale)
     {
         var modelsDirectory = Path.Combine(GetProjectRoot(), "RuntimeAssets", "AI", "Enhancement", "models");
@@ -64,6 +71,74 @@ public sealed class RuntimeAssetTests
 
         Assert.NotEmpty(paramFiles);
         Assert.NotEmpty(binFiles);
+    }
+
+    [Fact]
+    public void AiEnhancementCatalog_MigratesLegacyNamesToFriendlyNames()
+    {
+        var modelsDirectory = Path.Combine(Path.GetTempPath(), $"ImvixPro-AiModels-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(modelsDirectory);
+
+        try
+        {
+            CreateModelPair(modelsDirectory, "realesrgan-x4plus");
+
+            var legacyUpscaylDirectory = Path.Combine(modelsDirectory, "UPSCAYL", "REMACRI-4X");
+            Directory.CreateDirectory(legacyUpscaylDirectory);
+            CreateModelPair(legacyUpscaylDirectory, "remacri-4x");
+
+            Assert.True(AiEnhancementModelCatalog.TryResolveModelSelection(
+                modelsDirectory,
+                AiEnhancementModel.General,
+                4,
+                out var legacyGeneralSelection));
+            Assert.Equal("realesrgan-x4plus", legacyGeneralSelection.ResolvedModel.ModelNameArgument);
+
+            Assert.True(AiEnhancementModelCatalog.TryResolveModelSelection(
+                modelsDirectory,
+                AiEnhancementModel.UpscaylRemacri,
+                4,
+                out var legacyUpscaylSelection));
+            Assert.Equal("remacri-4x", legacyUpscaylSelection.ResolvedModel.ModelNameArgument);
+
+            AiEnhancementModelCatalog.MigrateFriendlyModelNames(modelsDirectory);
+
+            Assert.True(File.Exists(Path.Combine(modelsDirectory, "everyday-photo-4x.param")));
+            Assert.True(File.Exists(Path.Combine(modelsDirectory, "everyday-photo-4x.bin")));
+            Assert.True(File.Exists(Path.Combine(
+                modelsDirectory,
+                "SCENE-TUNED",
+                "NATURAL-DETAIL-NC-4X",
+                "natural-detail-nc-4x.param")));
+            Assert.True(File.Exists(Path.Combine(
+                modelsDirectory,
+                "SCENE-TUNED",
+                "NATURAL-DETAIL-NC-4X",
+                "natural-detail-nc-4x.bin")));
+            Assert.False(File.Exists(Path.Combine(modelsDirectory, "realesrgan-x4plus.param")));
+            Assert.False(Directory.Exists(Path.Combine(modelsDirectory, "UPSCAYL")));
+
+            Assert.True(AiEnhancementModelCatalog.TryResolveModelSelection(
+                modelsDirectory,
+                AiEnhancementModel.General,
+                4,
+                out var migratedGeneralSelection));
+            Assert.Equal("everyday-photo-4x", migratedGeneralSelection.ResolvedModel.ModelNameArgument);
+
+            Assert.True(AiEnhancementModelCatalog.TryResolveModelSelection(
+                modelsDirectory,
+                AiEnhancementModel.UpscaylRemacri,
+                4,
+                out var migratedUpscaylSelection));
+            Assert.Equal("natural-detail-nc-4x", migratedUpscaylSelection.ResolvedModel.ModelNameArgument);
+        }
+        finally
+        {
+            if (Directory.Exists(modelsDirectory))
+            {
+                Directory.Delete(modelsDirectory, recursive: true);
+            }
+        }
     }
 
     [Theory]
@@ -94,5 +169,11 @@ public sealed class RuntimeAssetTests
         }
 
         throw new DirectoryNotFoundException("Could not locate the Imvix Pro project root.");
+    }
+
+    private static void CreateModelPair(string directoryPath, string baseName)
+    {
+        File.WriteAllText(Path.Combine(directoryPath, $"{baseName}.param"), "test");
+        File.WriteAllText(Path.Combine(directoryPath, $"{baseName}.bin"), "test");
     }
 }
