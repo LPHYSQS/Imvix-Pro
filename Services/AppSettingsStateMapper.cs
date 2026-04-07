@@ -49,7 +49,7 @@ namespace ImvixPro.Services
                 DefaultGifSpecificFrameIndex = settings.DefaultGifSpecificFrameIndex,
                 AiEnhancementEnabled = settings.AiEnhancementEnabled,
                 DefaultAiEnhancementScale = settings.DefaultAiEnhancementScale,
-                DefaultAiEnhancementModel = settings.DefaultAiEnhancementModel,
+                DefaultAiEnhancementModel = NormalizeAiEnhancementModel(settings.DefaultAiEnhancementModel),
                 DefaultAiExecutionMode = settings.DefaultAiExecutionMode,
                 Presets = ClonePresets(settings.Presets),
                 KeepRunningInTray = settings.KeepRunningInTray,
@@ -154,7 +154,7 @@ namespace ImvixPro.Services
                 HasAiPanelVisibilityPreference = existing.HasAiPanelVisibilityPreference,
                 AiEnhancementEnabled = preferences.AiEnhancementEnabled,
                 DefaultAiEnhancementScale = preferences.DefaultAiEnhancementScale,
-                DefaultAiEnhancementModel = preferences.DefaultAiEnhancementModel,
+                DefaultAiEnhancementModel = NormalizeAiEnhancementModel(preferences.DefaultAiEnhancementModel),
                 DefaultAiExecutionMode = preferences.DefaultAiExecutionMode,
                 DefaultAiMattingModel = previewToolState.AiMattingModel,
                 DefaultAiMattingDevice = previewToolState.AiMattingDevice,
@@ -215,7 +215,7 @@ namespace ImvixPro.Services
                 DefaultGifSpecificFrameIndex = source.DefaultGifSpecificFrameIndex,
                 AiEnhancementEnabled = source.AiEnhancementEnabled,
                 DefaultAiEnhancementScale = source.DefaultAiEnhancementScale,
-                DefaultAiEnhancementModel = source.DefaultAiEnhancementModel,
+                DefaultAiEnhancementModel = NormalizeAiEnhancementModel(source.DefaultAiEnhancementModel),
                 DefaultAiExecutionMode = source.DefaultAiExecutionMode,
                 Presets = ClonePresets(source.Presets),
                 KeepRunningInTray = source.KeepRunningInTray,
@@ -263,7 +263,7 @@ namespace ImvixPro.Services
                 GifSpecificFrameIndex = source.GifSpecificFrameIndex,
                 AiEnhancementEnabled = source.AiEnhancementEnabled,
                 AiEnhancementScale = source.AiEnhancementScale,
-                AiEnhancementModel = source.AiEnhancementModel,
+                AiEnhancementModel = NormalizeAiEnhancementModel(source.AiEnhancementModel),
                 AiExecutionMode = source.AiExecutionMode
             };
         }
@@ -296,11 +296,16 @@ namespace ImvixPro.Services
                 GifSpecificFrameIndex = settings.DefaultGifSpecificFrameIndex,
                 AiEnhancementEnabled = settings.AiEnhancementEnabled,
                 AiEnhancementScale = settings.DefaultAiEnhancementScale,
-                AiEnhancementModel = settings.DefaultAiEnhancementModel,
+                AiEnhancementModel = NormalizeAiEnhancementModel(settings.DefaultAiEnhancementModel),
                 AiExecutionMode = settings.DefaultAiExecutionMode,
                 LanguageCode = settings.LanguageCode,
                 MaxDegreeOfParallelism = settings.MaxParallelism
             };
+        }
+
+        private static AiEnhancementModel NormalizeAiEnhancementModel(AiEnhancementModel model)
+        {
+            return AiEnhancementModelCatalog.NormalizeSelectableModel(model);
         }
     }
 }

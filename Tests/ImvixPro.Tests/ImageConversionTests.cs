@@ -1103,6 +1103,39 @@ public sealed class ImageConversionTests
         Assert.Equal(AiEnhancementModel.UpscaylStandard, snapshotOptions.AiEnhancementModel);
     }
 
+    [Fact]
+    public void LegacyRetiredAiModels_AreNormalizedWhenLoadingPreferencesAndPresets()
+    {
+        var settings = new AppSettings
+        {
+            DefaultAiEnhancementModel = AiEnhancementModel.UpscaylUltrasharp,
+            ApplicationPreferences = new ApplicationPreferences
+            {
+                DefaultAiEnhancementModel = AiEnhancementModel.UpscaylRemacri,
+                Presets =
+                [
+                    new ConversionPreset
+                    {
+                        Name = "Legacy preset",
+                        AiEnhancementModel = AiEnhancementModel.UpscaylUltramix
+                    }
+                ]
+            }
+        };
+
+        var preferences = AppSettingsStateMapper.ResolveApplicationPreferences(settings);
+        var coordinator = new MainWindowConfigurationCoordinator();
+        var options = coordinator.BuildConversionOptions(new MainWindowConfigurationSnapshot
+        {
+            AiEnhancementModel = AiEnhancementModel.UpscaylUltrasharp
+        });
+
+        Assert.Equal(AiEnhancementModel.UpscaylStandard, preferences.DefaultAiEnhancementModel);
+        Assert.Single(preferences.Presets);
+        Assert.Equal(AiEnhancementModel.UpscaylStandard, preferences.Presets[0].AiEnhancementModel);
+        Assert.Equal(AiEnhancementModel.UpscaylStandard, options.AiEnhancementModel);
+    }
+
     private static string TranslateTestText(string key)
     {
         return key switch

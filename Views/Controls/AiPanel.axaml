@@ -110,16 +110,6 @@
                                        TextWrapping="Wrap" />
                         </StackPanel>
                     </Border>
-                    <Border IsVisible="{Binding HasSelectedAiEnhancementModelRestriction}"
-                            Background="{DynamicResource DangerBackgroundBrush}"
-                            BorderBrush="{DynamicResource DangerBorderBrush}"
-                            BorderThickness="1"
-                            CornerRadius="6"
-                            Padding="8">
-                        <TextBlock Text="{Binding SelectedAiEnhancementModelRestrictionText}"
-                                   Foreground="{DynamicResource DangerTextBrush}"
-                                   TextWrapping="Wrap" />
-                    </Border>
                     <Border IsVisible="{Binding HasAiEnhancementModelFallbackWarning}"
                             Background="{DynamicResource DangerBackgroundBrush}"
                             BorderBrush="{DynamicResource DangerBorderBrush}"

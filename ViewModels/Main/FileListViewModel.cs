@@ -208,7 +208,7 @@ namespace ImvixPro.ViewModels
             SelectedGifSpecificFrameIndex = Math.Max(0, SelectedPreset.GifSpecificFrameIndex);
             AiEnhancementEnabled = SelectedPreset.AiEnhancementEnabled;
             AiEnhancementScale = AiEnhancementModelCatalog.NormalizeRequestedOutputScale(SelectedPreset.AiEnhancementScale);
-            SelectedAiEnhancementModel = SelectedPreset.AiEnhancementModel;
+            SelectedAiEnhancementModel = AiEnhancementModelCatalog.NormalizeSelectableModel(SelectedPreset.AiEnhancementModel);
             SelectedAiExecutionMode = SelectedPreset.AiExecutionMode;
             OutputDirectory = SelectedPreset.OutputDirectory;
             UseSourceFolder = SelectedPreset.OutputDirectoryRule == OutputDirectoryRule.SourceFolder;

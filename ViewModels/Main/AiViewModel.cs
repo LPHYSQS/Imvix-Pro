@@ -64,12 +64,6 @@ namespace ImvixPro.ViewModels
 
         public string SelectedAiEnhancementModelDescriptionText => SelectedAiEnhancementModelOption?.Description ?? string.Empty;
 
-        public bool HasSelectedAiEnhancementModelRestriction => SelectedAiEnhancementModelOption?.IsCommercialUseRestricted == true;
-
-        public string SelectedAiEnhancementModelRestrictionText => HasSelectedAiEnhancementModelRestriction
-            ? T("AiModelSelectedRestriction_NonCommercial")
-            : string.Empty;
-
         public bool HasAiEnhancementModelFallbackWarning => !string.IsNullOrWhiteSpace(AiEnhancementModelFallbackWarningText);
 
         public bool HasAiEnhancementPerformanceHint => AiEnhancementEnabled && AiEnhancementScale > 5;
@@ -208,7 +202,7 @@ namespace ImvixPro.ViewModels
             AiPanelEnabled = true;
             AiEnhancementEnabled = preferences.AiEnhancementEnabled;
             AiEnhancementScale = AiEnhancementModelCatalog.NormalizeRequestedOutputScale(preferences.DefaultAiEnhancementScale);
-            SelectedAiEnhancementModel = preferences.DefaultAiEnhancementModel;
+            SelectedAiEnhancementModel = AiEnhancementModelCatalog.NormalizeSelectableModel(preferences.DefaultAiEnhancementModel);
             SelectedAiExecutionMode = preferences.DefaultAiExecutionMode;
 
             SelectedAiMattingModel = previewToolState.AiMattingModel;
@@ -253,8 +247,7 @@ namespace ImvixPro.ViewModels
                     definition.Model,
                     seriesDisplayName,
                     displayName,
-                    description,
-                    definition.IsCommercialUseRestricted));
+                    description));
             }
 
             RebuildEnumOptions(
@@ -340,8 +333,6 @@ namespace ImvixPro.ViewModels
             OnPropertyChanged(nameof(HasSelectedAiEnhancementModelInfo));
             OnPropertyChanged(nameof(SelectedAiEnhancementModelSeriesText));
             OnPropertyChanged(nameof(SelectedAiEnhancementModelDescriptionText));
-            OnPropertyChanged(nameof(HasSelectedAiEnhancementModelRestriction));
-            OnPropertyChanged(nameof(SelectedAiEnhancementModelRestrictionText));
             OnPropertyChanged(nameof(HasAiEnhancementModelFallbackWarning));
             OnPropertyChanged(nameof(HasAiEnhancementPerformanceHint));
             OnPropertyChanged(nameof(ShowAiConversionFeedback));
@@ -438,6 +429,13 @@ namespace ImvixPro.ViewModels
 
         partial void OnSelectedAiEnhancementModelChanged(AiEnhancementModel value)
         {
+            var normalized = AiEnhancementModelCatalog.NormalizeSelectableModel(value);
+            if (value != normalized)
+            {
+                SelectedAiEnhancementModel = normalized;
+                return;
+            }
+
             var option = AiEnhancementModels.FirstOrDefault(item => item.Value == value);
             if (!ReferenceEquals(SelectedAiEnhancementModelOption, option))
             {
@@ -690,8 +688,6 @@ namespace ImvixPro.ViewModels
             OnPropertyChanged(nameof(HasSelectedAiEnhancementModelInfo));
             OnPropertyChanged(nameof(SelectedAiEnhancementModelSeriesText));
             OnPropertyChanged(nameof(SelectedAiEnhancementModelDescriptionText));
-            OnPropertyChanged(nameof(HasSelectedAiEnhancementModelRestriction));
-            OnPropertyChanged(nameof(SelectedAiEnhancementModelRestrictionText));
             RefreshAiModelAvailabilityWarning();
         }
 

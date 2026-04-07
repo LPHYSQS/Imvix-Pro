@@ -24,6 +24,12 @@ namespace ImvixPro.Services
         private const string FriendlyUpscaylRootFolderName = "SCENE-TUNED";
         private const string LegacyUpscaylRootFolderNameUpper = "UPSCAYL";
         private const string LegacyUpscaylRootFolderName = "Upscayl";
+        private static readonly HashSet<AiEnhancementModel> RetiredModels =
+        [
+            AiEnhancementModel.UpscaylRemacri,
+            AiEnhancementModel.UpscaylUltramix,
+            AiEnhancementModel.UpscaylUltrasharp
+        ];
 
         public static IReadOnlyList<AiEnhancementModelDefinition> Definitions { get; } =
         [
@@ -33,15 +39,25 @@ namespace ImvixPro.Services
             new(AiEnhancementModel.UpscaylStandard, "AiModelSeries_Upscayl", "AiModel_UpscaylStandard", "AiModelDescription_UpscaylStandard"),
             new(AiEnhancementModel.UpscaylLite, "AiModelSeries_Upscayl", "AiModel_UpscaylLite", "AiModelDescription_UpscaylLite"),
             new(AiEnhancementModel.UpscaylHighFidelity, "AiModelSeries_Upscayl", "AiModel_UpscaylHighFidelity", "AiModelDescription_UpscaylHighFidelity"),
-            new(AiEnhancementModel.UpscaylDigitalArt, "AiModelSeries_Upscayl", "AiModel_UpscaylDigitalArt", "AiModelDescription_UpscaylDigitalArt"),
-            new(AiEnhancementModel.UpscaylRemacri, "AiModelSeries_Upscayl", "AiModel_UpscaylRemacri", "AiModelDescription_UpscaylRemacri", isCommercialUseRestricted: true),
-            new(AiEnhancementModel.UpscaylUltramix, "AiModelSeries_Upscayl", "AiModel_UpscaylUltramix", "AiModelDescription_UpscaylUltramix", isCommercialUseRestricted: true),
-            new(AiEnhancementModel.UpscaylUltrasharp, "AiModelSeries_Upscayl", "AiModel_UpscaylUltrasharp", "AiModelDescription_UpscaylUltrasharp", isCommercialUseRestricted: true)
+            new(AiEnhancementModel.UpscaylDigitalArt, "AiModelSeries_Upscayl", "AiModel_UpscaylDigitalArt", "AiModelDescription_UpscaylDigitalArt")
         ];
 
         public static AiEnhancementModelDefinition GetDefinition(AiEnhancementModel model)
         {
-            return Definitions.First(definition => definition.Model == model);
+            var normalizedModel = NormalizeSelectableModel(model);
+            return Definitions.First(definition => definition.Model == normalizedModel);
+        }
+
+        public static bool IsRetiredModel(AiEnhancementModel model)
+        {
+            return RetiredModels.Contains(model);
+        }
+
+        public static AiEnhancementModel NormalizeSelectableModel(AiEnhancementModel model)
+        {
+            return IsRetiredModel(model)
+                ? AiEnhancementModel.UpscaylStandard
+                : model;
         }
 
         public static void MigrateFriendlyModelNames(string modelsDirectory)
@@ -110,6 +126,7 @@ namespace ImvixPro.Services
             int requestedOutputScale,
             out ResolvedAiModelSelection resolvedSelection)
         {
+            selectedModel = NormalizeSelectableModel(selectedModel);
             var inferenceScale = ResolveInferenceScale(requestedOutputScale);
             if (TryResolveModel(modelsDirectory, selectedModel, inferenceScale, out var resolvedModel))
             {
@@ -134,6 +151,7 @@ namespace ImvixPro.Services
             int inferenceScale,
             out ResolvedAiModel resolvedModel)
         {
+            model = NormalizeSelectableModel(model);
             switch (model)
             {
                 case AiEnhancementModel.General:
@@ -193,24 +211,6 @@ namespace ImvixPro.Services
                         modelsDirectory,
                         ["ILLUSTRATION-ART-4X", "DIGITAL-ART"],
                         ["illustration-art-4x", "digital-art-4x"],
-                        out resolvedModel);
-                case AiEnhancementModel.UpscaylRemacri:
-                    return TryResolveUpscaylModel(
-                        modelsDirectory,
-                        ["NATURAL-DETAIL-NC-4X", "REMACRI-4X"],
-                        ["natural-detail-nc-4x", "remacri-4x"],
-                        out resolvedModel);
-                case AiEnhancementModel.UpscaylUltramix:
-                    return TryResolveUpscaylModel(
-                        modelsDirectory,
-                        ["NATURAL-BALANCED-NC-4X", "ULTRAMIX-BALANCED-4X"],
-                        ["natural-balanced-nc-4x", "ultramix-balanced-4x"],
-                        out resolvedModel);
-                case AiEnhancementModel.UpscaylUltrasharp:
-                    return TryResolveUpscaylModel(
-                        modelsDirectory,
-                        ["EXTRA-SHARP-NC-4X", "ULTRASHARP-4X"],
-                        ["extra-sharp-nc-4x", "ultrasharp-4x"],
                         out resolvedModel);
             }
 
@@ -380,24 +380,6 @@ namespace ImvixPro.Services
                 "ILLUSTRATION-ART-4X",
                 "digital-art-4x",
                 "illustration-art-4x");
-            TryRenameUpscaylPackage(
-                rootDirectory,
-                "REMACRI-4X",
-                "NATURAL-DETAIL-NC-4X",
-                "remacri-4x",
-                "natural-detail-nc-4x");
-            TryRenameUpscaylPackage(
-                rootDirectory,
-                "ULTRAMIX-BALANCED-4X",
-                "NATURAL-BALANCED-NC-4X",
-                "ultramix-balanced-4x",
-                "natural-balanced-nc-4x");
-            TryRenameUpscaylPackage(
-                rootDirectory,
-                "ULTRASHARP-4X",
-                "EXTRA-SHARP-NC-4X",
-                "ultrasharp-4x",
-                "extra-sharp-nc-4x");
         }
 
         private static string EnsureFriendlyUpscaylRoot(string modelsDirectory)
@@ -522,14 +504,12 @@ namespace ImvixPro.Services
             AiEnhancementModel model,
             string seriesTranslationKey,
             string displayTranslationKey,
-            string descriptionTranslationKey,
-            bool isCommercialUseRestricted = false)
+            string descriptionTranslationKey)
         {
             Model = model;
             SeriesTranslationKey = seriesTranslationKey;
             DisplayTranslationKey = displayTranslationKey;
             DescriptionTranslationKey = descriptionTranslationKey;
-            IsCommercialUseRestricted = isCommercialUseRestricted;
         }
 
         public AiEnhancementModel Model { get; }
@@ -539,8 +519,6 @@ namespace ImvixPro.Services
         public string DisplayTranslationKey { get; }
 
         public string DescriptionTranslationKey { get; }
-
-        public bool IsCommercialUseRestricted { get; }
     }
 
     public readonly record struct ResolvedAiModel(string ModelDirectoryPath, string ModelNameArgument);

@@ -44,9 +44,6 @@ public sealed class RuntimeAssetTests
     [InlineData(AiEnhancementModel.UpscaylLite, 4)]
     [InlineData(AiEnhancementModel.UpscaylHighFidelity, 4)]
     [InlineData(AiEnhancementModel.UpscaylDigitalArt, 4)]
-    [InlineData(AiEnhancementModel.UpscaylRemacri, 4)]
-    [InlineData(AiEnhancementModel.UpscaylUltramix, 4)]
-    [InlineData(AiEnhancementModel.UpscaylUltrasharp, 4)]
     public void AiEnhancementCatalog_ResolvesBundledOfflineModels(AiEnhancementModel model, int scale)
     {
         var modelsDirectory = Path.Combine(GetProjectRoot(), "RuntimeAssets", "AI", "Enhancement", "models");
@@ -74,6 +71,26 @@ public sealed class RuntimeAssetTests
     }
 
     [Fact]
+    public void RetiredAiEnhancementModels_AreRemovedFromBundledRuntimeAssets()
+    {
+        var modelsDirectory = Path.Combine(GetProjectRoot(), "RuntimeAssets", "AI", "Enhancement", "models", "SCENE-TUNED");
+
+        Assert.False(Directory.Exists(Path.Combine(modelsDirectory, "NATURAL-DETAIL-NC-4X")));
+        Assert.False(Directory.Exists(Path.Combine(modelsDirectory, "NATURAL-BALANCED-NC-4X")));
+        Assert.False(Directory.Exists(Path.Combine(modelsDirectory, "EXTRA-SHARP-NC-4X")));
+    }
+
+    [Theory]
+    [InlineData(AiEnhancementModel.UpscaylRemacri)]
+    [InlineData(AiEnhancementModel.UpscaylUltramix)]
+    [InlineData(AiEnhancementModel.UpscaylUltrasharp)]
+    public void RetiredAiEnhancementModels_NormalizeToCommercialFallback(AiEnhancementModel retiredModel)
+    {
+        Assert.True(AiEnhancementModelCatalog.IsRetiredModel(retiredModel));
+        Assert.Equal(AiEnhancementModel.UpscaylStandard, AiEnhancementModelCatalog.NormalizeSelectableModel(retiredModel));
+    }
+
+    [Fact]
     public void AiEnhancementCatalog_MigratesLegacyNamesToFriendlyNames()
     {
         var modelsDirectory = Path.Combine(Path.GetTempPath(), $"ImvixPro-AiModels-{Guid.NewGuid():N}");
@@ -83,9 +100,9 @@ public sealed class RuntimeAssetTests
         {
             CreateModelPair(modelsDirectory, "realesrgan-x4plus");
 
-            var legacyUpscaylDirectory = Path.Combine(modelsDirectory, "UPSCAYL", "REMACRI-4X");
+            var legacyUpscaylDirectory = Path.Combine(modelsDirectory, "UPSCAYL", "UPSCAYL-STANDARD-4X");
             Directory.CreateDirectory(legacyUpscaylDirectory);
-            CreateModelPair(legacyUpscaylDirectory, "remacri-4x");
+            CreateModelPair(legacyUpscaylDirectory, "upscayl-standard-4x");
 
             Assert.True(AiEnhancementModelCatalog.TryResolveModelSelection(
                 modelsDirectory,
@@ -96,10 +113,10 @@ public sealed class RuntimeAssetTests
 
             Assert.True(AiEnhancementModelCatalog.TryResolveModelSelection(
                 modelsDirectory,
-                AiEnhancementModel.UpscaylRemacri,
+                AiEnhancementModel.UpscaylStandard,
                 4,
                 out var legacyUpscaylSelection));
-            Assert.Equal("remacri-4x", legacyUpscaylSelection.ResolvedModel.ModelNameArgument);
+            Assert.Equal("upscayl-standard-4x", legacyUpscaylSelection.ResolvedModel.ModelNameArgument);
 
             AiEnhancementModelCatalog.MigrateFriendlyModelNames(modelsDirectory);
 
@@ -108,13 +125,13 @@ public sealed class RuntimeAssetTests
             Assert.True(File.Exists(Path.Combine(
                 modelsDirectory,
                 "SCENE-TUNED",
-                "NATURAL-DETAIL-NC-4X",
-                "natural-detail-nc-4x.param")));
+                "BALANCED-QUALITY-4X",
+                "balanced-quality-4x.param")));
             Assert.True(File.Exists(Path.Combine(
                 modelsDirectory,
                 "SCENE-TUNED",
-                "NATURAL-DETAIL-NC-4X",
-                "natural-detail-nc-4x.bin")));
+                "BALANCED-QUALITY-4X",
+                "balanced-quality-4x.bin")));
             Assert.False(File.Exists(Path.Combine(modelsDirectory, "realesrgan-x4plus.param")));
             Assert.False(Directory.Exists(Path.Combine(modelsDirectory, "UPSCAYL")));
 
@@ -127,10 +144,10 @@ public sealed class RuntimeAssetTests
 
             Assert.True(AiEnhancementModelCatalog.TryResolveModelSelection(
                 modelsDirectory,
-                AiEnhancementModel.UpscaylRemacri,
+                AiEnhancementModel.UpscaylStandard,
                 4,
                 out var migratedUpscaylSelection));
-            Assert.Equal("natural-detail-nc-4x", migratedUpscaylSelection.ResolvedModel.ModelNameArgument);
+            Assert.Equal("balanced-quality-4x", migratedUpscaylSelection.ResolvedModel.ModelNameArgument);
         }
         finally
         {

@@ -31,6 +31,11 @@ $requiredAiModels = @(
     "anime-illustration-4x",
     "fast-lightweight-x4"
 )
+$removedAiModelDirectories = @(
+    "SCENE-TUNED\\NATURAL-DETAIL-NC-4X",
+    "SCENE-TUNED\\NATURAL-BALANCED-NC-4X",
+    "SCENE-TUNED\\EXTRA-SHARP-NC-4X"
+)
 
 $runtimes = @($Runtime)
 
@@ -113,6 +118,13 @@ foreach ($rid in $runtimes) {
     $missingPaths = $requiredPaths | Where-Object { -not (Test-Path $_) }
     if ($missingPaths.Count -gt 0) {
         throw "Publish output for $rid is incomplete:`n$($missingPaths -join [Environment]::NewLine)"
+    }
+
+    $unexpectedPaths = $removedAiModelDirectories |
+        ForEach-Object { Join-Path $aiModelsDir $_ } |
+        Where-Object { Test-Path $_ }
+    if ($unexpectedPaths.Count -gt 0) {
+        throw "Publish output for $rid still contains retired AI models:`n$($unexpectedPaths -join [Environment]::NewLine)"
     }
 
     Write-Host "Portable AI + OCR + QR + Barcode publish ready: $publishDir"

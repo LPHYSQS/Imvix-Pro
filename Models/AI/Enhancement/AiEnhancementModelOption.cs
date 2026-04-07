@@ -6,14 +6,12 @@ namespace ImvixPro.Models
             AiEnhancementModel value,
             string seriesDisplayName,
             string displayName,
-            string description,
-            bool isCommercialUseRestricted)
+            string description)
         {
             Value = value;
             SeriesDisplayName = seriesDisplayName;
             DisplayName = displayName;
             Description = description;
-            IsCommercialUseRestricted = isCommercialUseRestricted;
             ListDisplayName = $"{seriesDisplayName} / {displayName}";
         }
 
@@ -26,8 +24,6 @@ namespace ImvixPro.Models
         public string ListDisplayName { get; }
 
         public string Description { get; }
-
-        public bool IsCommercialUseRestricted { get; }
 
         public override string ToString() => ListDisplayName;
     }

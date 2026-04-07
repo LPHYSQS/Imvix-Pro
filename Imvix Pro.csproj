@@ -63,11 +63,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Remove="tools\Verifiers\**\*.cs" />
-    <Compile Remove="CodexWatchModeVerifier\**\*.cs" />
-    <Compile Remove="CodexPreviewOcrVerifier\**\*.cs" />
-    <Compile Remove="CodexPreviewQrVerifier\**\*.cs" />
-    <Compile Remove="CodexPreviewBarcodeVerifier\**\*.cs" />
     <Compile Remove="Tests\**\*.cs" />
   </ItemGroup>
 
