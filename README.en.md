@@ -49,7 +49,7 @@ Compared with the older standard-edition README, the current Pro build has clear
 | Intelligent preview tools | Preview-window AI enhancement compare, AI matting, AI erasing, OCR text recognition, QR scanning, and barcode scanning |
 | Workflow tools | Presets, pause/resume/cancel, recent history, failure logs, auto-open output folder, and saved folder-watch profiles |
 | Windows integration | System tray support, run on startup, desktop shortcuts, and Windows “Open with Imvix Pro” context menu integration |
-| UX and localization | 10 UI languages, light/dark/system theme modes, window placement restore, and PDF lock / unlock flow |
+| UX and localization | 12 UI languages, light/dark/system theme modes, window placement restore, and PDF lock / unlock flow |
 
 ## Supported Scope
 
@@ -133,7 +133,7 @@ flowchart LR
 
 ```text
 Imvix Pro/
-|-- Assets/Localization/         # 10 language resources
+|-- Assets/Localization/         # 12 language resources
 |-- RuntimeAssets/AI/            # AI enhancement, matting, erasing models and runtimes
 |-- RuntimeAssets/Ocr/           # OCR runtime assets
 |-- RuntimeAssets/Qr/            # QR runtime configuration
@@ -217,6 +217,8 @@ Built-in UI resources are available for:
 - `it-IT`
 - `ru-RU`
 - `ar-SA`
+- `vi-VN`
+- `th-TH`
 
 `ar-SA` uses right-to-left layout support.
 

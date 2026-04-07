@@ -823,7 +823,7 @@ namespace ImvixPro.Views
             catch (Exception ex)
             {
                 _logger.LogWarning(nameof(ImagePreviewWindow), "AI eraser preview generation failed.", ex);
-                await Dispatcher.UIThread.InvokeAsync(() => ShowToast(ex.Message));
+                await Dispatcher.UIThread.InvokeAsync(() => ShowToast(ResolveAiEraserErrorMessage(ex)));
             }
             finally
             {
@@ -890,7 +890,7 @@ namespace ImvixPro.Views
             catch (Exception ex)
             {
                 _logger.LogWarning(nameof(ImagePreviewWindow), "Saving the AI eraser output failed.", ex);
-                await Dispatcher.UIThread.InvokeAsync(() => ShowToast(ex.Message));
+                await Dispatcher.UIThread.InvokeAsync(() => ShowToast(ResolveAiEraserErrorMessage(ex)));
             }
             finally
             {
@@ -901,6 +901,17 @@ namespace ImvixPro.Views
                     RefreshPreviewActionStates();
                 });
             }
+        }
+
+        private string ResolveAiEraserErrorMessage(Exception ex)
+        {
+            return ex switch
+            {
+                FileNotFoundException => T("PreviewEraserFailed"),
+                InvalidOperationException => T("PreviewEraserFailed"),
+                _ when string.IsNullOrWhiteSpace(ex.Message) => T("PreviewEraserFailed"),
+                _ => ex.Message
+            };
         }
 
         private void OnCloseAiEraserEditClick(object? sender, RoutedEventArgs e)

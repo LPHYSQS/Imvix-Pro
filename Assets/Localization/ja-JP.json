@@ -243,7 +243,7 @@
     "VersionNotesFixesTitle":  "不具合修正",
     "VersionNotesFixesBody":  "1. 実行中に再起動すると複数ウィンドウが起動する問題を修正しました。",
     "VersionNotesFeaturesTitle":  "新機能",
-    "VersionNotesFeaturesBody":  "1. 既存の変換フローへ直接つなげられるローカルオフラインの AI 一括画像強化を追加しました。\n2. プレビュー画面に AI 比較、AI 切り抜き、AI 消去、OCR、QR コード、バーコード認識ツールを追加しました。\n3. PDF、GIF、PSD、EXE、LNK の取り込み、プレビュー、書き出し、詳細解析を強化しました。\n4. 監視設定、トレイ常駐、起動時実行、デスクトップショートカット、Windows 右クリックメニュー連携を追加しました。\n5. 10 言語 UI とシステムのテーマ/言語追従に対応し、全体の体験を Pro ワークフローへ引き上げました。",
+    "VersionNotesFeaturesBody":  "1. 既存の変換フローへ直接つなげられるローカルオフラインの AI 一括画像強化を追加しました。\n2. プレビュー画面に AI 比較、AI 切り抜き、AI 消去、OCR、QR コード、バーコード認識ツールを追加しました。\n3. PDF、GIF、PSD、EXE、LNK の取り込み、プレビュー、書き出し、詳細解析を強化しました。\n4. 監視設定、トレイ常駐、起動時実行、デスクトップショートカット、Windows 右クリックメニュー連携を追加しました。\n5. 12 言語 UI とシステムのテーマ/言語追従に対応し、全体の体験を Pro ワークフローへ引き上げました。",
     "UnknownReason":  "不明な理由",
     "AiErrorNormalizeUnsupported":  "選択したファイル形式は AI 高画質化用に前処理できません。",
     "AiErrorPrepareTemporaryImage":  "AI 高画質化用の一時画像を準備できませんでした。",

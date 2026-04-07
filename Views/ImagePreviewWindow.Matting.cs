@@ -377,7 +377,7 @@ namespace ImvixPro.Views
             catch (Exception ex)
             {
                 _logger.LogWarning(nameof(ImagePreviewWindow), "AI matting preview generation failed.", ex);
-                await Dispatcher.UIThread.InvokeAsync(() => ShowToast(ex.Message));
+                await Dispatcher.UIThread.InvokeAsync(() => ShowToast(ResolveAiMattingErrorMessage(ex)));
             }
             finally
             {
@@ -487,7 +487,7 @@ namespace ImvixPro.Views
             catch (Exception ex)
             {
                 _logger.LogWarning(nameof(ImagePreviewWindow), "Saving the AI matting output failed.", ex);
-                await Dispatcher.UIThread.InvokeAsync(() => ShowToast(ex.Message));
+                await Dispatcher.UIThread.InvokeAsync(() => ShowToast(ResolveAiMattingErrorMessage(ex)));
             }
             finally
             {
@@ -559,6 +559,17 @@ namespace ImvixPro.Views
             }
 
             return fallbackFormat;
+        }
+
+        private string ResolveAiMattingErrorMessage(Exception ex)
+        {
+            return ex switch
+            {
+                FileNotFoundException => T("PreviewMattingFailed"),
+                InvalidOperationException => T("PreviewMattingFailed"),
+                _ when string.IsNullOrWhiteSpace(ex.Message) => T("PreviewMattingFailed"),
+                _ => ex.Message
+            };
         }
 
         private void OnShowAiMattingOriginalClick(object? sender, RoutedEventArgs e)

@@ -243,7 +243,7 @@
     "VersionNotesFixesTitle":  "Bug 修復",
     "VersionNotesFixesBody":  "1. 修復應用程式執行時再次啟動導致多個視窗/實例的問題。",
     "VersionNotesFeaturesTitle":  "新增功能",
-    "VersionNotesFeaturesBody":  "1. 新增本地離線 AI 批次影像增強，並可直接接入現有轉換鏈路。\n2. 預覽視窗新增 AI 增強對比、AI 去背、AI 擦除、OCR、QR Code 與條碼辨識工具。\n3. 擴展 PDF、GIF、PSD、EXE、LNK 的匯入、預覽、匯出與詳情分析能力。\n4. 新增監聽設定、系統匣常駐、開機自啟、桌面捷徑與 Windows 右鍵選單整合。\n5. 完成 10 種介面語言與系統主題/語言跟隨，整體體驗升級為 Pro 版工作流程。",
+    "VersionNotesFeaturesBody":  "1. 新增本地離線 AI 批次影像增強，並可直接接入現有轉換鏈路。\n2. 預覽視窗新增 AI 增強對比、AI 去背、AI 擦除、OCR、QR Code 與條碼辨識工具。\n3. 擴展 PDF、GIF、PSD、EXE、LNK 的匯入、預覽、匯出與詳情分析能力。\n4. 新增監聽設定、系統匣常駐、開機自啟、桌面捷徑與 Windows 右鍵選單整合。\n5. 完成 12 種介面語言與系統主題/語言跟隨，整體體驗升級為 Pro 版工作流程。",
     "UnknownReason":  "未知原因",
     "AiErrorNormalizeUnsupported":  "所選檔案類型無法為 AI 增強進行前處理。",
     "AiErrorPrepareTemporaryImage":  "無法為 AI 增強準備暫存圖片。",

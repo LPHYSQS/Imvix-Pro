@@ -243,7 +243,7 @@
     "VersionNotesFixesTitle":  "Bug Fixes",
     "VersionNotesFixesBody":  "1. Fixed an issue where launching the app again while it was running could open multiple windows.",
     "VersionNotesFeaturesTitle":  "New Features",
-    "VersionNotesFeaturesBody":  "1. Added local offline AI batch enhancement that can feed directly into the existing conversion pipeline.\n2. Added preview tools for AI comparison, AI matting, AI inpainting, OCR, QR scanning, and barcode scanning.\n3. Expanded import, preview, export, and detail analysis for PDF, GIF, PSD, EXE, and LNK workflows.\n4. Added watch profiles, tray mode, startup, desktop shortcuts, and Windows context menu integration.\n5. Upgraded the overall Pro experience with 10 UI languages and automatic system theme/language following.",
+    "VersionNotesFeaturesBody":  "1. Added local offline AI batch enhancement that can feed directly into the existing conversion pipeline.\n2. Added preview tools for AI comparison, AI matting, AI inpainting, OCR, QR scanning, and barcode scanning.\n3. Expanded import, preview, export, and detail analysis for PDF, GIF, PSD, EXE, and LNK workflows.\n4. Added watch profiles, tray mode, startup, desktop shortcuts, and Windows context menu integration.\n5. Upgraded the overall Pro experience with 12 UI languages and automatic system theme/language following.",
     "UnknownReason":  "Unknown reason",
     "AiErrorNormalizeUnsupported":  "The selected file type cannot be prepared for AI enhancement.",
     "AiErrorPrepareTemporaryImage":  "Unable to prepare a temporary image for AI enhancement.",

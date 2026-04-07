@@ -243,7 +243,7 @@
     "VersionNotesFixesTitle":  "Fehlerbehebungen",
     "VersionNotesFixesBody":  "1. Behebt ein Problem, bei dem ein erneuter Start während der Ausführung mehrere Fenster öffnete.",
     "VersionNotesFeaturesTitle":  "Neue Funktionen",
-    "VersionNotesFeaturesBody":  "1. Lokale Offline-KI-Stapelbildverbesserung hinzugefügt, die sich direkt in die bestehende Konvertierungspipeline einfügt.\n2. Vorschaufenster um KI-Vergleich, KI-Freistellung, KI-Radierer, OCR, QR-Scan und Barcode-Scan erweitert.\n3. Import, Vorschau, Export und Detailanalyse für PDF, GIF, PSD, EXE und LNK ausgebaut.\n4. Überwachungsprofile, Tray-Modus, Autostart, Desktop-Verknüpfungen und Windows-Kontextmenüintegration hinzugefügt.\n5. Das Pro-Erlebnis mit 10 UI-Sprachen sowie automatischer Übernahme von Systemdesign und Systemsprache aufgewertet.",
+    "VersionNotesFeaturesBody":  "1. Lokale Offline-KI-Stapelbildverbesserung hinzugefügt, die sich direkt in die bestehende Konvertierungspipeline einfügt.\n2. Vorschaufenster um KI-Vergleich, KI-Freistellung, KI-Radierer, OCR, QR-Scan und Barcode-Scan erweitert.\n3. Import, Vorschau, Export und Detailanalyse für PDF, GIF, PSD, EXE und LNK ausgebaut.\n4. Überwachungsprofile, Tray-Modus, Autostart, Desktop-Verknüpfungen und Windows-Kontextmenüintegration hinzugefügt.\n5. Das Pro-Erlebnis mit 12 UI-Sprachen sowie automatischer Übernahme von Systemdesign und Systemsprache aufgewertet.",
     "UnknownReason":  "Unbekannter Grund",
     "AiErrorNormalizeUnsupported":  "Der ausgewählte Dateityp kann nicht für die KI-Verbesserung vorbereitet werden.",
     "AiErrorPrepareTemporaryImage":  "Für die KI-Verbesserung konnte kein temporäres Bild vorbereitet werden.",

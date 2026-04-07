@@ -243,7 +243,7 @@
     "VersionNotesFixesTitle":  "Bug 修复",
     "VersionNotesFixesBody":  "1. 修复应用运行时再次启动导致多实例/多窗口的问题。",
     "VersionNotesFeaturesTitle":  "新增功能",
-    "VersionNotesFeaturesBody":  "1. 新增本地离线 AI 批量图片增强，并可直接接入现有转换链路。\n2. 预览窗口新增 AI 增强对比、AI 抠图、AI 擦除、OCR、二维码与条码识别工具。\n3. 扩展 PDF、GIF、PSD、EXE、LNK 的导入、预览、导出与详情分析能力。\n4. 新增监听配置、托盘常驻、开机启动、桌面快捷方式与 Windows 右键菜单集成。\n5. 完成 10 种界面语言与系统主题/语言跟随，整体体验升级为 Pro 版工作流。",
+    "VersionNotesFeaturesBody":  "1. 新增本地离线 AI 批量图片增强，并可直接接入现有转换链路。\n2. 预览窗口新增 AI 增强对比、AI 抠图、AI 擦除、OCR、二维码与条码识别工具。\n3. 扩展 PDF、GIF、PSD、EXE、LNK 的导入、预览、导出与详情分析能力。\n4. 新增监听配置、托盘常驻、开机启动、桌面快捷方式与 Windows 右键菜单集成。\n5. 完成 12 种界面语言与系统主题/语言跟随，整体体验升级为 Pro 版工作流。",
     "UnknownReason":  "未知原因",
     "AiErrorNormalizeUnsupported":  "所选文件类型无法为 AI 增强进行预处理。",
     "AiErrorPrepareTemporaryImage":  "无法为 AI 增强准备临时图片。",

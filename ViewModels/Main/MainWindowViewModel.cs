@@ -43,7 +43,9 @@ namespace ImvixPro.ViewModels
             ("de-DE", "Deutsch"),
             ("it-IT", "Italiano"),
             ("ru-RU", "\u0420\u0443\u0441\u0441\u043A\u0438\u0439"),
-            ("ar-SA", "\u0627\u0644\u0639\u0631\u0628\u064A\u0629")
+            ("ar-SA", "\u0627\u0644\u0639\u0631\u0628\u064A\u0629"),
+            ("vi-VN", "Ti\u1EBFng Vi\u1EC7t"),
+            ("th-TH", "\u0E44\u0E17\u0E22")
         ];
 
         private readonly SettingsService _settingsService;
