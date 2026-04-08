@@ -218,7 +218,7 @@
     "ContactAuthor":  "작성자에게 문의",
     "ContactAuthorEmailLabel":  "이메일",
     "ContactAuthorCopy":  "복사",
-    "ContactAuthorNote":  "현재 버전에서 버그가 발생하면 사용 중인 버전 번호({0})와 버그 상세 내용을 이메일에 적어 작성자에게 보내 주세요.",
+    "ContactAuthorNote":  "현재 소프트웨어에서 버그가 발생하면 소프트웨어 전체 이름, 사용 중인 버전 번호({0}), 버그 상세 내용을 이메일에 적어 작성자에게 보내 주세요.",
     "AboutWindowTitle":  "Imvix Pro 정보",
     "AboutVersionLabel":  "버전",
     "AboutTagline":  "전문 일괄 작업과 로컬 AI 처리를 위한 현대적인 이미지 도구",

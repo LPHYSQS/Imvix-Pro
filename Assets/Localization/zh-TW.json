@@ -218,7 +218,7 @@
     "ContactAuthor":  "聯繫作者",
     "ContactAuthorEmailLabel":  "電子郵件",
     "ContactAuthorCopy":  "複製",
-    "ContactAuthorNote":  "若遇到目前版本的錯誤，請在郵件中附上您目前使用的版本號（{0}）及錯誤詳情，並寄送給作者。",
+    "ContactAuthorNote":  "若遇到目前軟體的錯誤，請在郵件中附上目前軟體全名、您目前使用的版本號（{0}）及錯誤詳情，並寄送給作者。",
     "AboutWindowTitle":  "關於 Imvix Pro",
     "AboutVersionLabel":  "版本",
     "AboutTagline":  "面向專業批次處理與本地智慧處理的現代影像工具",

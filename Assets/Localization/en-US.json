@@ -218,7 +218,7 @@
     "ContactAuthor":  "Contact Author",
     "ContactAuthorEmailLabel":  "Email",
     "ContactAuthorCopy":  "Copy",
-    "ContactAuthorNote":  "If you encounter a bug in the current version, please include your current version number ({0}) and bug details in the email to the author.",
+    "ContactAuthorNote":  "If you encounter a bug in the current software, please include the full software name, your current version number ({0}), and the bug details in the email to the author.",
     "AboutWindowTitle":  "About Imvix Pro",
     "AboutVersionLabel":  "Version",
     "AboutTagline":  "A modern image tool for pro batch workflows and local intelligence.",

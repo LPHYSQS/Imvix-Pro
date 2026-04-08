@@ -218,7 +218,7 @@
     "ContactAuthor":  "Autor kontaktieren",
     "ContactAuthorEmailLabel":  "E-Mail",
     "ContactAuthorCopy":  "Kopieren",
-    "ContactAuthorNote":  "Wenn in der aktuellen Version ein Fehler auftritt, geben Sie bitte Ihre aktuelle Versionsnummer ({0}) und die Fehlerdetails in der E-Mail an den Autor an.",
+    "ContactAuthorNote":  "Wenn im aktuellen Programm ein Fehler auftritt, geben Sie bitte in der E-Mail an den Autor den vollständigen Softwarenamen, Ihre aktuelle Versionsnummer ({0}) und die Fehlerdetails an.",
     "AboutWindowTitle":  "Über Imvix Pro",
     "AboutVersionLabel":  "Version",
     "AboutTagline":  "Ein modernes Bildwerkzeug für professionelle Stapelabläufe und lokale KI-Workflows.",

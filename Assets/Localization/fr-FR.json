@@ -218,7 +218,7 @@
     "ContactAuthor":  "Contacter l\u0027auteur",
     "ContactAuthorEmailLabel":  "E-mail",
     "ContactAuthorCopy":  "Copier",
-    "ContactAuthorNote":  "Si vous rencontrez un bug dans la version actuelle, veuillez indiquer votre numéro de version actuel ({0}) ainsi que les détails du bug dans l’e-mail envoyé à l’auteur.",
+    "ContactAuthorNote":  "Si vous rencontrez un bug dans le logiciel actuel, veuillez indiquer dans l’e-mail envoyé à l’auteur le nom complet du logiciel, votre numéro de version actuel ({0}) ainsi que les détails du bug.",
     "AboutWindowTitle":  "À propos d\u0027Imvix",
     "AboutVersionLabel":  "Version",
     "AboutTagline":  "Un outil d’image moderne pour les workflows batch pro et l’IA locale.",

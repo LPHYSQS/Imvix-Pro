@@ -218,7 +218,7 @@
     "ContactAuthor":  "作者に連絡",
     "ContactAuthorEmailLabel":  "メール",
     "ContactAuthorCopy":  "コピー",
-    "ContactAuthorNote":  "現在のバージョンで不具合が発生した場合は、メールに現在のバージョン番号（{0}）と不具合の詳細を記載し、作者までお送りください。",
+    "ContactAuthorNote":  "現在のソフトで不具合が発生した場合は、メールにソフトの正式名称、現在のバージョン番号（{0}）、不具合の詳細を記載し、作者までお送りください。",
     "AboutWindowTitle":  "Imvix Pro について",
     "AboutVersionLabel":  "バージョン",
     "AboutTagline":  "プロ向け一括処理とローカルAI処理のためのモダンな画像ツール",
