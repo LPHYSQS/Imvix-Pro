@@ -211,6 +211,16 @@ namespace ImvixPro.ViewModels
 
         public string AboutSummaryText => T("AboutSummary");
 
+        public string AboutSupportSectionTitleText => T("AboutSupportSectionTitle");
+
+        public string AboutSupportSectionBodyText => T("AboutSupportSectionBody");
+
+        public string AboutSupportOpenSourceBadgeText => T("AboutSupportOpenSourceBadge");
+
+        public string AboutSupportFreeTrialBadgeText => T("AboutSupportFreeTrialBadge");
+
+        public string AboutSupportPaidSupportBadgeText => T("AboutSupportPaidSupportBadge");
+
         public string AboutFeatureSectionTitleText => T("AboutFeatureSectionTitle");
 
         public string AboutFeatureSectionBodyText => T("AboutFeatureSectionBody");

@@ -41,6 +41,21 @@
             <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
 
+        <Style Selector="Border.about-support-pill">
+            <Setter Property="Background" Value="{DynamicResource SurfaceSubtleBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="999" />
+            <Setter Property="Padding" Value="10,5" />
+            <Setter Property="Margin" Value="0,0,8,8" />
+        </Style>
+
+        <Style Selector="TextBlock.about-support-pill-text">
+            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+
         <Style Selector="Button.about-link-button">
             <Setter Property="MinWidth" Value="88" />
             <Setter Property="MinHeight" Value="32" />
@@ -106,6 +121,33 @@
 
         <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" AllowAutoHide="False">
             <StackPanel Spacing="12" Margin="0,0,4,0">
+                <Border Classes="about-card">
+                    <StackPanel Spacing="10">
+                        <StackPanel Classes="icon-label">
+                            <Border Classes="icon-badge">
+                                <Path Classes="line-icon" Data="{StaticResource IconHeartGeometry}" />
+                            </Border>
+                            <TextBlock Text="{Binding AboutSupportSectionTitleText}"
+                                       FontSize="17"
+                                       FontWeight="SemiBold"
+                                       TextWrapping="Wrap"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+                        <TextBlock Classes="about-section-body" Text="{Binding AboutSupportSectionBodyText}" />
+                        <WrapPanel>
+                            <Border Classes="about-support-pill">
+                                <TextBlock Classes="about-support-pill-text" Text="{Binding AboutSupportOpenSourceBadgeText}" />
+                            </Border>
+                            <Border Classes="about-support-pill">
+                                <TextBlock Classes="about-support-pill-text" Text="{Binding AboutSupportFreeTrialBadgeText}" />
+                            </Border>
+                            <Border Classes="about-support-pill">
+                                <TextBlock Classes="about-support-pill-text" Text="{Binding AboutSupportPaidSupportBadgeText}" />
+                            </Border>
+                        </WrapPanel>
+                    </StackPanel>
+                </Border>
+
                 <Border Classes="about-card">
                     <StackPanel Spacing="10">
                         <StackPanel Classes="icon-label">

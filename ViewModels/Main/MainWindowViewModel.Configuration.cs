@@ -446,6 +446,11 @@ namespace ImvixPro.ViewModels
             OnPropertyChanged(nameof(AboutVersionLabelText));
             OnPropertyChanged(nameof(AboutTaglineText));
             OnPropertyChanged(nameof(AboutSummaryText));
+            OnPropertyChanged(nameof(AboutSupportSectionTitleText));
+            OnPropertyChanged(nameof(AboutSupportSectionBodyText));
+            OnPropertyChanged(nameof(AboutSupportOpenSourceBadgeText));
+            OnPropertyChanged(nameof(AboutSupportFreeTrialBadgeText));
+            OnPropertyChanged(nameof(AboutSupportPaidSupportBadgeText));
             OnPropertyChanged(nameof(AboutFeatureSectionTitleText));
             OnPropertyChanged(nameof(AboutFeatureSectionBodyText));
             OnPropertyChanged(nameof(AboutTechSectionTitleText));
