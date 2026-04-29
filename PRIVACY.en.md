@@ -1,13 +1,13 @@
 # Privacy Policy for Imvix Pro
 
-**Last Updated: April 1, 2026**
+**Last Updated: April 29, 2026**
 **Applicable Product: Imvix Pro (Pro Edition)**
 
 ## 1. Core Statement
 
-Imvix Pro is a professional desktop application designed for advanced workflows and distributed as proprietary, closed-source software. It is not open-source software.
+Imvix Pro is a professional desktop application designed for advanced workflows. Its source code is publicly available and distributed under a custom license with commercial-use restrictions; no third party may use the project commercially without separate prior written authorization from the author or copyright holder.
 
-Importantly, **closed-source does not mean cloud-based processing**. Imvix Pro follows a **local-first** processing model: image conversion, PDF/PSD/GIF handling, OCR, QR code and barcode recognition, local AI enhancement, AI background removal, and AI erase/inpainting features are, by default, performed locally on your device. The software does not rely on uploading your files to developer-operated servers or third-party cloud services for processing.
+Importantly, **public source availability does not mean cloud-based processing**. Imvix Pro follows a **local-first** processing model: image conversion, PDF/PSD/GIF handling, OCR, QR code and barcode recognition, local AI enhancement, AI background removal, and AI erase/inpainting features are, by default, performed locally on your device. The software does not rely on uploading your files to developer-operated servers or third-party cloud services for processing.
 
 Unless you explicitly open an external link, contact us by email or other means, or your operating system or browser initiates a connection as a direct result of your action, Imvix Pro does not proactively transmit your file contents, processing results, or local configuration data to developer servers or third parties.
 
@@ -122,4 +122,4 @@ If you have questions about this Privacy Policy, or would like to discuss commer
 
 ---
 
-**Summary: Imvix Pro is a closed-source professional Pro edition desktop application. Its key data-processing features run locally by default, do not depend on cloud processing, and do not include built-in background telemetry uploads.**
+**Summary: Imvix Pro publicly provides its source code under a custom license with commercial-use restrictions. Its key data-processing features run locally by default, do not depend on cloud processing, and do not include built-in background telemetry uploads.**

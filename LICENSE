@@ -1,4 +1,4 @@
-Imvix Pro Source-Available License 1.1
+Imvix Pro Public Source License 1.2
 
 Copyright (c) 2026 Imvix. All rights reserved.
 
@@ -21,12 +21,13 @@ services, internal business operations connected to commercial activity, or as
 part of a product or service that is sold, licensed, hosted, or otherwise
 monetized.
 
-2. Non-Commercial License Grant
+2. Public Source License Grant
 
 Subject to the terms of this license, the Licensor grants you a worldwide,
-non-exclusive, non-transferable, revocable license to use, copy, modify, and
-distribute the Software, in source or binary form, solely for personal,
-educational, research, evaluation, and other non-commercial purposes.
+non-exclusive, non-transferable, revocable license to access, use, copy,
+modify, and distribute the Software, in source or binary form, solely for
+personal, educational, research, evaluation, open collaboration, and other
+non-commercial purposes.
 
 3. Conditions
 
@@ -41,7 +42,7 @@ If you use, copy, modify, or distribute the Software, you must:
 - not imply that the Licensor endorses you, your organization, or your use
   of the Software.
 
-4. Commercial Use Reserved to the Author
+4. Commercial Rights Reserved
 
 The Author and Licensor retain the unrestricted right to use, license, sell,
 host, distribute, and otherwise commercially exploit the Software.

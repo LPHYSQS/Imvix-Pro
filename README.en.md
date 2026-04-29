@@ -24,6 +24,14 @@
 
 > Imvix Pro is no longer just a simple “change the file extension” image converter. The current Pro build is closer to a desktop workstation for images, documents, icon assets, and automation workflows, with batch conversion, PDF and GIF expansion, PSD preview, offline AI features, intelligent preview tools, folder watch automation, and Windows integration.
 
+## Source Availability and Usage
+
+Imvix Pro now publishes its source code in this GitHub repository and is distributed under a custom license that includes commercial-use restrictions.
+
+- Personal development, study, research, evaluation, and other non-commercial modification or redistribution scenarios are permitted subject to compliance with [`LICENSE`](LICENSE)
+- Any individual or organization that intends to use this project in a commercial product, paid service, revenue-generating workflow, internal business operation, or any other commercial scenario must first obtain prior written authorization from the author or copyright holder
+- Commercial licensing contact email: `339106817@qq.com`
+
 ## Overview
 
 Imvix Pro is a Windows-first desktop conversion tool, and the current repository version is `2.0.2`.
@@ -237,10 +245,9 @@ Built-in UI resources are available for the following 12 languages (including `v
 
 ## License and Commercial Use
 
-This repository ships with a custom source-available license in [`LICENSE`](LICENSE).
+This project now publishes its source code in the repository. The applicable license terms are set out in [`LICENSE`](LICENSE).
 
-- The author / copyright holder retains the right to use, license, sell, distribute, and operate Imvix Pro commercially
-- Any other individual or organization must contact the author and obtain prior written permission before using the project in a commercial product, paid service, revenue-generating workflow, internal business operation, or any other commercial scenario
+- Subject to the license terms, you may inspect, use, modify, and redistribute the source code and binaries for non-commercial purposes
+- Public availability of the repository does not grant default commercial rights; any individual or organization other than the author / copyright holder must obtain prior written permission before using the project in a commercial product, paid service, revenue-generating workflow, internal business operation, or any other commercial scenario
 - Current commercial licensing contact email: `339106817@qq.com`
-- Because commercial use is restricted, this project is `source-available`, not an OSI-approved open source project
 - Bundled third-party runtimes, models, or assets may have their own license terms, and you must still comply with them
