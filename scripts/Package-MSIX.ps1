@@ -1,11 +1,11 @@
 param(
-    [string]$PublishDir = (Join-Path $PSScriptRoot "..\Imvix Pro-v2.0.1-win-x64"),
+    [string]$PublishDir = (Join-Path $PSScriptRoot "..\Imvix Pro-v2.0.2-win-x64"),
     [string]$PackageName = "D787ABC4.ImvixPro",
     [string]$Publisher = "CN=FA0F6293-29B7-43FB-AB9B-49D0FB5F198C",
     [string]$PublisherDisplayName = ([System.Net.WebUtility]::HtmlDecode("&#24050;&#36893;&#24773;&#27527;")),
     [string]$DisplayName = "Imvix Pro",
     [string]$Description = "Professional desktop conversion tool with local AI, OCR, QR, and barcode support.",
-    [string]$Version = "2.0.1.0",
+    [string]$Version = "2.0.2.0",
     [string]$Architecture = "x64",
     [string]$MinVersion = "10.0.17763.0",
     [string]$MaxVersionTested = "10.0.26100.0",
@@ -52,11 +52,21 @@ $workRoot = Join-Path $repoRoot "obj\msix-pack"
 $stageRoot = Join-Path $workRoot $packageBaseName
 $assetRoot = Join-Path $stageRoot "Assets"
 $outputPackage = Join-Path $publishDirPath ($packageBaseName + ".msix")
+$outputUpload = Join-Path $publishDirPath ($packageBaseName + ".msixupload")
+$outputUploadZip = Join-Path $publishDirPath ($packageBaseName + ".zip")
 $certFile = Join-Path $workRoot ($PackageName + "_SigningTemp.cer")
 $pfxFile = Join-Path $workRoot ($PackageName + "_SigningTemp.pfx")
 
 if (Test-Path $outputPackage) {
     Remove-Item $outputPackage -Force
+}
+
+if (Test-Path $outputUpload) {
+    Remove-Item $outputUpload -Force
+}
+
+if (Test-Path $outputUploadZip) {
+    Remove-Item $outputUploadZip -Force
 }
 
 if (Test-Path $stageRoot) {
@@ -270,9 +280,18 @@ if ($LASTEXITCODE -ne 0) {
     throw "signtool sign failed."
 }
 
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+Compress-Archive `
+    -LiteralPath $outputPackage `
+    -DestinationPath $outputUploadZip `
+    -CompressionLevel NoCompression `
+    -Force
+Move-Item -LiteralPath $outputUploadZip -Destination $outputUpload -Force
+
 $packageInfo = Get-Item $outputPackage
+$uploadInfo = Get-Item $outputUpload
 $sourceFiles = Get-ChildItem -LiteralPath $publishDirPath -Recurse -Force -File |
-    Where-Object { $_.FullName -ne $outputPackage }
+    Where-Object { $_.FullName -notin @($outputPackage, $outputUpload) }
 $sourceSizeBytes = ($sourceFiles | Measure-Object Length -Sum).Sum
 
 if (Test-Path $pfxFile) {
@@ -287,6 +306,9 @@ if (-not $KeepStage -and (Test-Path $stageRoot)) {
     Package = $packageInfo.FullName
     PackageSizeBytes = $packageInfo.Length
     PackageSizeGB = [math]::Round($packageInfo.Length / 1GB, 3)
+    UploadPackage = $uploadInfo.FullName
+    UploadPackageSizeBytes = $uploadInfo.Length
+    UploadPackageSizeGB = [math]::Round($uploadInfo.Length / 1GB, 3)
     SourceFileCount = $sourceFiles.Count
     SourceBytes = $sourceSizeBytes
     SourceSizeGB = [math]::Round($sourceSizeBytes / 1GB, 3)
