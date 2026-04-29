@@ -1301,6 +1301,7 @@ namespace ImvixPro.Views
                 if (visible)
                 {
                     OcrPanel.Width = GetTargetOcrPanelWidth();
+                    RequestRecognitionLayoutRefresh();
                 }
 
                 RefreshPreviewActionStates();
@@ -1355,6 +1356,11 @@ namespace ImvixPro.Views
             OcrPanel.Opacity = targetOpacity;
             OcrPanel.IsVisible = visible;
             _isOcrPanelVisible = visible;
+            if (visible)
+            {
+                RequestRecognitionLayoutRefresh();
+            }
+
             RefreshPreviewActionStates();
         }
 
@@ -1417,7 +1423,7 @@ namespace ImvixPro.Views
             if (_isOcrPanelVisible)
             {
                 OcrPanel.Width = GetTargetOcrPanelWidth();
-                RefreshRecognitionLayoutBounds();
+                RequestRecognitionLayoutRefresh();
             }
 
             UpdateAiCompareLayout();

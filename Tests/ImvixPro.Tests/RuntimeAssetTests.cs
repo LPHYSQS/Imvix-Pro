@@ -30,6 +30,8 @@ public sealed class RuntimeAssetTests
         Assert.True(File.Exists(Path.Combine(root, "RuntimeAssets", "Ocr", "Paddle", "v5", "ppocrv5_eslav_dict.txt")));
         Assert.True(File.Exists(Path.Combine(root, "RuntimeAssets", "Ocr", "Paddle", "v5", "arabic_PP-OCRv5_rec_mobile_infer.onnx")));
         Assert.True(File.Exists(Path.Combine(root, "RuntimeAssets", "Ocr", "Paddle", "v5", "ppocrv5_arabic_dict.txt")));
+        Assert.True(File.Exists(Path.Combine(root, "RuntimeAssets", "Ocr", "Paddle", "v5", "th_PP-OCRv5_mobile_rec_infer.onnx")));
+        Assert.True(File.Exists(Path.Combine(root, "RuntimeAssets", "Ocr", "Paddle", "v5", "ppocrv5_th_dict.txt")));
         Assert.True(File.Exists(Path.Combine(root, "RuntimeAssets", "Qr", "configs", "decoder.json")));
         Assert.True(File.Exists(Path.Combine(root, "RuntimeAssets", "Barcode", "configs", "decoder.json")));
         Assert.True(File.Exists(Path.Combine(root, "RuntimeAssets", "AI", "Matting", "models", "MODNet", "model.onnx")));

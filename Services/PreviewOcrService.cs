@@ -23,7 +23,9 @@ namespace ImvixPro.Services
         French,
         Italian,
         Russian,
-        Arabic
+        Arabic,
+        Thai,
+        Vietnamese
     }
 
     public sealed record PreviewOcrRecognition(
@@ -237,7 +239,9 @@ namespace ImvixPro.Services
             new(PreviewOcrLanguageOption.French),
             new(PreviewOcrLanguageOption.Italian),
             new(PreviewOcrLanguageOption.Russian),
-            new(PreviewOcrLanguageOption.Arabic)
+            new(PreviewOcrLanguageOption.Arabic),
+            new(PreviewOcrLanguageOption.Thai),
+            new(PreviewOcrLanguageOption.Vietnamese)
         ];
 
         private static readonly RapidOcrOptions DefaultOcrOptions = RapidOcrOptions.Default with
@@ -288,6 +292,13 @@ namespace ImvixPro.Services
             PreviewOcrAutoFamily.Arabic,
             DefaultOcrOptions);
 
+        private static readonly PreviewPaddleOcrProfile ThaiProfile = new(
+            "ppocrv5-thai",
+            "th_PP-OCRv5_mobile_rec_infer.onnx",
+            "ppocrv5_th_dict.txt",
+            PreviewOcrAutoFamily.Thai,
+            DefaultOcrOptions);
+
         private static readonly PreviewPaddleOcrProfile[] AutoProfiles =
         [
             ChineseProfile,
@@ -295,7 +306,8 @@ namespace ImvixPro.Services
             LatinProfile,
             KoreanProfile,
             EastSlavicProfile,
-            ArabicProfile
+            ArabicProfile,
+            ThaiProfile
         ];
 
         private static readonly IReadOnlyDictionary<PreviewOcrLanguageOption, PreviewPaddleOcrProfile> LanguageProfileMap =
@@ -310,7 +322,9 @@ namespace ImvixPro.Services
                 [PreviewOcrLanguageOption.French] = LatinProfile,
                 [PreviewOcrLanguageOption.Italian] = LatinProfile,
                 [PreviewOcrLanguageOption.Russian] = EastSlavicProfile,
-                [PreviewOcrLanguageOption.Arabic] = ArabicProfile
+                [PreviewOcrLanguageOption.Arabic] = ArabicProfile,
+                [PreviewOcrLanguageOption.Thai] = ThaiProfile,
+                [PreviewOcrLanguageOption.Vietnamese] = LatinProfile
             };
 
         private static readonly string[] RequiredOcrFiles =
@@ -328,7 +342,9 @@ namespace ImvixPro.Services
             "eslav_PP-OCRv5_rec_mobile_infer.onnx",
             "ppocrv5_eslav_dict.txt",
             "arabic_PP-OCRv5_rec_mobile_infer.onnx",
-            "ppocrv5_arabic_dict.txt"
+            "ppocrv5_arabic_dict.txt",
+            "th_PP-OCRv5_mobile_rec_infer.onnx",
+            "ppocrv5_th_dict.txt"
         ];
 
         private static readonly SemaphoreSlim EngineGate = new(1, 1);
@@ -638,6 +654,14 @@ namespace ImvixPro.Services
                         : -30d;
                     score -= stats.HanCount + stats.KanaCount + (stats.HangulCount * 1.5d) + (stats.CyrillicCount * 1.25d);
                     break;
+
+                case PreviewOcrAutoFamily.Thai:
+                    score += stats.ThaiCount > 0
+                        ? 32d + (stats.ThaiCount * 1.05d)
+                        : -30d;
+                    score -= stats.HanCount + stats.KanaCount + (stats.HangulCount * 1.5d) + (stats.CyrillicCount * 1.25d) + (stats.ArabicCount * 1.25d);
+                    score -= stats.LatinCount * 0.18d;
+                    break;
             }
 
             return score;
@@ -704,6 +728,9 @@ namespace ImvixPro.Services
                     case >= '\u0750' and <= '\u077F':
                     case >= '\u08A0' and <= '\u08FF':
                         stats.ArabicCount++;
+                        break;
+                    case >= '\u0E00' and <= '\u0E7F':
+                        stats.ThaiCount++;
                         break;
                     default:
                         if (IsLatinChar(ch))
@@ -811,6 +838,8 @@ namespace ImvixPro.Services
 
             public int ArabicCount { get; set; }
 
+            public int ThaiCount { get; set; }
+
             public int LatinCount { get; set; }
 
             public int LatinDiacriticCount { get; set; }
@@ -831,7 +860,8 @@ namespace ImvixPro.Services
             Latin,
             Korean,
             Cyrillic,
-            Arabic
+            Arabic,
+            Thai
         }
     }
 }

@@ -4,6 +4,7 @@ using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Styling;
+using Avalonia.Threading;
 using ImvixPro.Services;
 using System;
 using System.Collections.Generic;
@@ -36,6 +37,7 @@ namespace ImvixPro.Views
         private PreviewRecognitionMode _panelMode = PreviewRecognitionMode.Ocr;
         private CancellationTokenSource? _qrLinksAnimationCts;
         private bool _isQrLinksExpanded;
+        private bool _isRecognitionLayoutRefreshPending;
 
         private bool HasQrUrls => _qrUrlItems.Count > 0;
         private bool HasMultipleQrResults => _qrResultItems.Count > 1;
@@ -286,7 +288,7 @@ namespace ImvixPro.Views
                 QrLinksPanel.Opacity = 0d;
             }
 
-            RefreshRecognitionLayoutBounds();
+            RequestRecognitionLayoutRefresh();
         }
 
         private void ResetQrLinkState()
@@ -349,7 +351,7 @@ namespace ImvixPro.Views
                 }
             }
 
-            RefreshRecognitionLayoutBounds();
+            RequestRecognitionLayoutRefresh();
         }
 
         private void RefreshQrLinksView()
@@ -368,7 +370,7 @@ namespace ImvixPro.Views
                 QrLinksHost.Children.Add(BuildQrUrlRow(item, QrLinksHost.Children.Count + 1));
             }
 
-            RefreshRecognitionLayoutBounds();
+            RequestRecognitionLayoutRefresh();
         }
 
         private void RefreshRecognitionLayoutBounds()
@@ -412,6 +414,28 @@ namespace ImvixPro.Views
             {
                 QrLinksPanel.Height = Math.Min(QrLinksPanel.Height, GetTargetQrLinksPanelHeight());
             }
+        }
+
+        private void RequestRecognitionLayoutRefresh()
+        {
+            RefreshRecognitionLayoutBounds();
+
+            if (_isClosed || _isRecognitionLayoutRefreshPending)
+            {
+                return;
+            }
+
+            _isRecognitionLayoutRefreshPending = true;
+            Dispatcher.UIThread.Post(() =>
+            {
+                _isRecognitionLayoutRefreshPending = false;
+                if (_isClosed)
+                {
+                    return;
+                }
+
+                RefreshRecognitionLayoutBounds();
+            }, DispatcherPriority.Render);
         }
 
         private double GetRecognitionContentAvailableHeight()

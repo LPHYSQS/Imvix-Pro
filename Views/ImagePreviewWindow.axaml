@@ -521,7 +521,8 @@
                                                      TextWrapping="WrapWithOverflow"
                                                      ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                                                      ScrollViewer.VerticalScrollBarVisibility="Auto"
-                                                     VerticalAlignment="Stretch">
+                                                     VerticalAlignment="Top"
+                                                     VerticalContentAlignment="Top">
                                                 <TextBox.ContextMenu>
                                                     <ContextMenu>
                                                         <MenuItem x:Name="CopySelectionMenuItem"
@@ -535,6 +536,7 @@
                                             <Border x:Name="QrResultsSection"
                                                     IsVisible="False"
                                                     Margin="4"
+                                                    VerticalAlignment="Top"
                                                     Background="{DynamicResource SurfaceSubtleBrush}"
                                                     BorderBrush="{DynamicResource BorderBrush}"
                                                     BorderThickness="1"

@@ -2,7 +2,7 @@ param(
     [string]$PublishDir = (Join-Path $PSScriptRoot "..\Imvix Pro-v2.0.1-win-x64"),
     [string]$PackageName = "D787ABC4.ImvixPro",
     [string]$Publisher = "CN=FA0F6293-29B7-43FB-AB9B-49D0FB5F198C",
-    [string]$PublisherDisplayName = "&#24050;&#36893;&#24773;&#27527;",
+    [string]$PublisherDisplayName = ([System.Net.WebUtility]::HtmlDecode("&#24050;&#36893;&#24773;&#27527;")),
     [string]$DisplayName = "Imvix Pro",
     [string]$Description = "Professional desktop conversion tool with local AI, OCR, QR, and barcode support.",
     [string]$Version = "2.0.1.0",
@@ -10,6 +10,7 @@ param(
     [string]$MinVersion = "10.0.17763.0",
     [string]$MaxVersionTested = "10.0.26100.0",
     [string]$PackageFamilyName = "D787ABC4.ImvixPro_fsfgxngdrj64r",
+    [string[]]$SupportedLanguages = @(),
     [switch]$KeepStage
 )
 
@@ -18,6 +19,7 @@ $ErrorActionPreference = "Stop"
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 $publishDirPath = (Resolve-Path $PublishDir).Path
 $logoPath = Join-Path $repoRoot "Assets\logo.png"
+$localizationDir = Join-Path $repoRoot "Assets\Localization"
 
 if (-not (Test-Path $publishDirPath -PathType Container)) {
     throw "Publish directory not found: $PublishDir"
@@ -25,6 +27,10 @@ if (-not (Test-Path $publishDirPath -PathType Container)) {
 
 if (-not (Test-Path $logoPath -PathType Leaf)) {
     throw "Base logo not found: $logoPath"
+}
+
+if (-not (Test-Path (Join-Path $publishDirPath "Imvix Pro.exe") -PathType Leaf)) {
+    throw "Publish directory is missing Imvix Pro.exe: $publishDirPath"
 }
 
 $makeAppxPath = "C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x64\makeappx.exe"
@@ -60,6 +66,63 @@ if (Test-Path $stageRoot) {
 New-Item -ItemType Directory -Force -Path $workRoot | Out-Null
 Copy-Item -LiteralPath $publishDirPath -Destination $stageRoot -Recurse -Force
 New-Item -ItemType Directory -Force -Path $assetRoot | Out-Null
+
+$languageAliasMap = @{
+    "zh-CN" = "zh-Hans"
+    "zh-SG" = "zh-Hans"
+    "zh-TW" = "zh-Hant"
+    "zh-HK" = "zh-Hant"
+    "zh-MO" = "zh-Hant"
+}
+
+if ($SupportedLanguages.Count -eq 0) {
+    if (Test-Path $localizationDir -PathType Container) {
+        $SupportedLanguages = Get-ChildItem -LiteralPath $localizationDir -Filter "*.json" -File |
+            Sort-Object Name |
+            ForEach-Object { [System.IO.Path]::GetFileNameWithoutExtension($_.Name) }
+    }
+    else {
+        $SupportedLanguages = @(
+            "ar-SA",
+            "de-DE",
+            "en-US",
+            "fr-FR",
+            "it-IT",
+            "ja-JP",
+            "ko-KR",
+            "ru-RU",
+            "th-TH",
+            "vi-VN",
+            "zh-CN",
+            "zh-TW"
+        )
+    }
+}
+
+$normalizedLanguages = [System.Collections.Generic.List[string]]::new()
+foreach ($language in $SupportedLanguages) {
+    if ([string]::IsNullOrWhiteSpace($language)) {
+        continue
+    }
+
+    $trimmedLanguage = $language.Trim()
+    $manifestLanguage = if ($languageAliasMap.ContainsKey($trimmedLanguage)) {
+        $languageAliasMap[$trimmedLanguage]
+    }
+    else {
+        $trimmedLanguage
+    }
+
+    if (-not $normalizedLanguages.Contains($manifestLanguage)) {
+        [void]$normalizedLanguages.Add($manifestLanguage)
+    }
+}
+
+if ($normalizedLanguages.Count -eq 0) {
+    throw "No supported languages were resolved for the package manifest."
+}
+
+$resourceLines = ($normalizedLanguages | ForEach-Object { "    <Resource Language=""$_"" />" }) -join [Environment]::NewLine
 
 Add-Type -AssemblyName System.Drawing
 
@@ -151,7 +214,7 @@ $appxManifest = @"
       MaxVersionTested="$MaxVersionTested" />
   </Dependencies>
   <Resources>
-    <Resource Language="en-us" />
+${resourceLines}
   </Resources>
   <Applications>
     <Application
@@ -228,4 +291,5 @@ if (-not $KeepStage -and (Test-Path $stageRoot)) {
     SourceBytes = $sourceSizeBytes
     SourceSizeGB = [math]::Round($sourceSizeBytes / 1GB, 3)
     Certificate = $certFile
+    SupportedLanguages = ($normalizedLanguages -join ", ")
 } | Format-List
