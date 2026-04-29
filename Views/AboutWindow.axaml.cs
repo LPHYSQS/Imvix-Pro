@@ -9,7 +9,7 @@ namespace ImvixPro.Views
     public partial class AboutWindow : Window
     {
         private const string OfficialWebsiteUrl = "https://lphysqs.github.io/ImvixWeb/";
-        private const string RepositoryUrl = "https://github.com/LPHYSQS/Imvix";
+        private const string RepositoryUrl = "https://github.com/LPHYSQS/Imvix-Pro";
 
         public AboutWindow()
         {
