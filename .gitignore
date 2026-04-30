@@ -20,6 +20,7 @@ publish/
 # Local SDK / package / runtime state
 .appdata/
 .dotnet/
+.dotnet-cli/
 .dotnet-home/
 .localappdata/
 .nuget/
@@ -29,6 +30,7 @@ publish/
 .publish-appdata/
 .publish-localappdata/
 .sandbox-profile/
+.userprofile/
 AppData/
 LocalLow/
 
